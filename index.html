@@ -38,6 +38,7 @@
     .tournament-lockup{display:flex;align-items:center;gap:15px;min-height:104px;padding:14px 18px;border:1px solid var(--line);
       border-radius:18px;background:linear-gradient(120deg,rgba(255,255,255,.045),rgba(96,237,181,.035));color:var(--text);text-decoration:none;transition:.16s ease}
     .tournament-lockup:hover{border-color:#3c6a57;background:linear-gradient(120deg,rgba(255,255,255,.065),rgba(96,237,181,.055))}
+    .tournament-lockup:after{content:"↗";align-self:flex-start;margin-left:auto;color:var(--muted);font-size:11px}
     .tournament-lockup:link,.tournament-lockup:visited,.tournament-lockup:hover,.tournament-lockup:active{color:var(--text);text-decoration:none}
     .tournament-lockup img{display:block;width:52px;height:78px;object-fit:contain}
     .tournament-lockup small{display:block;color:var(--lime);font-size:8px;font-weight:900;letter-spacing:.16em}
@@ -63,8 +64,8 @@
     .view{display:none;padding:42px 0 80px}.view.active{display:block}
     .section-head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:24px}
     .section-head h2{margin:0 0 7px;font-size:34px;letter-spacing:-.04em}.section-head p{margin:0;color:var(--muted);font-size:13px}
-    .legend{display:flex;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:10px}
-    .key{display:inline-flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+    .legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:10px}
+    .key{display:inline-flex;align-items:center;gap:6px;padding:0;background:transparent;cursor:default}
     .key:before{content:"";display:inline-block;width:15px;height:9px;border-radius:3px}
     .key.official:before{background:var(--mint)}
     .key.projected:before{border:1px dashed var(--orange);background:rgba(255,154,85,.08)}
@@ -106,8 +107,8 @@
     .group-table-head,.team-row{display:grid;grid-template-columns:22px minmax(90px,1fr) 28px 30px 35px 52px;gap:6px;align-items:center}
     .group-table-head{padding:3px 3px 6px;color:#5f7d70;font-size:7px;text-transform:uppercase}
     .group-table-head span:not(:nth-child(2)){text-align:right}
-    .team-row{position:relative;min-height:48px;padding:0 3px;border-top:1px solid rgba(255,255,255,.055);font-size:10px;transition:.18s}
-    .team-row:hover{background:rgba(255,255,255,.025)}.team-row .pos{display:grid;place-items:center;width:18px;height:18px;
+    .team-row{position:relative;min-height:48px;padding:0 3px;border-top:1px solid rgba(255,255,255,.055);font-size:10px;cursor:default}
+    .team-row .pos{display:grid;place-items:center;width:18px;height:18px;
       border-radius:50%;color:var(--muted);font-size:8px}.team-row.direct .pos{background:var(--lime);color:var(--ink);font-weight:900}
     .team-row.third .pos{border:1px solid rgba(255,154,85,.5);color:var(--orange)}
     .team-row.eliminated{opacity:.55}.team-row.eliminated .pos{border:1px solid #6f4b48;color:#c17b72}
@@ -189,7 +190,7 @@
 <div class="shell">
   <header>
     <div class="brand">
-      <a class="logo" href="#overview" aria-label="返回形势速览">26</a>
+      <div class="logo" aria-hidden="true">26</div>
       <div><b>淘汰赛雷达</b><small>WORLD CUP FORECAST</small></div>
     </div>
     <div class="source-tools">
@@ -204,7 +205,7 @@
         <p class="lead">实时追踪小组赛形势与官方晋级结果，并结合最新积分、World Football Elo 和蒙特卡洛模拟，推演最可能的淘汰赛对阵与冠军路径。</p>
       </div>
       <div class="hero-side">
-        <a class="tournament-lockup" href="https://en.wikipedia.org/wiki/File:2026_FIFA_World_Cup_emblem.svg" target="_blank" rel="noreferrer">
+        <a class="tournament-lockup" href="https://en.wikipedia.org/wiki/File:2026_FIFA_World_Cup_emblem.svg" target="_blank" rel="noreferrer" aria-label="查看2026世界杯官方徽标来源">
           <img src="https://upload.wikimedia.org/wikipedia/en/thumb/1/17/2026_FIFA_World_Cup_emblem.svg/120px-2026_FIFA_World_Cup_emblem.svg.png" alt="2026 FIFA World Cup emblem">
           <div><small>OFFICIAL TOURNAMENT IDENTITY</small><b>FIFA World Cup 2026</b><span>Canada · Mexico · United States</span></div>
         </a>
@@ -223,7 +224,7 @@
         <button class="tab" data-view="bracketView" aria-pressed="false">淘汰赛树</button>
       </div>
       <div class="scenario"><span>预测剧本</span><div>
-        <button class="active" data-mode="base">主预测</button><button data-mode="upset">冷门线</button>
+        <button class="active" data-mode="base" aria-pressed="true">主预测</button><button data-mode="upset" aria-pressed="false">冷门线</button>
       </div></div>
     </nav>
     <p class="mobile-guide">点击上方页签切换内容 · 点击右上角“刷新数据”立即同步</p>
@@ -778,7 +779,7 @@ async function syncLatest(){
   }finally{btn.disabled=false}
 }
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>{x.classList.remove("active");x.setAttribute("aria-pressed","false")});document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));b.classList.add("active");b.setAttribute("aria-pressed","true");document.querySelector("#"+b.dataset.view).classList.add("active");if(b.dataset.view==="bracketView")requestAnimationFrame(drawRoutes)});
-document.querySelectorAll(".scenario button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".scenario button").forEach(x=>x.classList.remove("active"));b.classList.add("active");renderBracket(b.dataset.mode);document.querySelector('[data-view="bracketView"]').click()});
+document.querySelectorAll(".scenario button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".scenario button").forEach(x=>{x.classList.remove("active");x.setAttribute("aria-pressed","false")});b.classList.add("active");b.setAttribute("aria-pressed","true");renderBracket(b.dataset.mode);document.querySelector('[data-view="bracketView"]').click()});
 document.querySelector("#syncBtn").addEventListener("click",syncLatest);
 window.addEventListener("resize",()=>requestAnimationFrame(drawRoutes));
 renderBracket();
