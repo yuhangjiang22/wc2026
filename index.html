@@ -94,6 +94,23 @@
     .board-row:first-child{border-top:0}.board-rank{color:var(--muted);font-variant-numeric:tabular-nums}
     .board-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.board-name small{margin-left:5px;color:var(--muted);font-size:7px}
     .board-value{color:var(--lime);font-size:14px;font-weight:950}.board-row.top .board-rank{color:var(--lime);font-weight:900}
+    .match-center{margin:0 0 30px}.match-center-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:12px}
+    .match-center-head h2{margin:0 0 5px;font-size:25px;letter-spacing:-.03em}.match-center-head p{margin:0;color:var(--muted);font-size:11px}
+    .match-center-head small{color:var(--muted);font-size:9px}.match-strip{display:grid;grid-template-columns:1.05fr 1.55fr;gap:12px}
+    .live-card,.upcoming-panel{border:1px solid var(--line);border-radius:18px;background:rgba(10,30,23,.78);overflow:hidden}
+    .live-card{min-height:188px;padding:18px;background:linear-gradient(135deg,rgba(96,237,181,.12),rgba(10,30,23,.82))}
+    .match-kicker{display:flex;justify-content:space-between;align-items:center;gap:8px;color:var(--muted);font-size:9px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
+    .match-state{padding:4px 7px;border-radius:999px;background:rgba(217,255,99,.12);color:var(--lime);letter-spacing:0;text-transform:none}
+    .match-state.live{background:rgba(96,237,181,.16);color:var(--mint)}.match-state.final{background:rgba(255,255,255,.06);color:var(--muted)}
+    .scoreline{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;margin:22px 0}
+    .score-team{min-width:0}.score-team b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:18px}.score-team.away{text-align:right}
+    .score-team small{display:block;margin-top:4px;color:var(--muted);font-size:9px}.score{font-size:32px;font-weight:950;letter-spacing:-.05em;color:var(--lime)}
+    .match-meta{display:grid;gap:6px;color:var(--muted);font-size:10px;line-height:1.45}.match-meta b{color:var(--text)}
+    .upcoming-panel{padding:13px}.upcoming-list{display:grid;gap:8px}
+    .fixture{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:10px;align-items:center;min-height:54px;padding:10px;border:1px solid rgba(255,255,255,.055);border-radius:12px;background:rgba(255,255,255,.025)}
+    .fixture-time{color:var(--lime);font-size:10px;font-weight:900}.fixture-main{min-width:0}.fixture-main b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
+    .fixture-main small{display:block;margin-top:3px;color:var(--muted);font-size:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .fixture-weather{justify-self:end;color:var(--muted);font-size:9px;text-align:right}.empty-state{padding:22px;color:var(--muted);font-size:11px;line-height:1.6}
 
     .groups{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.group{overflow:hidden;border:1px solid #23483a;
       border-radius:12px;background:rgba(10,30,23,.72);box-shadow:0 8px 28px rgba(0,0,0,.12)}
@@ -178,7 +195,8 @@
       .nav{align-items:stretch;flex-direction:column;gap:8px}.tabs .tab{flex:1;min-height:44px;padding:9px 4px}.nav-note{text-align:center}
       .mobile-guide{display:block}
       .view{padding-top:30px}.section-head{align-items:flex-start;flex-direction:column}.legend{flex-wrap:wrap}
-      .insights,.groups,.third-grid,.group-insights,.leaderboards{grid-template-columns:1fr}.group-insight{border-right:0;border-bottom:1px solid #244638}
+      .insights,.groups,.third-grid,.group-insights,.leaderboards,.match-strip{grid-template-columns:1fr}.group-insight{border-right:0;border-bottom:1px solid #244638}
+      .fixture{grid-template-columns:58px minmax(0,1fr)}.fixture-weather{grid-column:2;justify-self:start;text-align:left}
       .group-insight:last-child{border-bottom:0}.insight:first-child{grid-column:auto}.third-grid{gap:7px}
       .third-card{display:grid;grid-template-columns:1fr auto;align-items:center}.third-card .prob{grid-column:1/-1}
       .section-head h2{font-size:29px}}
@@ -230,6 +248,13 @@
         <div class="legend"><span class="key official">官方确定槽位</span><span class="key projected">预测对手</span><span class="key advance">预测晋级</span></div>
       </div>
       <div class="notice"><b>官方确定状态</b><span id="officialSummary">同步后自动读取已确定的晋级球队与淘汰赛槽位。</span></div>
+      <section class="match-center">
+        <div class="match-center-head"><div><h2>比赛中心</h2><p>如果现在有比赛，会优先显示实时比分；否则显示今日/下一批 upcoming。</p></div><small id="matchUpdated">等待同步</small></div>
+        <div class="match-strip">
+          <article class="live-card" id="liveMatchCard"><div class="empty-state">正在读取比赛时间、球场和比分…</div></article>
+          <article class="upcoming-panel"><div class="board-head"><b>🗓️ Upcoming 对阵</b><span>时间 / 球场 / 天气</span></div><div class="upcoming-list" id="upcomingList"></div></article>
+        </div>
+      </section>
       <div class="insights">
         <article class="insight"><small>官方事实</small><h3 id="officialFactTitle">等待同步官方槽位</h3><p id="officialFactBody">同步后自动读取淘汰赛页面里已经确定的球队槽位。</p></article>
         <article class="insight"><small>Elo 模型判断</small><h3 id="championHeadline">正在计算冠军主路径</h3><p id="championPath">根据实时 Elo 和最新淘汰赛组合自动更新。</p></article>
@@ -279,8 +304,9 @@ let groups=[
 ["L",[["英格兰","🏴",1,3,2],["加纳","🇬🇭",1,3,1],["巴拿马","🇵🇦",1,0,-1],["克罗地亚","🇭🇷",1,0,-2]]]
 ];
 let third=[];
-let remainingFixtures={},completedResults={},qualifyProb={},simulationCount=0,eloSourceTime="实时榜单",scorerLeaders=[];
+let remainingFixtures={},completedResults={},qualifyProb={},simulationCount=0,eloSourceTime="实时榜单",scorerLeaders=[],matchCards=[];
 let lastSyncLabel="等待同步",lastSourceStamp="",lastOfficialSlotCount=0,lastCompleteMatchCount=0,liveDataReady=false;
+const weatherCache=new Map();
 const flag=Object.fromEntries(groups.flatMap(g=>g[1].map(t=>[t[0],t[1]])));
 function flagIcon(name,fallback=flag[name]||"🌐"){
   if(name==="英格兰")return '<span class="flag-emoji" title="英格兰">&#x1F3F4;&#xE0067;&#xE0062;&#xE0065;&#xE006E;&#xE0067;&#xE007F;</span>';
@@ -381,6 +407,136 @@ function renderLeaderboards(){
   document.querySelector("#scorerBoard").innerHTML=boardRows(scorerLeaders,"");
   document.querySelector("#attackBoard").innerHTML=boardRows(attack,"");
   document.querySelector("#defenceBoard").innerHTML=boardRows(defence,"");
+}
+function parseKickoff(dateText,timeText){
+  const date=(dateText.match(/\d{4}-\d{2}-\d{2}/)||[])[0];
+  if(!date)return null;
+  const clean=timeText.replace(/\u00a0/g," ").replace(/−/g,"-");
+  const tm=clean.match(/(\d{1,2}):(\d{2})\s*(a\.m\.|p\.m\.)?/i);
+  const off=clean.match(/UTC\s*([+-])\s*(\d{1,2})(?::?(\d{2}))?/i);
+  if(!tm||!off)return new Date(date+"T12:00:00Z");
+  let h=Number(tm[1]),m=Number(tm[2]);
+  const ap=(tm[3]||"").toLowerCase();
+  if(ap.includes("p")&&h<12)h+=12;
+  if(ap.includes("a")&&h===12)h=0;
+  const sign=off[1]==="-"?-1:1,oh=Number(off[2]),om=Number(off[3]||0);
+  const [year,month,day]=date.split("-").map(Number);
+  const utc=Date.UTC(year,month-1,day,h,m)-sign*(oh*60+om)*60000;
+  return new Date(utc);
+}
+function parseLocalHour(timeText){
+  const clean=timeText.replace(/\u00a0/g," ");
+  const tm=clean.match(/(\d{1,2}):(\d{2})\s*(a\.m\.|p\.m\.)?/i);
+  if(!tm)return 12;
+  let h=Number(tm[1]);const ap=(tm[3]||"").toLowerCase();
+  if(ap.includes("p")&&h<12)h+=12;
+  if(ap.includes("a")&&h===12)h=0;
+  return h;
+}
+function parseVenue(text){
+  const main=text.replace(/\s+/g," ").split(/Attendance:|Referee:/)[0].trim().replace(/\s+,/g,",");
+  const parts=main.split(",").map(x=>x.trim()).filter(Boolean);
+  return {stadium:parts[0]||"待定球场",city:parts[1]||parts[0]||"待定城市"};
+}
+function matchStatus(match,now=new Date()){
+  if(match.scoreText&&/^\d+[–-]\d+$/.test(match.scoreText))return "final";
+  if(!match.kickoff)return "upcoming";
+  const mins=(now-match.kickoff)/60000;
+  if(mins>=-10&&mins<=130)return "live";
+  if(mins>130)return "final";
+  return "upcoming";
+}
+function parseMatchCards(doc){
+  return Array.from(doc.querySelectorAll(".footballbox")).map((box,i)=>{
+    const homeEn=cleanTeamName(box.querySelector(".fhome")?.textContent||"");
+    const awayEn=cleanTeamName(box.querySelector(".faway")?.textContent||"");
+    const scoreText=(box.querySelector(".fscore")?.textContent||"").replace(/\s+/g,"").trim();
+    const dateText=box.querySelector(".fdate")?.textContent||"";
+    const timeText=box.querySelector(".ftime")?.textContent||"";
+    const venue=parseVenue(box.querySelector(".fright")?.textContent||"");
+    const kickoff=parseKickoff(dateText,timeText);
+    return {
+      id:`match-${i}`,home:teamZh[homeEn]||homeEn||"待定",away:teamZh[awayEn]||awayEn||"待定",
+      homeFlag:flag[teamZh[homeEn]||homeEn]||"🌐",awayFlag:flag[teamZh[awayEn]||awayEn]||"🌐",
+      scoreText,dateText,timeText,kickoff,localHour:parseLocalHour(timeText),...venue,status:"upcoming",weather:"天气加载中"
+    };
+  }).filter(x=>x.home!=="待定"&&x.away!=="待定").map(x=>({...x,status:matchStatus(x)})).sort((a,b)=>(a.kickoff||0)-(b.kickoff||0));
+}
+function fmtMatchTime(d){
+  if(!d)return "时间待定";
+  return new Intl.DateTimeFormat("zh-CN",{weekday:"short",month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}).format(d);
+}
+function shortTime(d){
+  if(!d)return "TBD";
+  return new Intl.DateTimeFormat("zh-CN",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}).format(d);
+}
+function scoreDisplay(m){
+  return /^\d+[–-]\d+$/.test(m.scoreText)?m.scoreText.replace("-", "–"):"vs";
+}
+function renderMatchCenter(){
+  const now=new Date();
+  matchCards=matchCards.map(m=>({...m,status:matchStatus(m,now)}));
+  const live=matchCards.filter(m=>m.status==="live").sort((a,b)=>Math.abs(now-a.kickoff)-Math.abs(now-b.kickoff))[0];
+  const today=matchCards.filter(m=>m.kickoff&&m.kickoff.toDateString()===now.toDateString()).sort((a,b)=>a.kickoff-b.kickoff);
+  const next=matchCards.filter(m=>m.kickoff&&m.kickoff>new Date(now.getTime()-130*60000)).sort((a,b)=>a.kickoff-b.kickoff);
+  const featured=live||today.find(m=>m.status!=="final")||next[0]||matchCards.at(-1);
+  const statusLabel={live:"可能正在进行",final:"已完赛",upcoming:"未开赛"}[featured?.status]||"等待同步";
+  document.querySelector("#liveMatchCard").innerHTML=featured?`
+    <div class="match-kicker"><span>${fmtMatchTime(featured.kickoff)}</span><span class="match-state ${featured.status}">${statusLabel}</span></div>
+    <div class="scoreline">
+      <div class="score-team"><b>${flagIcon(featured.home,featured.homeFlag)} ${featured.home}</b><small>主队</small></div>
+      <div class="score">${scoreDisplay(featured)}</div>
+      <div class="score-team away"><b>${flagIcon(featured.away,featured.awayFlag)} ${featured.away}</b><small>客队</small></div>
+    </div>
+    <div class="match-meta">
+      <span>📍 <b>${featured.stadium}</b> · ${featured.city}</span>
+      <span>🌤️ <span data-weather="${featured.id}">${featured.weather||"天气加载中"}</span></span>
+      <span>数据来自 Wikipedia；实时比分取决于源页面更新速度。</span>
+    </div>`:'<div class="empty-state">暂时没有读取到比赛卡。</div>';
+  const upcoming=(next.filter(m=>m!==featured).slice(0,6));
+  document.querySelector("#upcomingList").innerHTML=upcoming.length?upcoming.map(m=>`
+    <div class="fixture">
+      <div class="fixture-time">${shortTime(m.kickoff)}</div>
+      <div class="fixture-main"><b>${flagIcon(m.home,m.homeFlag)} ${m.home} vs ${flagIcon(m.away,m.awayFlag)} ${m.away}</b><small>${m.stadium} · ${m.city}</small></div>
+      <div class="fixture-weather" data-weather="${m.id}">${m.weather||"天气加载中"}</div>
+    </div>`).join(""):'<div class="empty-state">没有更多 upcoming；点击刷新重新同步。</div>';
+}
+const hostCityCoords={
+  "Mexico City":[19.4326,-99.1332],"Zapopan":[20.7214,-103.3918],"Guadalajara":[20.6597,-103.3496],"Monterrey":[25.6866,-100.3161],
+  "Atlanta":[33.749,-84.388],"Boston":[42.3601,-71.0589],"Foxborough":[42.0654,-71.2478],"Dallas":[32.7767,-96.797],"Arlington":[32.7357,-97.1081],
+  "Houston":[29.7604,-95.3698],"Kansas City":[39.0997,-94.5786],"Los Angeles":[34.0522,-118.2437],"Inglewood":[33.9533,-118.339],
+  "Miami":[25.7617,-80.1918],"Miami Gardens":[25.942,-80.2456],"New York City":[40.7128,-74.006],"East Rutherford":[40.8135,-74.0745],
+  "Philadelphia":[39.9526,-75.1652],"San Francisco":[37.7749,-122.4194],"Santa Clara":[37.3541,-121.9552],"Seattle":[47.6062,-122.3321],
+  "Toronto":[43.6532,-79.3832],"Vancouver":[49.2827,-123.1207]
+};
+function weatherText(code){
+  if(code===0)return "晴"; if([1,2].includes(code))return "少云"; if(code===3)return "阴";
+  if([45,48].includes(code))return "雾"; if(code>=51&&code<=67)return "雨"; if(code>=71&&code<=77)return "雪";
+  if(code>=80&&code<=82)return "阵雨"; if(code>=95)return "雷雨"; return "天气";
+}
+async function enrichWeather(){
+  const now=new Date();
+  const targets=matchCards.filter(m=>m.city&&m.kickoff)
+    .sort((a,b)=>Math.abs(a.kickoff-now)-Math.abs(b.kickoff-now))
+    .slice(0,18);
+  await Promise.all(targets.map(async m=>{
+    const key=`${m.city}|${m.kickoff.toISOString().slice(0,10)}`;
+    try{
+      if(weatherCache.has(key)){m.weather=weatherCache.get(key);return}
+      const coords=hostCityCoords[m.city]; if(!coords){m.weather="天气待查";return}
+      const day=m.kickoff.toISOString().slice(0,10);
+      const url=`https://api.open-meteo.com/v1/forecast?latitude=${coords[0]}&longitude=${coords[1]}&hourly=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=auto&start_date=${day}&end_date=${day}`;
+      const data=await Promise.race([
+        fetch(url,{cache:"force-cache"}).then(r=>r.json()),
+        new Promise((_,reject)=>setTimeout(()=>reject(new Error("weather timeout")),4000))
+      ]);
+      const times=data.hourly?.time||[],temps=data.hourly?.temperature_2m||[],codes=data.hourly?.weather_code||[];
+      const targetHour=m.localHour??12,idx=times.reduce((best,t,i)=>Math.abs(Number(t.slice(11,13))-targetHour)<Math.abs(Number(times[best].slice(11,13))-targetHour)?i:best,0);
+      const value=Number.isFinite(temps[idx])?`${Math.round(temps[idx])}°F · ${weatherText(codes[idx])}`:"天气待查";
+      weatherCache.set(key,value);m.weather=value;
+    }catch(e){m.weather="天气暂不可用"}
+  }));
+  renderMatchCenter();
 }
 
 function teamRow(name,winner,type="",matchNo=""){
@@ -785,6 +941,9 @@ async function syncLatest(){
     if(fresh.length!==12)throw new Error("只读取到 "+fresh.length+" 个小组");
     groups=fresh.sort((a,b)=>a[0].localeCompare(b[0]));remainingFixtures=freshFixtures;completedResults=freshResults;
     scorerLeaders=parseScorers(doc);
+    matchCards=parseMatchCards(doc);
+    renderMatchCenter();
+    enrichWeather();
     const official=parseOfficial(koDoc);
     applyOfficialStatus(official);
     runMonteCarlo(30000,Number(data.parse.revid)||20260623);
@@ -795,6 +954,7 @@ async function syncLatest(){
     liveDataReady=true;
     updateLiveCopy();
     document.querySelector("#statsUpdated").textContent=`截至 ${now} · 已赛数据`;
+    document.querySelector("#matchUpdated").textContent=`截至 ${now}`;
     btn.classList.add("live");text.textContent=`↻ 刷新数据 · ${now}`;btn.title=`点击立即刷新；积分 ${data.parse.revid} · 淘汰赛 ${koData.parse.revid} · Elo ${eloSourceTime}`;
   }catch(error){
     lastSyncLabel="同步失败 · 显示离线兜底";
