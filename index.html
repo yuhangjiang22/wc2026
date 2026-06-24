@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>2026 世界杯淘汰赛形势</title>
-  <meta name="description" content="基于 2026 年 6 月 21 日赛况的世界杯淘汰赛预测">
+  <meta name="description" content="实时同步赛况、Elo 与蒙特卡洛模型的 2026 世界杯淘汰赛预测">
   <style>
     :root{
       --bg:#07130f;--surface:#0d211a;--surface2:#112b22;--line:#244337;
@@ -200,7 +200,7 @@
   </header>
   <main>
     <section class="hero">
-      <div><div class="eyebrow">2026 FIFA WORLD CUP · 6月22日更新</div>
+      <div><div class="eyebrow" id="heroEyebrow">2026 FIFA WORLD CUP · 正在同步</div>
         <h1>淘汰赛<br><span>形势推演</span></h1>
         <p class="lead">实时追踪小组赛形势与官方晋级结果，并结合最新积分、World Football Elo 和蒙特卡洛模拟，推演最可能的淘汰赛对阵与冠军路径。</p>
       </div>
@@ -210,9 +210,9 @@
           <div><small>OFFICIAL TOURNAMENT IDENTITY</small><b>FIFA World Cup 2026</b><span>Canada · Mexico · United States</span></div>
         </a>
         <div class="summary">
-          <div class="metric primary"><b>3</b><span>确定球队槽位</span></div>
-          <div class="metric"><b>29</b><span>预测球队位置</span></div>
-          <div class="metric"><b>0</b><span>完整确定对阵</span></div>
+          <div class="metric primary"><b>—</b><span>确定球队槽位</span></div>
+          <div class="metric"><b>—</b><span>预测球队位置</span></div>
+          <div class="metric"><b>—</b><span>完整确定对阵</span></div>
         </div>
       </div>
     </section>
@@ -235,9 +235,9 @@
       </div>
       <div class="notice"><b>官方确定状态</b><span id="officialSummary">同步后自动读取已确定的晋级球队与淘汰赛槽位。</span></div>
       <div class="insights">
-        <article class="insight"><small>官方事实</small><h3>德国、墨西哥、美国<br>各自锁定一个 32 强槽位</h3><p>锁定的是球队所在比赛，不是完整对阵。对手范围已知，但具体球队尚未确定。</p></article>
+        <article class="insight"><small>官方事实</small><h3 id="officialFactTitle">等待同步官方槽位</h3><p id="officialFactBody">同步后自动读取淘汰赛页面里已经确定的球队槽位。</p></article>
         <article class="insight"><small>Elo 模型判断</small><h3 id="championHeadline">正在计算冠军主路径</h3><p id="championPath">根据实时 Elo 和最新淘汰赛组合自动更新。</p></article>
-        <article class="insight"><small>最大变量</small><h3>8 个最佳第三名</h3><p>第三名组合会改变八场 32 强比赛。苏格兰、瑞典和巴拉圭暂时最占优势。</p></article>
+        <article class="insight"><small>最大变量</small><h3 id="variableTitle">等待计算最佳第三名</h3><p id="variableBody">同步积分并完成模拟后，自动更新最可能进入 32 强的第三名球队。</p></article>
       </div>
       <div class="third-grid" id="thirdGrid"></div>
       <section class="stats-section">
@@ -260,12 +260,12 @@
       <div class="section-head"><div><h2>最可能的淘汰赛路径</h2><p>每次同步后自动重算小组名次、最佳第三名组合、32 强配对及后续晋级路径。</p></div>
         <div class="legend"><span class="key official">薄荷绿：唯一确定</span><span class="key projected">橙虚线：所有预测球队</span><span class="key advance">黄左线：预测晋级</span><span class="key route">连线：预测路径</span></div>
       </div>
-      <div class="notice"><b>实时模型</b><span>薄荷绿槽位来自官方淘汰赛页面；橙色虚线球队根据最新积分和 495 种第三名配对组合自动生成；黄色左边线为实力模型预测晋级。每 2 分钟重新计算。</span></div>
+      <div class="notice"><b>实时模型</b><span id="bracketModelNote">等待同步后自动生成 32 强对阵、第三名映射和后续晋级路径。</span></div>
       <p class="bracket-help">横向滑动查看后续轮次 →</p>
       <div class="bracket-scroller"><div class="bracket" id="bracket"></div></div>
     </section>
   </main>
-  <footer>预测依据：截至 2026 年 6 月 21 日的积分、净胜球、剩余赛程、球队实力与路径难度。第三名具体配对需等 8 支晋级球队全部产生。本页面不是 FIFA 官方对阵表。</footer>
+  <footer id="footerNote">预测依据：等待同步最新积分、净胜球、剩余赛程、球队实力与路径难度。本页面不是 FIFA 官方对阵表。</footer>
 </div>
 <script>
 let groups=[
@@ -282,15 +282,16 @@ let groups=[
 ["K",[["哥伦比亚","🇨🇴",1,3,2],["民主刚果","🇨🇩",1,1,0],["葡萄牙","🇵🇹",1,1,0],["乌兹别克斯坦","🇺🇿",1,0,-2]]],
 ["L",[["英格兰","🏴",1,3,2],["加纳","🇬🇭",1,3,1],["巴拿马","🇵🇦",1,0,-1],["克罗地亚","🇭🇷",1,0,-2]]]
 ];
-let third=[["苏格兰","🏴",84],["瑞典","🇸🇪",81],["巴拉圭","🇵🇾",78],["加纳","🇬🇭",69],["佛得角","🇨🇻",62],["塞内加尔","🇸🇳",60],["伊朗","🇮🇷",57],["民主刚果","🇨🇩",54]];
+let third=[];
 let remainingFixtures={},completedResults={},qualifyProb={},simulationCount=0,eloSourceTime="实时榜单",scorerLeaders=[];
+let lastSyncLabel="等待同步",lastSourceStamp="",lastOfficialSlotCount=0,lastCompleteMatchCount=0,liveDataReady=false;
 const flag=Object.fromEntries(groups.flatMap(g=>g[1].map(t=>[t[0],t[1]])));
 function flagIcon(name,fallback=flag[name]||"🌐"){
   if(name==="英格兰")return '<span class="flag-emoji" title="英格兰">&#x1F3F4;&#xE0067;&#xE0062;&#xE0065;&#xE006E;&#xE0067;&#xE007F;</span>';
   if(name==="苏格兰")return '<span class="flag-emoji" title="苏格兰">&#x1F3F4;&#xE0067;&#xE0062;&#xE0073;&#xE0063;&#xE0074;&#xE007F;</span>';
   return `<span class="flag-emoji">${fallback}</span>`;
 }
-const confirmedGroupWinners=new Set(["德国","美国","墨西哥"]);
+const confirmedGroupWinners=new Set();
 const confirmedQualified=new Set();
 function qualifyChance(t,pos){
   if(t[5])return 0;
@@ -318,11 +319,25 @@ function renderGroupInsights(){
     <article class="group-insight"><small>净胜球领先</small><div class="mini-list">${gdLeaders.map((x,i)=>`<span><em>${i+1}. ${flagIcon(x.t[0],x.t[1])} ${x.t[0]}</em><b>${x.t[4]>0?"+":""}${x.t[4]}</b></span>`).join("")}</div></article>
     <article class="group-insight"><small>最佳第三晋级线</small><b>${cutoff.t[3]} 分 / ${cutoff.t[4]>=0?"+":""}${cutoff.t[4]} GD</b><p>当前第 8 名：${flagIcon(cutoff.t[0],cutoff.t[1])} ${cutoff.t[0]}（${cutoff.g}组），末轮后仍会变化。</p></article>`;
 }
-let locked={
-74:{team:"德国",opponent:"巴拉圭",range:"A/B/C/D/F组最佳第三"},
-79:{team:"墨西哥",opponent:"佛得角",range:"C/E/F/H/I组最佳第三"},
-81:{team:"美国",opponent:"瑞典",range:"B/E/F/I/J组最佳第三"}
-};
+function listNames(items,limit=4){
+  if(!items.length)return "暂无";
+  const head=items.slice(0,limit).join("、");
+  return items.length>limit?`${head} 等 ${items.length} 支`:head;
+}
+function updateLiveCopy(){
+  const officialNames=Object.entries(officialTeamMatches).map(([team,no])=>`${team}→M${no}`);
+  const thirdNames=third.map(x=>x[0]);
+  const champ=paths?.base?.final?.[0]?.[3]||"—";
+  document.querySelector("#heroEyebrow").textContent=`2026 FIFA WORLD CUP · ${lastSyncLabel}`;
+  document.querySelector("#officialFactTitle").innerHTML=officialNames.length?`${listNames(Object.keys(officialTeamMatches),3)}<br>已进入对应 32 强槽位`:"暂无官方确定槽位";
+  document.querySelector("#officialFactBody").textContent=officialNames.length?`${officialNames.join("；")}。这表示球队位置已确定；对手或后续路径仍按实时模型预测。`:"淘汰赛官方页面还没有可读取的确定球队槽位，当前对阵树全部来自模型预测。";
+  document.querySelector("#variableTitle").textContent=thirdNames.length?`${thirdNames.length} 个最佳第三名仍在变动`:"最佳第三名待计算";
+  document.querySelector("#variableBody").textContent=thirdNames.length?`当前模型最看好的第三名：${listNames(thirdNames,5)}。第三名组合会直接改变 32 强对阵。`:"同步完成后会根据小组积分、剩余赛程和 Elo 模拟更新。";
+  document.querySelector("#bracketModelNote").textContent=`薄荷绿槽位来自官方淘汰赛页；其余球队、第三名映射和后续晋级均由 ${simulationCount?simulationCount.toLocaleString():"—"} 次 Elo 蒙特卡洛模拟生成。${lastSyncLabel} 自动重算，每 2 分钟刷新。`;
+  document.querySelector("#footerNote").textContent=`预测依据：${lastSourceStamp||lastSyncLabel} 的积分、净胜球、剩余赛程、World Football Elo（${eloSourceTime}）和淘汰赛路径难度；第三名具体配对随 8 支最佳第三名变化。本页面不是 FIFA 官方对阵表。`;
+  if(champ&&champ!=="—")document.querySelector("#championHeadline").textContent=`${champ}是当前主预测冠军`;
+}
+let locked={};
 let r32=[
 [74,"德国","巴拉圭","德国"],[77,"法国","苏格兰","法国"],
 [73,"韩国","瑞士","瑞士"],[75,"荷兰","摩洛哥","荷兰"],
@@ -343,7 +358,7 @@ qf:[[97,"德国","摩洛哥","德国"],[98,"葡萄牙","美国","葡萄牙"],[99
 sf:[[101,"德国","葡萄牙","德国"],[102,"墨西哥","阿根廷","阿根廷"]],final:[[104,"德国","阿根廷","德国"]]}
 };
 let r32Upset=r32.map(m=>[...m]);
-let officialTeamMatches={"德国":74,"美国":81,"墨西哥":79};
+let officialTeamMatches={};
 function renderGroups(){
   document.querySelector("#groups").innerHTML=groups.map(([g,ts])=>`<article class="group">
     <div class="group-head"><div class="group-title"><b>${g}</b><span>GROUP ${g}</span></div><small>${ts[0][2]} 轮后 · Elo MC</small></div>
@@ -481,8 +496,11 @@ function seededRandom(seed){
 function poisson(lambda,rng){
   const limit=Math.exp(-lambda);let k=0,p=1;do{k++;p*=rng()}while(p>limit&&k<10);return k-1;
 }
+function teamElo(name){
+  return eloRatings[name]||1300+((power[name]||60)-50)*12;
+}
 function liveElo(t){
-  return eloRatings[t[0]]||1300+((power[t[0]]||60)-50)*12;
+  return teamElo(Array.isArray(t)?t[0]:t);
 }
 function simulateMatch(a,b,rng){
   const diff=liveElo(a)-liveElo(b),share=1/(1+Math.pow(10,-diff/400));
@@ -586,7 +604,7 @@ function parseScorers(doc){
 function projectedGroups(official={}){
   const out={};
   for(const [g,teams] of groups){
-    const ranked=teams.map((t,i)=>({t,i,score:t[5]?-999:t[3]+Math.max(0,3-t[2])*(.55+(power[t[0]]||60)/65)+t[4]*.025}))
+    const ranked=teams.map((t,i)=>({t,i,score:t[5]?-999:(qualifyProb[t[0]]??0)*1000+t[3]*12+t[4]*2+teamElo(t[0])/40}))
       .sort((a,b)=>b.score-a.score||b.t[4]-a.t[4]||b.t[3]-a.t[3]);
     const winner=official[g]?.winner,runner=official[g]?.runner;
     if(winner){const i=ranked.findIndex(x=>x.t[0]===winner);if(i>0)ranked.unshift(ranked.splice(i,1)[0])}
@@ -623,9 +641,11 @@ function parseCombo(koDoc,qualifiedGroups){
   return null;
 }
 function pickWinner(a,b,upset=false){
-  const pa=(power[a]||60)+(a==="美国"||a==="墨西哥"||a==="加拿大"?2:0),pb=(power[b]||60)+(b==="美国"||b==="墨西哥"||b==="加拿大"?2:0);
-  if(upset&&Math.abs(pa-pb)<=8)return pa>=pb?b:a;
-  return pa>=pb?a:b;
+  const homeBoost=t=>t==="美国"||t==="墨西哥"||t==="加拿大"?35:0;
+  const ea=teamElo(a)+homeBoost(a),eb=teamElo(b)+homeBoost(b);
+  const chanceA=1/(1+Math.pow(10,(eb-ea)/400));
+  if(upset&&chanceA>.35&&chanceA<.65)return chanceA>=.5?b:a;
+  return chanceA>=.5?a:b;
 }
 function buildRounds(first,upset=false){
   const byNo=Object.fromEntries(first.map(m=>[m[0],m]));
@@ -633,12 +653,15 @@ function buildRounds(first,upset=false){
   const r16=[89,90,93,94,91,92,95,96].map(make),qf=[97,98,99,100].map(make),sf=[101,102].map(make),final=[104].map(make);
   return {r16,qf,sf,final};
 }
-function rebuildKnockout(koDoc){
-  const official=parseOfficial(koDoc),projected=projectedGroups(official);
+function applyOfficialStatus(official){
   confirmedGroupWinners.clear();
   confirmedQualified.clear();
   Object.values(official).forEach(x=>{if(x.winner)confirmedGroupWinners.add(x.winner)});
   Object.values(official).forEach(x=>x.qualified?.forEach(t=>confirmedQualified.add(t)));
+}
+function rebuildKnockout(koDoc,official=parseOfficial(koDoc)){
+  applyOfficialStatus(official);
+  const projected=projectedGroups(official);
   officialTeamMatches={};locked={};
   for(const [g,pos] of Object.entries(official)){
     if(pos.winner)officialTeamMatches[pos.winner]=winnerMatch[g];
@@ -646,7 +669,7 @@ function rebuildKnockout(koDoc){
   for(const [no,gs] of Object.entries(runnerSlots)){
     for(const g of gs){const team=official[g]?.runner;if(team)officialTeamMatches[team]=Number(no)}
   }
-  const thirdCandidates=Object.entries(projected).map(([g,ts])=>({g,t:ts[2],score:ts[2][5]?-999:ts[2][3]+Math.max(0,3-ts[2][2])*(.55+(power[ts[2][0]]||60)/65)+ts[2][4]*.025}))
+  const thirdCandidates=Object.entries(projected).map(([g,ts])=>({g,t:ts[2],score:ts[2][5]?-999:(qualifyProb[ts[2][0]]??0)*1000+ts[2][3]*12+ts[2][4]*2+teamElo(ts[2][0])/40}))
     .filter(x=>!x.t[5])
     .sort((a,b)=>b.score-a.score||b.t[4]-a.t[4]).slice(0,8);
   const thirdByGroup=Object.fromEntries(thirdCandidates.map(x=>[x.g,x.t[0]]));
@@ -681,6 +704,7 @@ function rebuildKnockout(koDoc){
   r32=baseFirst;r32Upset=upsetFirst;paths={base:buildRounds(baseFirst,false),upset:buildRounds(upsetFirst,true)};
   const confirmedCount=Object.keys(officialTeamMatches).length;
   const completeMatches=r32.filter(m=>officialTeamMatches[m[1]]===m[0]&&officialTeamMatches[m[2]]===m[0]).length;
+  lastOfficialSlotCount=confirmedCount;lastCompleteMatchCount=completeMatches;
   const metrics=document.querySelectorAll(".metric b");
   if(metrics.length>=3){metrics[0].textContent=confirmedCount;metrics[1].textContent=32-confirmedCount;metrics[2].textContent=completeMatches}
   const officialNames=Object.entries(officialTeamMatches).map(([team,no])=>`${team}进入 M${no}`);
@@ -689,15 +713,17 @@ function rebuildKnockout(koDoc){
     .filter(m=>m[1]===champion||m[2]===champion).map(m=>m[1]===champion?m[2]:m[1]);
   document.querySelector("#championHeadline").textContent=`${champion}是当前主预测冠军`;
   document.querySelector("#championPath").textContent=`Elo 主路径预计依次面对 ${route.join("、")}；每次同步后重新计算。`;
+  updateLiveCopy();
   const mode=document.querySelector(".scenario button.active")?.dataset.mode||"base";renderBracket(mode);
 }
 function recalcThirds(){
-  third=groups.map(([g,ts])=>({g,t:ts[2]})).filter(x=>!x.t[5]).sort((a,b)=>b.t[3]-a.t[3]||b.t[4]-a.t[4])
+  third=groups.map(([g,ts])=>({g,t:ts[2],chance:qualifyProb[ts[2][0]]??0})).filter(x=>!x.t[5]).sort((a,b)=>b.chance-a.chance||b.t[3]-a.t[3]||b.t[4]-a.t[4])
     .slice(0,8).map(({t},i)=>{
       const chance=Math.round((qualifyProb[t[0]]??0)*100);
       return [t[0],t[1],chance];
     });
   renderThirds();
+  updateLiveCopy();
 }
 async function syncElo(){
   try{
@@ -770,11 +796,21 @@ async function syncLatest(){
     if(fresh.length!==12)throw new Error("只读取到 "+fresh.length+" 个小组");
     groups=fresh.sort((a,b)=>a[0].localeCompare(b[0]));remainingFixtures=freshFixtures;completedResults=freshResults;
     scorerLeaders=parseScorers(doc);
-    rebuildKnockout(koDoc);runMonteCarlo(30000,Number(data.parse.revid)||20260623);renderGroups();recalcThirds();renderLeaderboards();
+    const official=parseOfficial(koDoc);
+    applyOfficialStatus(official);
+    runMonteCarlo(30000,Number(data.parse.revid)||20260623);
+    rebuildKnockout(koDoc,official);renderGroups();recalcThirds();renderLeaderboards();
     const now=new Intl.DateTimeFormat("zh-CN",{hour:"2-digit",minute:"2-digit"}).format(new Date());
+    lastSyncLabel=`${now} 已同步`;
+    lastSourceStamp=`Wikipedia revision ${data.parse.revid} / knockout ${koData.parse.revid}`;
+    liveDataReady=true;
+    updateLiveCopy();
     document.querySelector("#statsUpdated").textContent=`截至 ${now} · 已赛数据`;
     btn.classList.add("live");text.textContent=`↻ 刷新数据 · ${now}`;btn.title=`点击立即刷新；积分 ${data.parse.revid} · 淘汰赛 ${koData.parse.revid} · Elo ${eloSourceTime}`;
   }catch(error){
+    lastSyncLabel="同步失败 · 显示离线兜底";
+    liveDataReady=false;
+    updateLiveCopy();
     btn.classList.add("error");text.textContent="↻ 刷新失败 · 重试";btn.title=error.message;
   }finally{btn.disabled=false}
 }
