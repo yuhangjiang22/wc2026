@@ -361,14 +361,15 @@ function renderGroupInsights(){
     .filter(x=>!x.t[5])
     .sort((a,b)=>b.t[3]-a.t[3]||b.t[4]-a.t[4]||(b.t[6]||0)-(a.t[6]||0));
   const cutoff=thirds[7],played=all.reduce((sum,x)=>sum+x.t[2],0)/2;
-  const safe=[...thirds].sort((a,b)=>b.chance-a.chance||b.t[3]-a.t[3]||b.t[4]-a.t[4]).slice(0,5);
-  const bubble=[...thirds].slice(5,10);
+  const rankedThirds=[...thirds].sort((a,b)=>b.chance-a.chance||b.t[3]-a.t[3]||b.t[4]-a.t[4]);
+  const safe=rankedThirds.slice(0,5);
+  const bubble=rankedThirds.slice(5,10);
   const lineText=cutoff?`${cutoff.t[3]} 分 / ${cutoff.t[4]>=0?"+":""}${cutoff.t[4]} GD`:"等待同步";
   document.querySelector("#groupInsights").innerHTML=`
     <article class="group-insight primary"><small>赛事进度</small><b>${played} / 72 场</b><p>小组赛完成 ${Math.round(played/72*100)}%。基于 World Football Elo（${eloSourceTime}）完成 ${simulationCount?simulationCount.toLocaleString():"—"} 次模拟。</p></article>
     <article class="group-insight"><small>最佳第三晋级线</small><b>${lineText}</b><p>${cutoff?`当前第 8 名：${flagIcon(cutoff.t[0],cutoff.t[1])} ${cutoff.t[0]}（${cutoff.g}组），末轮后仍会变化。`:"同步后自动计算第 8 名第三名。"}</p></article>
     <article class="group-insight"><small>第三名安全区</small><div class="mini-list">${safe.map((x,i)=>`<span><em>${i+1}. ${flagIcon(x.t[0],x.t[1])} ${x.t[0]}（${x.g}）</em><b>${Math.round(x.chance*100)}%</b></span>`).join("")||"<span><em>等待模拟</em><b>—</b></span>"}</div></article>
-    <article class="group-insight"><small>第三名边缘区</small><div class="mini-list">${bubble.map((x,i)=>`<span><em>${i+6}. ${flagIcon(x.t[0],x.t[1])} ${x.t[0]}（${x.g}）</em><b>${x.t[3]}分</b></span>`).join("")||"<span><em>等待小组第三</em><b>—</b></span>"}</div></article>`;
+    <article class="group-insight"><small>第三名边缘区</small><div class="mini-list">${bubble.map((x,i)=>`<span><em>${i+6}. ${flagIcon(x.t[0],x.t[1])} ${x.t[0]}（${x.g}）· ${x.t[3]}分</em><b>${Math.round(x.chance*100)}%</b></span>`).join("")||"<span><em>等待小组第三</em><b>—</b></span>"}</div></article>`;
 }
 function listNames(items,limit=4){
   if(!items.length)return "暂无";
