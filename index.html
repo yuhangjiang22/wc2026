@@ -96,11 +96,11 @@
     .stats-head p{margin:0;color:var(--muted);font-size:12px}.stats-head small{color:var(--muted);font-size:10px}
     .leaderboards{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:12px}
     .leaderboard{overflow:hidden;border:1px solid var(--line);border-radius:14px;background:rgba(10,30,23,.76)}
-    .board-head{display:flex;justify-content:space-between;align-items:center;padding:13px 15px;border-bottom:1px solid var(--line)}
-    .board-head b{display:flex;align-items:center;gap:8px}
+    .board-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 15px;border-bottom:1px solid var(--line)}
+    .board-head b{display:flex;align-items:center;gap:8px;min-width:0;white-space:nowrap}
     .label-mark{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:6px;background:rgba(217,255,99,.12);color:var(--lime);font-size:10px;font-weight:950;letter-spacing:-.04em}
     .label-mark.attack{background:rgba(255,154,85,.13);color:var(--orange)}.label-mark.defence{background:rgba(96,237,181,.12);color:var(--mint)}
-    .board-head b{font-size:13px}.board-head span{color:var(--muted);font-size:10px}
+    .board-head b{font-size:13px}.board-head span{color:var(--muted);font-size:10px;white-space:nowrap}
     .board-row{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:8px;align-items:center;min-height:42px;padding:0 15px;border-top:1px solid rgba(255,255,255,.045);font-size:12px}
     .board-row:first-child{border-top:0}.board-rank{color:var(--muted);font-variant-numeric:tabular-nums}
     .board-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.board-name small{margin-left:5px;color:var(--muted);font-size:9px}
@@ -347,17 +347,17 @@ const copy={
     title:"2026 World Cup Knockout Forecast",description:"Live 2026 World Cup knockout forecast powered by scores, Elo and Monte Carlo simulation",
     langBtn:"中文",brand:"Knockout Radar",tagline:"WORLD CUP FORECAST",refresh:"Refresh data",refreshing:"Refreshing…",refreshFail:"Refresh failed · retry",source:"Sources",
     heroTitle:"Knockout<br><span>Forecast</span>",lead:"Track group-stage results and official qualification updates in real time, then combine the latest standings, World Football Elo and Monte Carlo simulation to project the most likely knockout bracket and title path.",
-    dataStatus:"Live data status",summaryLoading:"Loading scores, standings and Elo model…",confirmedSlots:"Confirmed slots",modelPredictions:"Model picks",confirmedMatchups:"Confirmed ties",
-    tabOverview:"Overview",tabGroups:"Groups",tabBracket:"Bracket",mobileGuide:"Tap-enabled: refresh, top tabs and source link. Match cards and leaderboards are read-only.",
-    overviewTitle:"Overview",overviewDesc:"Live results, confirmed slots and model forecasts in one place.",officialStatus:"Confirmed status",officialLoading:"Confirmed teams and knockout slots are read automatically after sync.",
+    dataStatus:"Data status",summaryLoading:"Loading scores, standings and Elo model…",confirmedSlots:"Confirmed slots",modelPredictions:"Projected slots",confirmedMatchups:"Confirmed matchups",
+    tabOverview:"Overview",tabGroups:"Groups",tabBracket:"Bracket",mobileGuide:"Interactive: refresh, top tabs, and source link. Match cards and leaderboards are read-only.",
+    overviewTitle:"Overview",overviewDesc:"Live results, confirmed slots, and model projections in one place.",officialStatus:"Confirmed slots",officialLoading:"Confirmed teams and knockout slots will appear after sync.",
     matchCenter:"Match Center",matchCenterNote:"Syncing live scores, recent results and upcoming fixtures; kickoff times use your local timezone.",waitSync:"Waiting for sync",
-    upcoming:"Upcoming",localVenueWeather:"Local time / venue / weather",completed:"Final · today/yesterday",score:"Score",
-    officialFact:"Official fact",officialFactTitle:"Waiting for confirmed slots",officialFactBody:"Confirmed knockout slots will be read automatically after sync.",
-    eloCall:"Elo model call",champCalc:"Calculating main title path",champPath:"Updated from live Elo and the latest projected knockout bracket.",
-    biggestVariable:"Biggest variable",thirdTitle:"Waiting for best third-place teams",thirdBody:"After standings and simulation sync, this updates the most likely third-place teams to reach the Round of 32.",
-    statsTitle:"Tournament leaders",statsDesc:"Scorers, team attack and defensive records update with match results.",scorers:"Scorers",goals:"Goals",attack:"Team goals",defence:"Best defence",ga:"GA",
-    groupsTitle:"Group Data Center",groupsDesc:"Cross-group comparison focuses only on the best third-place line; each group is still ranked by its own group rules.",
-    bracketTitle:"Most likely knockout path",bracketDesc:"Every sync recalculates group positions, best third-place combinations, Round of 32 matchups and later paths.",
+    upcoming:"Upcoming fixtures",localVenueWeather:"Local time / venue / weather",completed:"Recent results",score:"Score",
+    officialFact:"Confirmed by bracket",officialFactTitle:"Waiting for confirmed slots",officialFactBody:"Confirmed knockout slots will appear automatically after sync.",
+    eloCall:"Elo model",champCalc:"Calculating title path",champPath:"Updated from live Elo and the latest projected knockout bracket.",
+    biggestVariable:"Biggest swing factor",thirdTitle:"Waiting for best third-place teams",thirdBody:"After standings and simulation sync, this updates the most likely third-place teams to reach the Round of 32.",
+    statsTitle:"Tournament leaders",statsDesc:"Top scorers, team scoring, and defensive records update with match results.",scorers:"Top scorers",goals:"Goals",attack:"Team scoring",defence:"Best defense",ga:"GA",
+    groupsTitle:"Group standings",groupsDesc:"Cross-group comparison focuses only on the best third-place line; each group is still ranked by its own rules.",
+    bracketTitle:"Most likely knockout path",bracketDesc:"Every sync recalculates group positions, best third-place combinations, Round of 32 matchups, and later paths.",
     legendOfficial:"Mint: confirmed",legendProjected:"Orange dashed: projected team",legendAdvance:"Yellow rail: projected winner",legendRoute:"Line: projected path",liveModel:"Live model",
     bracketWait:"After sync, this generates the Round of 32 bracket, third-place mapping and projected paths.",bracketHelp:"Swipe horizontally to see later rounds →",
     footer:"Forecast basis: latest synced points, goal difference, remaining fixtures, team strength and path difficulty. This is not an official FIFA bracket."
@@ -411,6 +411,22 @@ let remainingFixtures={},completedResults={},qualifyProb={},simulationCount=0,el
 let lastSyncLabel="等待同步",lastSourceStamp="",lastOfficialSlotCount=0,lastCompleteMatchCount=0,liveDataReady=false;
 const weatherCache=new Map();
 const flag=Object.fromEntries(groups.flatMap(g=>g[1].map(t=>[t[0],t[1]])));
+const teamEn={
+  "墨西哥":"Mexico","韩国":"South Korea","捷克":"Czechia","南非":"South Africa",
+  "加拿大":"Canada","瑞士":"Switzerland","波黑":"Bosnia and Herzegovina","卡塔尔":"Qatar",
+  "巴西":"Brazil","摩洛哥":"Morocco","苏格兰":"Scotland","海地":"Haiti",
+  "美国":"United States","澳大利亚":"Australia","巴拉圭":"Paraguay","土耳其":"Türkiye",
+  "德国":"Germany","科特迪瓦":"Côte d’Ivoire","厄瓜多尔":"Ecuador","库拉索":"Curaçao",
+  "荷兰":"Netherlands","日本":"Japan","瑞典":"Sweden","突尼斯":"Tunisia",
+  "埃及":"Egypt","伊朗":"Iran","比利时":"Belgium","新西兰":"New Zealand",
+  "西班牙":"Spain","乌拉圭":"Uruguay","佛得角":"Cape Verde","沙特":"Saudi Arabia",
+  "挪威":"Norway","法国":"France","塞内加尔":"Senegal","伊拉克":"Iraq",
+  "阿根廷":"Argentina","奥地利":"Austria","约旦":"Jordan","阿尔及利亚":"Algeria",
+  "哥伦比亚":"Colombia","民主刚果":"DR Congo","葡萄牙":"Portugal","乌兹别克斯坦":"Uzbekistan",
+  "英格兰":"England","加纳":"Ghana","巴拿马":"Panama","克罗地亚":"Croatia"
+};
+function teamName(name){return currentLang==="en"?(teamEn[name]||name):name}
+function teamWithFlag(name,fallback){return `${flagIcon(name,fallback)} ${teamName(name)}`}
 const espnTeamZh={
   "United States":"美国","USA":"美国","Côte d'Ivoire":"科特迪瓦","Ivory Coast":"科特迪瓦","Korea Republic":"韩国","South Korea":"韩国",
   "Czechia":"捷克","Czech Republic":"捷克","Congo DR":"民主刚果","DR Congo":"民主刚果","IR Iran":"伊朗","Iran":"伊朗",
@@ -457,20 +473,20 @@ function renderGroupInsights(){
   const rankedThirds=[...thirds].sort((a,b)=>b.chance-a.chance||b.t[3]-a.t[3]||b.t[4]-a.t[4]);
   const safe=rankedThirds.slice(0,5);
   const bubble=rankedThirds.slice(5,10);
-  const lineText=cutoff?`${cutoff.t[3]} 分 / ${cutoff.t[4]>=0?"+":""}${cutoff.t[4]} GD`:"等待同步";
+  const lineText=cutoff?`${cutoff.t[3]} ${currentLang==="en"?"pts":"分"} / ${cutoff.t[4]>=0?"+":""}${cutoff.t[4]} GD`:(currentLang==="en"?"Waiting for sync":"等待同步");
   document.querySelector("#groupInsights").innerHTML=`
-    <article class="group-insight primary"><small>赛事进度</small><b>${played} / 72 场</b><p>小组赛完成 ${Math.round(played/72*100)}%。基于 World Football Elo（${eloSourceTime}）完成 ${simulationCount?simulationCount.toLocaleString():"—"} 次模拟。</p></article>
-    <article class="group-insight"><small>最佳第三晋级线</small><b>${lineText}</b><p>${cutoff?`当前第 8 名：${flagIcon(cutoff.t[0],cutoff.t[1])} ${cutoff.t[0]}（${cutoff.g}组），末轮后仍会变化。`:"同步后自动计算第 8 名第三名。"}</p></article>
-    <article class="group-insight"><small>第三名安全区</small><div class="mini-list">${safe.map((x,i)=>`<span><em>${i+1}. ${flagIcon(x.t[0],x.t[1])} ${x.t[0]}（${x.g}）</em><b>${Math.round(x.chance*100)}%</b></span>`).join("")||"<span><em>等待模拟</em><b>—</b></span>"}</div></article>
-    <article class="group-insight"><small>第三名边缘区</small><div class="mini-list">${bubble.map((x,i)=>`<span><em>${i+6}. ${flagIcon(x.t[0],x.t[1])} ${x.t[0]}（${x.g}）· ${x.t[3]}分</em><b>${Math.round(x.chance*100)}%</b></span>`).join("")||"<span><em>等待小组第三</em><b>—</b></span>"}</div></article>`;
+    <article class="group-insight primary"><small>${currentLang==="en"?"Tournament progress":"赛事进度"}</small><b>${played} / 72 ${currentLang==="en"?"matches":"场"}</b><p>${currentLang==="en"?`Group stage ${Math.round(played/72*100)}% complete. Based on ${simulationCount?simulationCount.toLocaleString():"—"} World Football Elo simulations (${eloSourceTime}).`:`小组赛完成 ${Math.round(played/72*100)}%。基于 World Football Elo（${eloSourceTime}）完成 ${simulationCount?simulationCount.toLocaleString():"—"} 次模拟。`}</p></article>
+    <article class="group-insight"><small>${currentLang==="en"?"Best third-place cut line":"最佳第三晋级线"}</small><b>${lineText}</b><p>${cutoff?(currentLang==="en"?`Current No. 8: ${teamWithFlag(cutoff.t[0],cutoff.t[1])} (Group ${cutoff.g}); still live until the final round.`:`当前第 8 名：${teamWithFlag(cutoff.t[0],cutoff.t[1])}（${cutoff.g}组），末轮后仍会变化。`):(currentLang==="en"?"The No. 8 third-place team will be calculated after sync.":"同步后自动计算第 8 名第三名。")}</p></article>
+    <article class="group-insight"><small>${currentLang==="en"?"Third-place safe zone":"第三名安全区"}</small><div class="mini-list">${safe.map((x,i)=>`<span><em>${i+1}. ${teamWithFlag(x.t[0],x.t[1])} (${currentLang==="en"?"Group ":""}${x.g}${currentLang==="en"?"":"组"})</em><b>${Math.round(x.chance*100)}%</b></span>`).join("")||`<span><em>${currentLang==="en"?"Waiting for simulations":"等待模拟"}</em><b>—</b></span>`}</div></article>
+    <article class="group-insight"><small>${currentLang==="en"?"Third-place bubble":"第三名边缘区"}</small><div class="mini-list">${bubble.map((x,i)=>`<span><em>${i+6}. ${teamWithFlag(x.t[0],x.t[1])} (${currentLang==="en"?"Group ":""}${x.g}${currentLang==="en"?"":"组"}) · ${x.t[3]} ${currentLang==="en"?"pts":"分"}</em><b>${Math.round(x.chance*100)}%</b></span>`).join("")||`<span><em>${currentLang==="en"?"Waiting for third-place teams":"等待小组第三"}</em><b>—</b></span>`}</div></article>`;
 }
 function listNames(items,limit=4){
   if(!items.length)return currentLang==="en"?"None":"暂无";
-  const head=items.slice(0,limit).join(currentLang==="en"?", ":"、");
+  const head=items.slice(0,limit).map(teamName).join(currentLang==="en"?", ":"、");
   return items.length>limit?(currentLang==="en"?`${head} and ${items.length-limit} more`:`${head} 等 ${items.length} 支`):head;
 }
 function updateLiveCopy(){
-  const officialNames=Object.entries(officialTeamMatches).map(([team,no])=>`${team}→M${no}`);
+  const officialNames=Object.entries(officialTeamMatches).map(([team,no])=>`${teamName(team)}→M${no}`);
   const thirdNames=third.map(x=>x[0]);
   const champ=paths?.base?.final?.[0]?.[3]||"—";
   document.querySelector("#heroEyebrow").textContent=`2026 FIFA WORLD CUP · ${lastSyncLabel}`;
@@ -478,13 +494,14 @@ function updateLiveCopy(){
   if(summaryStatus)summaryStatus.textContent=currentLang==="en"?"Auto-syncs every 2 minutes; green numbers are confirmed slots, the rest updates with results and the model.":"每 2 分钟自动同步；绿色数字是官方槽位，其余随赛果和模型重算。";
   const matchNote=document.querySelector("#matchCenterNote");
   if(matchNote)matchNote.textContent=currentLang==="en"?`Syncing live scores, recent results and upcoming fixtures; kickoff times use your local timezone: ${localTimeZoneLabel()}.`:`正在同步实时比分、近期赛果和接下来赛程；开球时间按你的本地时区显示：${localTimeZoneLabel()}。`;
+  document.querySelector("#officialSummary").textContent=officialNames.length?(currentLang==="en"?`${officialNames.join("; ")}. All remaining slots are model projections.`:`${officialNames.join("；")}。其余槽位由实时模型预测。`):(currentLang==="en"?"No knockout slots are confirmed yet.":"当前尚无明确淘汰赛槽位。");
   document.querySelector("#officialFactTitle").innerHTML=officialNames.length?(currentLang==="en"?`${listNames(Object.keys(officialTeamMatches),3)}<br>have confirmed Round of 32 slots`:`${listNames(Object.keys(officialTeamMatches),3)}<br>已进入对应 32 强槽位`):(currentLang==="en"?"No confirmed knockout slots yet":"暂无官方确定槽位");
   document.querySelector("#officialFactBody").textContent=officialNames.length?(currentLang==="en"?`${officialNames.join("; ")}. These team slots are confirmed; opponents and later paths are still model projections.`:`${officialNames.join("；")}。这表示球队位置已确定；对手或后续路径仍按实时模型预测。`):(currentLang==="en"?"The official knockout page has no readable confirmed team slots yet; the bracket is currently model-projected.":"淘汰赛官方页面还没有可读取的确定球队槽位，当前对阵树全部来自模型预测。");
   document.querySelector("#variableTitle").textContent=thirdNames.length?(currentLang==="en"?`${thirdNames.length} best third-place spots still moving`:`${thirdNames.length} 个最佳第三名仍在变动`):(currentLang==="en"?"Best third-place teams pending":"最佳第三名待计算");
   document.querySelector("#variableBody").textContent=thirdNames.length?(currentLang==="en"?`Current model favorites among third-place teams: ${listNames(thirdNames,5)}. The third-place combination directly changes Round of 32 matchups.`:`当前模型最看好的第三名：${listNames(thirdNames,5)}。第三名组合会直接改变 32 强对阵。`):(currentLang==="en"?"After standings sync and Elo simulation, this updates automatically.":"同步完成后会根据小组积分、剩余赛程和 Elo 模拟更新。");
   document.querySelector("#bracketModelNote").textContent=currentLang==="en"?`Mint slots come from the official knockout page; all other teams, third-place mapping and later winners are generated from ${simulationCount?simulationCount.toLocaleString():"—"} Elo Monte Carlo simulations. The number beside each team is its Elo win probability for that match; ${lastSyncLabel}.`:`薄荷绿槽位来自官方淘汰赛页；其余球队、第三名映射和后续晋级均由 ${simulationCount?simulationCount.toLocaleString():"—"} 次 Elo 蒙特卡洛模拟生成。球队右侧为该场 Elo 晋级概率；${lastSyncLabel}，自动重算。`;
   document.querySelector("#footerNote").textContent=currentLang==="en"?`Forecast basis: ${lastSourceStamp||lastSyncLabel} standings, goal difference, remaining fixtures, World Football Elo (${eloSourceTime}) and path difficulty. Third-place mappings can change with the eight best third-place teams. This is not an official FIFA bracket.`:`预测依据：${lastSourceStamp||lastSyncLabel} 的积分、净胜球、剩余赛程、World Football Elo（${eloSourceTime}）和淘汰赛路径难度；第三名具体配对随 8 支最佳第三名变化。本页面不是 FIFA 官方对阵表。`;
-  if(champ&&champ!=="—")document.querySelector("#championHeadline").textContent=currentLang==="en"?`${champ} is the current main title pick`:`${champ}是当前主预测冠军`;
+  if(champ&&champ!=="—")document.querySelector("#championHeadline").textContent=currentLang==="en"?`${teamName(champ)} is the current title favorite`:`${champ}是当前主预测冠军`;
 }
 let locked={};
 let r32=[
@@ -508,7 +525,7 @@ function renderGroups(){
     <div class="group-head"><div class="group-title"><b>${g}</b><span>GROUP ${g}</span></div><small>${currentLang==="en"?`After ${ts[0][2]} matches · Elo MC`:`${ts[0][2]} 轮后 · Elo MC`}</small></div>
     <div class="group-body"><div class="group-table-head"><span>#</span><span>${currentLang==="en"?"Team / status":"球队 / 形势"}</span><span>${currentLang==="en"?"P":"赛"}</span><span>${currentLang==="en"?"Pts":"分"}</span><span>${currentLang==="en"?"GD":"净胜"}</span><span>${currentLang==="en"?"Qual.":"晋级率"}</span></div>
     ${ts.map((t,i)=>{const q=qualifyChance(t,i);return `<div class="team-row ${t[5]?"eliminated":i<2?"direct":i===2?"third":""}">
-      <span class="pos">${i+1}</span><span class="team-name"><strong>${flagIcon(t[0],t[1])} ${t[0]}</strong><small>${teamSituation(t,i,ts)}</small></span>
+      <span class="pos">${i+1}</span><span class="team-name"><strong>${teamWithFlag(t[0],t[1])}</strong><small>${teamSituation(t,i,ts)}</small></span>
       <span>${t[2]}</span><span class="pts">${t[3]}</span><span class="gd">${t[4]>0?"+":""}${t[4]}</span>
       <span class="qualify"><b>${q}%</b><i style="--q:${q}%"></i></span>
     </div>`}).join("")}</div></article>`).join("");
@@ -516,7 +533,7 @@ function renderGroups(){
 }
 renderGroups();
 function renderThirds(){
-  document.querySelector("#thirdGrid").innerHTML=third.map((t,i)=>`<article class="third-card"><div class="top"><b>${i+1}. ${flagIcon(t[0],t[1])} ${t[0]}</b><span class="pct">${t[2]}%</span></div><small>${currentLang==="en"?"Projected to qualify as a third-place team":"预测以小组第三晋级"}</small><div class="prob"><i style="width:${t[2]}%"></i></div></article>`).join("");
+  document.querySelector("#thirdGrid").innerHTML=third.map((t,i)=>`<article class="third-card"><div class="top"><b>${i+1}. ${teamWithFlag(t[0],t[1])}</b><span class="pct">${t[2]}%</span></div><small>${currentLang==="en"?"Projected to qualify as a third-place team":"预测以小组第三晋级"}</small><div class="prob"><i style="width:${t[2]}%"></i></div></article>`).join("");
 }
 renderThirds();
 function boardRows(items,valueLabel){
@@ -526,7 +543,7 @@ function boardRows(items,valueLabel){
     <b class="board-value">${x.value}${valueLabel||""}</b></div>`).join("");
 }
 function renderLeaderboards(){
-  const all=groups.flatMap(([g,ts])=>ts.map(t=>({name:t[0],flag:flagIcon(t[0],t[1]),gf:t[6]||0,ga:(t[6]||0)-t[4],played:t[2]})));
+  const all=groups.flatMap(([g,ts])=>ts.map(t=>({name:teamName(t[0]),flag:flagIcon(t[0],t[1]),gf:t[6]||0,ga:(t[6]||0)-t[4],played:t[2]})));
   const attack=[...all].sort((a,b)=>b.gf-a.gf||a.played-b.played||(eloRatings[b.name]||0)-(eloRatings[a.name]||0))
     .slice(0,6).map(x=>({name:x.name,flag:x.flag,note:currentLang==="en"?`${x.played} matches`:`${x.played}场`,value:x.gf}));
   const defence=[...all].filter(x=>x.played>0).sort((a,b)=>a.ga-b.ga||b.played-a.played||-b.gf+a.gf)
@@ -710,14 +727,14 @@ function winProbMarkup(m){
   const p=matchOutcomeProb(m);
   const drawCenter=p.home+p.draw/2;
   return `<div class="win-prob" style="--home:${p.home}fr;--draw:${p.draw}fr;--away:${p.away}fr;--draw-center:${drawCenter}%" aria-label="${p.label}">
-    <div class="prob-side"><b>${p.home}%</b><span>${currentLang==="en"?`${m.home} win`:`${m.home}胜`}</span></div>
+    <div class="prob-side"><b>${p.home}%</b><span>${currentLang==="en"?`${teamName(m.home)} win`:`${m.home}胜`}</span></div>
     <div class="prob-draw"><b>${p.draw}%</b><span>${currentLang==="en"?"Draw":"平"}</span></div>
-    <div class="prob-side away"><b>${p.away}%</b><span>${currentLang==="en"?`${m.away} win`:`${m.away}胜`}</span></div>
+    <div class="prob-side away"><b>${p.away}%</b><span>${currentLang==="en"?`${teamName(m.away)} win`:`${m.away}胜`}</span></div>
     <div class="prob-bar"><i></i><i></i><i></i></div>
   </div>`;
 }
 function formatGoal(g){
-  const tag=g.ownGoal?"（乌龙）":g.penalty?"（点球）":"";
+  const tag=g.ownGoal?(currentLang==="en"?" (OG)":"（乌龙）"):g.penalty?(currentLang==="en"?" (pen.)":"（点球）"):"";
   return `${g.player}${tag}${g.minute?` ${g.minute}`:""}`;
 }
 function formatGoals(m){
@@ -727,10 +744,10 @@ function formatGoals(m){
   const awayGoals=goals.filter(g=>g.side==="away").map(formatGoal);
   const unknownGoals=goals.filter(g=>g.side!=="home"&&g.side!=="away").map(formatGoal);
   const parts=[];
-  if(homeGoals.length)parts.push(`${m.home}：${homeGoals.join("、")}`);
-  if(awayGoals.length)parts.push(`${m.away}：${awayGoals.join("、")}`);
+  if(homeGoals.length)parts.push(`${teamName(m.home)}：${homeGoals.join(currentLang==="en"?", ":"、")}`);
+  if(awayGoals.length)parts.push(`${teamName(m.away)}：${awayGoals.join(currentLang==="en"?", ":"、")}`);
   if(unknownGoals.length)parts.push(unknownGoals.join("、"));
-  return `${currentLang==="en"?"Goals":"进球"}：${parts.join("；")}`;
+  return `${currentLang==="en"?"Goals:":"进球："}${parts.join(currentLang==="en"?"; ":"；")}`;
 }
 function localDayKey(d){
   return d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`:"";
@@ -744,15 +761,15 @@ function matchCard(m){
   return `<article class="live-match ${m.status}">
     <div class="match-kicker"><span>${fmtMatchTime(m.kickoff)}</span><span class="match-state ${m.status}">${statusLabel}</span></div>
     <div class="scoreline">
-      <div class="score-team"><b>${flagIcon(m.home,m.homeFlag)} ${m.home}</b><small>${currentLang==="en"?"Home":"主队"}</small></div>
+      <div class="score-team"><b>${teamWithFlag(m.home,m.homeFlag)}</b><small>${currentLang==="en"?"Home":"主队"}</small></div>
       <div class="score">${scoreDisplay(m)}</div>
-      <div class="score-team away"><b>${flagIcon(m.away,m.awayFlag)} ${m.away}</b><small>${currentLang==="en"?"Away":"客队"}</small></div>
+      <div class="score-team away"><b>${teamWithFlag(m.away,m.awayFlag)}</b><small>${currentLang==="en"?"Away":"客队"}</small></div>
     </div>
     ${winProbMarkup(m)}
     <div class="match-meta">
       <span>📍 <b>${m.stadium}</b> · ${m.city}</span>
-      <span>🌤️ <span data-weather="${m.id}">${m.weather||(currentLang==="en"?"Loading weather":"天气加载中")}</span></span>
-      <span>📡 ${currentLang==="en"?"Score source":"比分源"}：${m.source||"Wikipedia"}${m.statusDetail?` · ${m.statusDetail}`:""}</span>
+      <span>🌤️ <span data-weather="${m.id}">${displayWeather(m.weather)||(currentLang==="en"?"Loading weather":"天气加载中")}</span></span>
+      <span>📡 ${currentLang==="en"?"Score source:":"比分源："}${m.source||"Wikipedia"}${m.statusDetail?` · ${m.statusDetail}`:""}</span>
     </div>
   </article>`;
 }
@@ -779,13 +796,13 @@ function renderMatchCenter(){
   document.querySelector("#upcomingList").innerHTML=upcoming.length?upcoming.map(m=>`
     <div class="fixture">
       <div class="fixture-time">${shortTime(m.kickoff)}</div>
-      <div class="fixture-main"><b>${flagIcon(m.home,m.homeFlag)} ${m.home} vs ${flagIcon(m.away,m.awayFlag)} ${m.away}</b><small>${m.stadium} · ${m.city}</small></div>
-      <div class="fixture-weather" data-weather="${m.id}">${m.weather||(currentLang==="en"?"Loading weather":"天气加载中")}</div>
+      <div class="fixture-main"><b>${teamWithFlag(m.home,m.homeFlag)} vs ${teamWithFlag(m.away,m.awayFlag)}</b><small>${m.stadium} · ${m.city}</small></div>
+      <div class="fixture-weather" data-weather="${m.id}">${displayWeather(m.weather)||(currentLang==="en"?"Loading weather":"天气加载中")}</div>
     </div>`).join(""):`<div class="empty-state">${currentLang==="en"?"No more fixtures loaded; refresh to sync again.":"暂时没有更多赛程；点击刷新重新同步。"}</div>`;
   document.querySelector("#completedList").innerHTML=recentFinal.length?recentFinal.slice(0,6).map(m=>`
     <div class="fixture final">
       <div class="fixture-time">${shortTime(m.kickoff)}</div>
-      <div class="fixture-main"><b>${flagIcon(m.home,m.homeFlag)} ${m.home} vs ${flagIcon(m.away,m.awayFlag)} ${m.away}</b><small>${m.stadium} · ${m.city}${m.statusDetail?` · ${m.statusDetail}`:""}</small><span class="goal-list">${formatGoals(m)}</span></div>
+      <div class="fixture-main"><b>${teamWithFlag(m.home,m.homeFlag)} vs ${teamWithFlag(m.away,m.awayFlag)}</b><small>${m.stadium} · ${m.city}${m.statusDetail?` · ${m.statusDetail}`:""}</small><span class="goal-list">${formatGoals(m)}</span></div>
       <div class="fixture-score">${scoreDisplay(m)}</div>
     </div>`).join(""):`<div class="empty-state">${currentLang==="en"?"No final matches today/yesterday.":"今天/昨天暂无已结束比赛。"}</div>`;
 }
@@ -798,9 +815,19 @@ const hostCityCoords={
   "Toronto":[43.6532,-79.3832],"Vancouver":[49.2827,-123.1207]
 };
 function weatherText(code){
+  if(currentLang==="en"){
+    if(code===0)return "Clear"; if([1,2].includes(code))return "Partly cloudy"; if(code===3)return "Cloudy";
+    if([45,48].includes(code))return "Fog"; if(code>=51&&code<=67)return "Rain"; if(code>=71&&code<=77)return "Snow";
+    if(code>=80&&code<=82)return "Showers"; if(code>=95)return "Thunderstorms"; return "Weather";
+  }
   if(code===0)return "晴"; if([1,2].includes(code))return "少云"; if(code===3)return "阴";
   if([45,48].includes(code))return "雾"; if(code>=51&&code<=67)return "雨"; if(code>=71&&code<=77)return "雪";
   if(code>=80&&code<=82)return "阵雨"; if(code>=95)return "雷雨"; return "天气";
+}
+function displayWeather(text){
+  if(currentLang!=="en")return text;
+  return String(text||"").replace("天气加载中","Loading weather").replace("天气待查","Weather unavailable").replace("天气暂不可用","Weather unavailable")
+    .replace("少云","Partly cloudy").replace("阵雨","Showers").replace("雷雨","Thunderstorms").replace("晴","Clear").replace("阴","Cloudy").replace("雾","Fog").replace("雨","Rain").replace("雪","Snow").replace("天气","Weather");
 }
 async function enrichWeather(){
   const now=new Date();
@@ -812,7 +839,7 @@ async function enrichWeather(){
     try{
       if(weatherCache.has(key)){m.weather=weatherCache.get(key);return}
       const city=normalizeCity(m.city);
-      const coords=hostCityCoords[city]; if(!coords){m.weather="天气待查";return}
+      const coords=hostCityCoords[city]; if(!coords){m.weather=currentLang==="en"?"Weather unavailable":"天气待查";return}
       const day=m.kickoff.toISOString().slice(0,10);
       const url=`https://api.open-meteo.com/v1/forecast?latitude=${coords[0]}&longitude=${coords[1]}&hourly=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=GMT&start_date=${day}&end_date=${day}`;
       const data=await Promise.race([
@@ -821,17 +848,17 @@ async function enrichWeather(){
       ]);
       const times=data.hourly?.time||[],temps=data.hourly?.temperature_2m||[],codes=data.hourly?.weather_code||[];
       const targetHour=m.kickoff?.getUTCHours?.()??m.localHour??12,idx=times.reduce((best,t,i)=>Math.abs(Number(t.slice(11,13))-targetHour)<Math.abs(Number(times[best].slice(11,13))-targetHour)?i:best,0);
-      const value=Number.isFinite(temps[idx])?`${Math.round(temps[idx])}°F · ${weatherText(codes[idx])}`:"天气待查";
+      const value=Number.isFinite(temps[idx])?`${Math.round(temps[idx])}°F · ${weatherText(codes[idx])}`:(currentLang==="en"?"Weather unavailable":"天气待查");
       weatherCache.set(key,value);m.weather=value;
-    }catch(e){m.weather="天气暂不可用"}
+    }catch(e){m.weather=currentLang==="en"?"Weather unavailable":"天气暂不可用"}
   }));
   renderMatchCenter();
 }
 
 function teamRow(name,winner,type="",matchNo="",prob=null){
   const cls=type==="official"?`official${name===winner?" advances":""}`:type==="opponent"?"predicted-opponent":name===winner?"predicted advances":"predicted";
-  const status=Number.isFinite(prob)?`${prob}%`:(name===winner?"晋级":"—");
-  return `<div class="team ${cls}">${flagIcon(name)}<span class="name">${name}</span><span class="status">${status}</span></div>`;
+  const status=Number.isFinite(prob)?`${prob}%`:(name===winner?(currentLang==="en"?"Adv.":"晋级"):"—");
+  return `<div class="team ${cls}">${flagIcon(name)}<span class="name">${teamName(name)}</span><span class="status">${status}</span></div>`;
 }
 function card(m,round,index){
   const [no,a,b,winner]=m,l=round==="r32"?locked[no]:null;
@@ -841,7 +868,7 @@ function card(m,round,index){
   const [probA,probB]=matchWinPerc(a,b);
   const span={r32:1,r16:2,qf:4,sf:8}[round],row=2+index*span;
   return `<article class="match ${officialCount?"locked":""}" data-match="${no}" style="grid-row:${row}/span ${span}">
-    <div class="match-top"><span>${officialCount?`<b class="official-label">${officialCount===2?"官方对阵确定":"官方确定槽位"}</b>`:'<b class="forecast-label">预测对阵</b>'}</span><span>M${no}</span></div>
+    <div class="match-top"><span>${officialCount?`<b class="official-label">${officialCount===2?(currentLang==="en"?"Confirmed matchup":"官方对阵确定"):(currentLang==="en"?"Confirmed slot":"官方确定槽位")}</b>`:`<b class="forecast-label">${currentLang==="en"?"Projected matchup":"预测对阵"}</b>`}</span><span>M${no}</span></div>
     ${teamRow(a,winner,typeA,no,probA)+teamRow(b,winner,typeB,no,probB)}
   </article>`;
 }
@@ -849,10 +876,10 @@ function roundCol(title,key,data,side="left"){return `<div class="round ${side}"
 function finalCol(m,champ){
   const [no,a,b,winner]=m;
   const [probA,probB]=matchWinPerc(a,b);
-  return `<div class="round center"><div class="round-name">Final · 决赛</div><div class="final-stage">
-    <article class="match" data-match="${no}"><div class="match-top"><b class="forecast-label">预测决赛</b><span>M${no}</span></div>
+  return `<div class="round center"><div class="round-name">${currentLang==="en"?"Final":"Final · 决赛"}</div><div class="final-stage">
+    <article class="match" data-match="${no}"><div class="match-top"><b class="forecast-label">${currentLang==="en"?"Projected final":"预测决赛"}</b><span>M${no}</span></div>
       ${teamRow(a,winner,"",no,probA)+teamRow(b,winner,"",no,probB)}</article>
-    <div class="champion"><div class="cup">🏆</div><b>${flagIcon(champ)} ${champ}</b><small>预测冠军 · Elo 主路径</small></div>
+    <div class="champion"><div class="cup">🏆</div><b>${teamWithFlag(champ)}</b><small>${currentLang==="en"?"Projected champion · Elo main path":"预测冠军 · Elo 主路径"}</small></div>
   </div></div>`;
 }
 const routeMap=[
@@ -886,9 +913,9 @@ function renderBracket(){
   const left16=p.r16.slice(0,4),right16=p.r16.slice(4);
   const leftQf=p.qf.slice(0,2),rightQf=p.qf.slice(2);
   document.querySelector("#bracket").innerHTML=
-    roundCol("32强 · 上半区","r32",left32)+roundCol("16强","r16",left16)+roundCol("8强","qf",leftQf)+roundCol("半决赛","sf",[p.sf[0]])+
+    roundCol(currentLang==="en"?"Round of 32 · upper half":"32强 · 上半区","r32",left32)+roundCol(currentLang==="en"?"Round of 16":"16强","r16",left16)+roundCol(currentLang==="en"?"Quarterfinals":"8强","qf",leftQf)+roundCol(currentLang==="en"?"Semifinals":"半决赛","sf",[p.sf[0]])+
     finalCol(p.final[0],champ)+
-    roundCol("半决赛","sf",[p.sf[1]],"right")+roundCol("8强","qf",rightQf,"right")+roundCol("16强","r16",right16,"right")+roundCol("下半区 · 32强","r32",right32,"right");
+    roundCol(currentLang==="en"?"Semifinals":"半决赛","sf",[p.sf[1]],"right")+roundCol(currentLang==="en"?"Quarterfinals":"8强","qf",rightQf,"right")+roundCol(currentLang==="en"?"Round of 16":"16强","r16",right16,"right")+roundCol(currentLang==="en"?"Lower half · Round of 32":"下半区 · 32强","r32",right32,"right");
   requestAnimationFrame(drawRoutes);
 }
 const teamZh={
@@ -1037,7 +1064,7 @@ function parseScorers(doc){
     }
   }
   return Object.values(totals).sort((a,b)=>b.goals-a.goals||(eloRatings[b.team]||0)-(eloRatings[a.team]||0)||a.name.localeCompare(b.name))
-    .map(x=>({name:x.name,flag:flagIcon(x.team),note:x.team,value:x.goals}));
+    .map(x=>({name:x.name,flag:flagIcon(x.team),note:teamName(x.team),value:x.goals}));
 }
 function projectedGroups(official={}){
   const out={};
@@ -1150,12 +1177,12 @@ function rebuildKnockout(koDoc,official=parseOfficial(koDoc)){
   document.querySelector("#confirmedMetric").textContent=confirmedCount;
   document.querySelector("#predictedMetric").textContent=32-confirmedCount;
   document.querySelector("#completeMetric").textContent=completeMatches;
-  const officialNames=Object.entries(officialTeamMatches).map(([team,no])=>`${team}进入 M${no}`);
-  document.querySelector("#officialSummary").textContent=officialNames.length?officialNames.join("；")+"。其余槽位由实时模型预测。":"当前尚无明确淘汰赛槽位。";
+  const officialNames=Object.entries(officialTeamMatches).map(([team,no])=>currentLang==="en"?`${teamName(team)} → M${no}`:`${team}进入 M${no}`);
+  document.querySelector("#officialSummary").textContent=officialNames.length?(currentLang==="en"?`${officialNames.join("; ")}. All remaining slots are model projections.`:officialNames.join("；")+"。其余槽位由实时模型预测。"):(currentLang==="en"?"No knockout slots are confirmed yet.":"当前尚无明确淘汰赛槽位。");
   const champion=paths.base.final[0][3],route=[...baseFirst,...paths.base.r16,...paths.base.qf,...paths.base.sf,...paths.base.final]
     .filter(m=>m[1]===champion||m[2]===champion).map(m=>m[1]===champion?m[2]:m[1]);
-  document.querySelector("#championHeadline").textContent=`${champion}是当前主预测冠军`;
-  document.querySelector("#championPath").textContent=`Elo 主路径预计依次面对 ${route.join("、")}；每次同步后重新计算。`;
+  document.querySelector("#championHeadline").textContent=currentLang==="en"?`${teamName(champion)} is the current title favorite`:`${champion}是当前主预测冠军`;
+  document.querySelector("#championPath").textContent=currentLang==="en"?`Projected Elo path: ${route.map(teamName).join(", ")}. Recalculated after every sync.`:`Elo 主路径预计依次面对 ${route.join("、")}；每次同步后重新计算。`;
   updateLiveCopy();
   renderBracket();
 }
