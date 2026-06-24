@@ -180,7 +180,7 @@
       padding:2px 5px;border-radius:6px;font-size:10px}.team+.team{margin-top:2px}.team .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .flag-emoji{display:inline-block;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
       font-size:13px;line-height:1;vertical-align:-1px}
-    .team .status{overflow:hidden;font-size:8px;color:var(--muted);text-overflow:ellipsis;white-space:nowrap}.team.official{background:var(--mint);color:var(--ink);font-weight:850}
+    .team .status{overflow:hidden;font-size:9px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--muted);text-overflow:ellipsis;white-space:nowrap}.team.official{background:var(--mint);color:var(--ink);font-weight:850}
     .team.official .status{color:#174e3a;font-weight:900}.team.predicted-opponent{border:1px dashed rgba(255,154,85,.72);color:var(--orange)}
     .team.official.advances{background:var(--mint);border:0;border-left:3px solid var(--lime);color:var(--ink);
       box-shadow:inset 4px 0 0 rgba(217,255,99,.45)}
@@ -388,7 +388,7 @@ function updateLiveCopy(){
   document.querySelector("#officialFactBody").textContent=officialNames.length?`${officialNames.join("；")}。这表示球队位置已确定；对手或后续路径仍按实时模型预测。`:"淘汰赛官方页面还没有可读取的确定球队槽位，当前对阵树全部来自模型预测。";
   document.querySelector("#variableTitle").textContent=thirdNames.length?`${thirdNames.length} 个最佳第三名仍在变动`:"最佳第三名待计算";
   document.querySelector("#variableBody").textContent=thirdNames.length?`当前模型最看好的第三名：${listNames(thirdNames,5)}。第三名组合会直接改变 32 强对阵。`:"同步完成后会根据小组积分、剩余赛程和 Elo 模拟更新。";
-  document.querySelector("#bracketModelNote").textContent=`薄荷绿槽位来自官方淘汰赛页；其余球队、第三名映射和后续晋级均由 ${simulationCount?simulationCount.toLocaleString():"—"} 次 Elo 蒙特卡洛模拟生成。${lastSyncLabel} 自动重算，每 2 分钟刷新。`;
+  document.querySelector("#bracketModelNote").textContent=`薄荷绿槽位来自官方淘汰赛页；其余球队、第三名映射和后续晋级均由 ${simulationCount?simulationCount.toLocaleString():"—"} 次 Elo 蒙特卡洛模拟生成。球队右侧为该场 Elo 晋级概率；${lastSyncLabel}，自动重算。`;
   document.querySelector("#footerNote").textContent=`预测依据：${lastSourceStamp||lastSyncLabel} 的积分、净胜球、剩余赛程、World Football Elo（${eloSourceTime}）和淘汰赛路径难度；第三名具体配对随 8 支最佳第三名变化。本页面不是 FIFA 官方对阵表。`;
   if(champ&&champ!=="—")document.querySelector("#championHeadline").textContent=`${champ}是当前主预测冠军`;
 }
@@ -681,9 +681,9 @@ async function enrichWeather(){
   renderMatchCenter();
 }
 
-function teamRow(name,winner,type="",matchNo=""){
+function teamRow(name,winner,type="",matchNo="",prob=null){
   const cls=type==="official"?`official${name===winner?" advances":""}`:type==="opponent"?"predicted-opponent":name===winner?"predicted advances":"predicted";
-  const status=type==="official"&&name===winner?'<i class="official-pick">预测晋级</i>':type==="official"?"已确定":type==="opponent"?"预测对手":name===winner?"预测晋级":"预测球队";
+  const status=Number.isFinite(prob)?`${prob}%`:(name===winner?"晋级":"—");
   return `<div class="team ${cls}">${flagIcon(name)}<span class="name">${name}</span><span class="status">${status}</span></div>`;
 }
 function card(m,round,index){
@@ -691,18 +691,20 @@ function card(m,round,index){
   const typeA=officialTeamMatches[a]===no?"official":l&&a===l.opponent?"opponent":"";
   const typeB=officialTeamMatches[b]===no?"official":l&&b===l.opponent?"opponent":"";
   const officialCount=[typeA,typeB].filter(x=>x==="official").length;
+  const [probA,probB]=matchWinPerc(a,b);
   const span={r32:1,r16:2,qf:4,sf:8}[round],row=2+index*span;
   return `<article class="match ${officialCount?"locked":""}" data-match="${no}" style="grid-row:${row}/span ${span}">
     <div class="match-top"><span>${officialCount?`<b class="official-label">${officialCount===2?"官方对阵确定":"官方确定槽位"}</b>`:'<b class="forecast-label">预测对阵</b>'}</span><span>M${no}</span></div>
-    ${teamRow(a,winner,typeA,no)+teamRow(b,winner,typeB,no)}
+    ${teamRow(a,winner,typeA,no,probA)+teamRow(b,winner,typeB,no,probB)}
   </article>`;
 }
 function roundCol(title,key,data,side="left"){return `<div class="round ${side}"><div class="round-name">${title}</div>${data.map((m,i)=>card(m,key,i)).join("")}</div>`}
 function finalCol(m,champ){
   const [no,a,b,winner]=m;
+  const [probA,probB]=matchWinPerc(a,b);
   return `<div class="round center"><div class="round-name">Final · 决赛</div><div class="final-stage">
     <article class="match" data-match="${no}"><div class="match-top"><b class="forecast-label">预测决赛</b><span>M${no}</span></div>
-      ${teamRow(a,winner)+teamRow(b,winner)}</article>
+      ${teamRow(a,winner,"",no,probA)+teamRow(b,winner,"",no,probB)}</article>
     <div class="champion"><div class="cup">🏆</div><b>${flagIcon(champ)} ${champ}</b><small>预测冠军 · Elo 主路径</small></div>
   </div></div>`;
 }
@@ -934,6 +936,12 @@ function pickWinner(a,b){
   const ea=teamElo(a)+homeBoost(a),eb=teamElo(b)+homeBoost(b);
   const chanceA=1/(1+Math.pow(10,(eb-ea)/400));
   return chanceA>=.5?a:b;
+}
+function matchWinPerc(a,b){
+  const homeBoost=t=>t==="美国"||t==="墨西哥"||t==="加拿大"?35:0;
+  const ea=teamElo(a)+homeBoost(a),eb=teamElo(b)+homeBoost(b);
+  const pctA=Math.round(100/(1+Math.pow(10,(eb-ea)/400)));
+  return [pctA,100-pctA];
 }
 function buildRounds(first){
   const byNo=Object.fromEntries(first.map(m=>[m[0],m]));
