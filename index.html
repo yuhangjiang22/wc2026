@@ -29,11 +29,12 @@
     .brand{display:flex;align-items:center;gap:12px}.logo{display:grid;place-items:center;width:40px;height:40px;
       border-radius:12px;background:var(--lime);color:var(--ink);font-weight:950;text-decoration:none}
     .brand b{display:block}.brand small{color:var(--muted);font-size:10px;letter-spacing:.18em}
-    .source-tools{display:flex;align-items:center;gap:8px}.source,.sync-btn{color:var(--text);font-size:12px;font-weight:850;text-decoration:none;
+    .source-tools{display:flex;align-items:center;gap:8px}.source,.sync-btn,.lang-toggle{color:var(--text);font-size:12px;font-weight:850;text-decoration:none;
       border:1px solid #4d806d;padding:9px 13px;border-radius:999px;background:#123328;cursor:pointer;transition:.16s ease;box-shadow:0 0 0 1px rgba(96,237,181,.04)}
+    .lang-toggle{min-width:48px;background:#0f2b22}
     .source:after{content:" ↗";color:var(--lime)}.sync-btn:after{content:"";display:inline-block;width:6px;height:6px;margin-left:8px;border-top:2px solid currentColor;border-right:2px solid currentColor;transform:rotate(45deg);opacity:.85}
-    .source:hover,.sync-btn:hover{color:var(--lime);border-color:var(--lime);transform:translateY(-1px);background:#173d30}
-    .source:active,.sync-btn:active,.tab:active,.tournament-lockup:active{transform:scale(.97)}
+    .source:hover,.sync-btn:hover,.lang-toggle:hover{color:var(--lime);border-color:var(--lime);transform:translateY(-1px);background:#173d30}
+    .source:active,.sync-btn:active,.lang-toggle:active,.tab:active,.tournament-lockup:active{transform:scale(.97)}
     .sync-btn:disabled{cursor:wait;opacity:.7;transform:none}.sync-btn:disabled:after{display:none}
     .sync-dot{display:inline-block;width:7px;height:7px;margin-right:6px;border-radius:50%;background:var(--muted)}
     .sync-btn.live{border-color:rgba(96,237,181,.55);background:rgba(96,237,181,.1)}
@@ -217,7 +218,7 @@
       .group-insights{grid-template-columns:repeat(2,1fr)}.group-insight:nth-child(2){border-right:0}
       .group-insight:nth-child(-n+2){border-bottom:1px solid #244638}
       .bracket-help{display:block}}
-    @media(max-width:650px){.shell{width:calc(100% - 22px)}header{height:66px}.source{display:none}.sync-btn{min-height:40px;padding:8px 11px;font-size:10px}.hero{padding:35px 0 28px}
+    @media(max-width:650px){.shell{width:calc(100% - 22px)}header{height:66px}.source{display:none}.sync-btn,.lang-toggle{min-height:40px;padding:8px 11px;font-size:10px}.hero{padding:35px 0 28px}
       h1{font-size:52px}.lead{font-size:13px}.status-summary{grid-template-columns:1fr;gap:12px}.status-readouts{justify-content:space-between}.readout{min-width:0;flex:1}.readout b{font-size:24px}
       .nav{align-items:stretch;flex-direction:column;gap:8px}.tabs .tab{flex:1;min-height:44px;padding:9px 4px}
       .mobile-guide{display:block}
@@ -238,6 +239,7 @@
       <div><b>淘汰赛雷达</b><small>WORLD CUP FORECAST</small></div>
     </div>
     <div class="source-tools">
+      <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language">EN</button>
       <button class="sync-btn" id="syncBtn" type="button" aria-label="立即刷新最新赛况"><i class="sync-dot"></i><span id="syncText">↻ 刷新数据</span></button>
       <a class="source" href="https://en.wikipedia.org/wiki/2026_FIFA_World_Cup" target="_blank" rel="noreferrer">数据来源</a>
     </div>
@@ -320,6 +322,76 @@
   <footer id="footerNote">预测依据：等待同步最新积分、净胜球、剩余赛程、球队实力与路径难度。本页面不是 FIFA 官方对阵表。</footer>
 </div>
 <script>
+let currentLang=localStorage.getItem("wc2026-lang")||"zh";
+const copy={
+  zh:{
+    title:"2026 世界杯淘汰赛形势",description:"实时同步赛况、Elo 与蒙特卡洛模型的 2026 世界杯淘汰赛预测",
+    langBtn:"EN",brand:"淘汰赛雷达",tagline:"WORLD CUP FORECAST",refresh:"刷新数据",refreshing:"正在刷新…",refreshFail:"刷新失败 · 重试",source:"数据来源",
+    heroTitle:"淘汰赛<br><span>形势推演</span>",lead:"实时追踪小组赛形势与官方晋级结果，并结合最新积分、World Football Elo 和蒙特卡洛模拟，推演最可能的淘汰赛对阵与冠军路径。",
+    dataStatus:"实时数据状态",summaryLoading:"正在读取赛况、积分和 Elo 模型…",confirmedSlots:"确定槽位",modelPredictions:"模型预测",confirmedMatchups:"确定对阵",
+    tabOverview:"形势速览",tabGroups:"小组积分",tabBracket:"淘汰赛树",mobileGuide:"可点击：刷新数据、上方页签、数据来源链接；比赛卡和榜单为只读信息",
+    overviewTitle:"赛况速览",overviewDesc:"实时赛果、已确定槽位和模型预测集中展示。",officialStatus:"官方确定状态",officialLoading:"同步后自动读取已确定的晋级球队与淘汰赛槽位。",
+    matchCenter:"比赛中心",matchCenterNote:"正在同步实时比分、近期赛果和接下来赛程；开球时间按你的本地时区显示。",waitSync:"等待同步",
+    upcoming:"接下来赛程",localVenueWeather:"本地时间 / 球场 / 天气",completed:"已结束 · 今天/昨天",score:"比分",
+    officialFact:"官方事实",officialFactTitle:"等待同步官方槽位",officialFactBody:"同步后自动读取淘汰赛页面里已经确定的球队槽位。",
+    eloCall:"Elo 模型判断",champCalc:"正在计算冠军主路径",champPath:"根据实时 Elo 和最新淘汰赛组合自动更新。",
+    biggestVariable:"最大变量",thirdTitle:"等待计算最佳第三名",thirdBody:"同步积分并完成模拟后，自动更新最可能进入 32 强的第三名球队。",
+    statsTitle:"赛事榜单",statsDesc:"射手、球队火力和防守表现随比赛结果自动更新。",scorers:"射手榜",goals:"进球",attack:"球队进球榜",defence:"最佳防守",ga:"失球",
+    groupsTitle:"小组赛数据中心",groupsDesc:"跨组比较只聚焦最佳第三名线；每组内部排名仍按小组规则单独计算。",
+    bracketTitle:"最可能的淘汰赛路径",bracketDesc:"每次同步后自动重算小组名次、最佳第三名组合、32 强配对及后续晋级路径。",
+    legendOfficial:"薄荷绿：唯一确定",legendProjected:"橙虚线：所有预测球队",legendAdvance:"黄左线：预测晋级",legendRoute:"连线：预测路径",liveModel:"实时模型",
+    bracketWait:"等待同步后自动生成 32 强对阵、第三名映射和后续晋级路径。",bracketHelp:"横向滑动查看后续轮次 →",
+    footer:"预测依据：等待同步最新积分、净胜球、剩余赛程、球队实力与路径难度。本页面不是 FIFA 官方对阵表。"
+  },
+  en:{
+    title:"2026 World Cup Knockout Forecast",description:"Live 2026 World Cup knockout forecast powered by scores, Elo and Monte Carlo simulation",
+    langBtn:"中文",brand:"Knockout Radar",tagline:"WORLD CUP FORECAST",refresh:"Refresh data",refreshing:"Refreshing…",refreshFail:"Refresh failed · retry",source:"Sources",
+    heroTitle:"Knockout<br><span>Forecast</span>",lead:"Track group-stage results and official qualification updates in real time, then combine the latest standings, World Football Elo and Monte Carlo simulation to project the most likely knockout bracket and title path.",
+    dataStatus:"Live data status",summaryLoading:"Loading scores, standings and Elo model…",confirmedSlots:"Confirmed slots",modelPredictions:"Model picks",confirmedMatchups:"Confirmed ties",
+    tabOverview:"Overview",tabGroups:"Groups",tabBracket:"Bracket",mobileGuide:"Tap-enabled: refresh, top tabs and source link. Match cards and leaderboards are read-only.",
+    overviewTitle:"Overview",overviewDesc:"Live results, confirmed slots and model forecasts in one place.",officialStatus:"Confirmed status",officialLoading:"Confirmed teams and knockout slots are read automatically after sync.",
+    matchCenter:"Match Center",matchCenterNote:"Syncing live scores, recent results and upcoming fixtures; kickoff times use your local timezone.",waitSync:"Waiting for sync",
+    upcoming:"Upcoming",localVenueWeather:"Local time / venue / weather",completed:"Final · today/yesterday",score:"Score",
+    officialFact:"Official fact",officialFactTitle:"Waiting for confirmed slots",officialFactBody:"Confirmed knockout slots will be read automatically after sync.",
+    eloCall:"Elo model call",champCalc:"Calculating main title path",champPath:"Updated from live Elo and the latest projected knockout bracket.",
+    biggestVariable:"Biggest variable",thirdTitle:"Waiting for best third-place teams",thirdBody:"After standings and simulation sync, this updates the most likely third-place teams to reach the Round of 32.",
+    statsTitle:"Tournament leaders",statsDesc:"Scorers, team attack and defensive records update with match results.",scorers:"Scorers",goals:"Goals",attack:"Team goals",defence:"Best defence",ga:"GA",
+    groupsTitle:"Group Data Center",groupsDesc:"Cross-group comparison focuses only on the best third-place line; each group is still ranked by its own group rules.",
+    bracketTitle:"Most likely knockout path",bracketDesc:"Every sync recalculates group positions, best third-place combinations, Round of 32 matchups and later paths.",
+    legendOfficial:"Mint: confirmed",legendProjected:"Orange dashed: projected team",legendAdvance:"Yellow rail: projected winner",legendRoute:"Line: projected path",liveModel:"Live model",
+    bracketWait:"After sync, this generates the Round of 32 bracket, third-place mapping and projected paths.",bracketHelp:"Swipe horizontally to see later rounds →",
+    footer:"Forecast basis: latest synced points, goal difference, remaining fixtures, team strength and path difficulty. This is not an official FIFA bracket."
+  }
+};
+const t=k=>(copy[currentLang]&&copy[currentLang][k])||copy.zh[k]||k;
+function setText(selector,key){const el=document.querySelector(selector);if(el)el.textContent=t(key)}
+function setHTML(selector,key){const el=document.querySelector(selector);if(el)el.innerHTML=t(key)}
+function applyLanguage(){
+  document.documentElement.lang=currentLang==="en"?"en":"zh-CN";
+  document.title=t("title");
+  const desc=document.querySelector('meta[name="description"]');if(desc)desc.content=t("description");
+  setText(".brand b","brand");setText(".brand small","tagline");setText("#langToggle","langBtn");setText(".source","source");
+  setHTML(".hero h1","heroTitle");setText(".lead","lead");setText(".status-copy b","dataStatus");
+  if(!liveDataReady)setText("#summaryStatus","summaryLoading");
+  document.querySelectorAll(".readout small")[0].textContent=t("confirmedSlots");
+  document.querySelectorAll(".readout small")[1].textContent=t("modelPredictions");
+  document.querySelectorAll(".readout small")[2].textContent=t("confirmedMatchups");
+  const tabs=document.querySelectorAll(".tab");tabs[0].textContent=t("tabOverview");tabs[1].textContent=t("tabGroups");tabs[2].textContent=t("tabBracket");
+  setText(".mobile-guide","mobileGuide");setText("#overview .section-head h2","overviewTitle");setText("#overview .section-head p","overviewDesc");
+  setText("#overview .notice b","officialStatus");if(!liveDataReady)setText("#officialSummary","officialLoading");
+  setText(".match-center-head h2","matchCenter");setText("#matchCenterNote","matchCenterNote");if(!liveDataReady)setText("#matchUpdated","waitSync");
+  const heads=document.querySelectorAll(".upcoming-panel .board-head");heads[0].querySelector("b").lastChild.textContent=t("upcoming");heads[0].querySelector("span:last-child").textContent=t("localVenueWeather");heads[1].querySelector("b").lastChild.textContent=t("completed");heads[1].querySelector("span:last-child").textContent=t("score");
+  const insights=document.querySelectorAll(".insight small");insights[0].textContent=t("officialFact");insights[1].textContent=t("eloCall");insights[2].textContent=t("biggestVariable");
+  if(!liveDataReady){setText("#officialFactTitle","officialFactTitle");setText("#officialFactBody","officialFactBody");setText("#championHeadline","champCalc");setText("#championPath","champPath");setText("#variableTitle","thirdTitle");setText("#variableBody","thirdBody")}
+  setText(".stats-head h2","statsTitle");setText(".stats-head p","statsDesc");
+  const lb=document.querySelectorAll(".leaderboard .board-head");lb[0].querySelector("b").lastChild.textContent=t("scorers");lb[0].querySelector("span:last-child").textContent=t("goals");lb[1].querySelector("b").lastChild.textContent=t("attack");lb[2].querySelector("b").lastChild.textContent=t("defence");lb[2].querySelector("span:last-child").textContent=t("ga");
+  setText("#groupsView .section-head h2","groupsTitle");setText("#groupsView .section-head p","groupsDesc");
+  setText("#bracketView .section-head h2","bracketTitle");setText("#bracketView .section-head p","bracketDesc");
+  const keys=document.querySelectorAll(".legend .key");keys[0].textContent=t("legendOfficial");keys[1].textContent=t("legendProjected");keys[2].textContent=t("legendAdvance");keys[3].textContent=t("legendRoute");
+  setText("#bracketView .notice b","liveModel");if(!liveDataReady)setText("#bracketModelNote","bracketWait");setText(".bracket-help","bracketHelp");
+  setText("#footerNote","footer");
+  document.querySelector("#syncBtn")?.setAttribute("aria-label",currentLang==="en"?"Refresh latest data":"立即刷新最新赛况");
+}
 let groups=[
 ["A",[["墨西哥","🇲🇽",2,6,3],["韩国","🇰🇷",2,3,0],["捷克","🇨🇿",2,1,-1],["南非","🇿🇦",2,1,-2]]],
 ["B",[["加拿大","🇨🇦",2,4,6],["瑞士","🇨🇭",2,4,3],["波黑","🇧🇦",2,1,-3],["卡塔尔","🇶🇦",2,1,-6]]],
@@ -363,16 +435,17 @@ function isGroupComplete(teams){
   return teams?.length>=4&&teams.every(t=>Number(t[2])>=3);
 }
 function teamSituation(t,pos,groupTeams){
-  if(t[5])return "已出局";
+  if(t[5])return currentLang==="en"?"Eliminated":"已出局";
   if(isGroupComplete(groupTeams)){
-    if(pos===0)return "锁定头名";
-    if(pos===1)return "锁定次名";
-    if(pos===2)return qualifyChance(t,pos)>=100?"第三名晋级":"第三名待定";
-    return "已出局";
+    if(pos===0)return currentLang==="en"?"Group winner":"锁定头名";
+    if(pos===1)return currentLang==="en"?"Group runner-up":"锁定次名";
+    if(pos===2)return qualifyChance(t,pos)>=100?(currentLang==="en"?"Qualified as third":"第三名晋级"):(currentLang==="en"?"Third-place bubble":"第三名待定");
+    return currentLang==="en"?"Eliminated":"已出局";
   }
-  if(confirmedGroupWinners.has(t[0]))return "锁定头名";
-  if(confirmedQualified.has(t[0]))return "已晋级";
+  if(confirmedGroupWinners.has(t[0]))return currentLang==="en"?"Group winner":"锁定头名";
+  if(confirmedQualified.has(t[0]))return currentLang==="en"?"Qualified":"已晋级";
   const q=qualifyChance(t,pos);
+  if(currentLang==="en")return q>=90?"Strong position":q>=70?"In control":q>=45?"Key final match":q>=20?"Needs points":"Near elimination";
   return q>=90?"晋级在望":q>=70?"掌握主动":q>=45?"末轮关键":q>=20?"需要抢分":"濒临出局";
 }
 function renderGroupInsights(){
@@ -392,9 +465,9 @@ function renderGroupInsights(){
     <article class="group-insight"><small>第三名边缘区</small><div class="mini-list">${bubble.map((x,i)=>`<span><em>${i+6}. ${flagIcon(x.t[0],x.t[1])} ${x.t[0]}（${x.g}）· ${x.t[3]}分</em><b>${Math.round(x.chance*100)}%</b></span>`).join("")||"<span><em>等待小组第三</em><b>—</b></span>"}</div></article>`;
 }
 function listNames(items,limit=4){
-  if(!items.length)return "暂无";
-  const head=items.slice(0,limit).join("、");
-  return items.length>limit?`${head} 等 ${items.length} 支`:head;
+  if(!items.length)return currentLang==="en"?"None":"暂无";
+  const head=items.slice(0,limit).join(currentLang==="en"?", ":"、");
+  return items.length>limit?(currentLang==="en"?`${head} and ${items.length-limit} more`:`${head} 等 ${items.length} 支`):head;
 }
 function updateLiveCopy(){
   const officialNames=Object.entries(officialTeamMatches).map(([team,no])=>`${team}→M${no}`);
@@ -402,16 +475,16 @@ function updateLiveCopy(){
   const champ=paths?.base?.final?.[0]?.[3]||"—";
   document.querySelector("#heroEyebrow").textContent=`2026 FIFA WORLD CUP · ${lastSyncLabel}`;
   const summaryStatus=document.querySelector("#summaryStatus");
-  if(summaryStatus)summaryStatus.textContent=`每 2 分钟自动同步；绿色数字是官方槽位，其余随赛果和模型重算。`;
+  if(summaryStatus)summaryStatus.textContent=currentLang==="en"?"Auto-syncs every 2 minutes; green numbers are confirmed slots, the rest updates with results and the model.":"每 2 分钟自动同步；绿色数字是官方槽位，其余随赛果和模型重算。";
   const matchNote=document.querySelector("#matchCenterNote");
-  if(matchNote)matchNote.textContent=`正在同步实时比分、近期赛果和接下来赛程；开球时间按你的本地时区显示：${localTimeZoneLabel()}。`;
-  document.querySelector("#officialFactTitle").innerHTML=officialNames.length?`${listNames(Object.keys(officialTeamMatches),3)}<br>已进入对应 32 强槽位`:"暂无官方确定槽位";
-  document.querySelector("#officialFactBody").textContent=officialNames.length?`${officialNames.join("；")}。这表示球队位置已确定；对手或后续路径仍按实时模型预测。`:"淘汰赛官方页面还没有可读取的确定球队槽位，当前对阵树全部来自模型预测。";
-  document.querySelector("#variableTitle").textContent=thirdNames.length?`${thirdNames.length} 个最佳第三名仍在变动`:"最佳第三名待计算";
-  document.querySelector("#variableBody").textContent=thirdNames.length?`当前模型最看好的第三名：${listNames(thirdNames,5)}。第三名组合会直接改变 32 强对阵。`:"同步完成后会根据小组积分、剩余赛程和 Elo 模拟更新。";
-  document.querySelector("#bracketModelNote").textContent=`薄荷绿槽位来自官方淘汰赛页；其余球队、第三名映射和后续晋级均由 ${simulationCount?simulationCount.toLocaleString():"—"} 次 Elo 蒙特卡洛模拟生成。球队右侧为该场 Elo 晋级概率；${lastSyncLabel}，自动重算。`;
-  document.querySelector("#footerNote").textContent=`预测依据：${lastSourceStamp||lastSyncLabel} 的积分、净胜球、剩余赛程、World Football Elo（${eloSourceTime}）和淘汰赛路径难度；第三名具体配对随 8 支最佳第三名变化。本页面不是 FIFA 官方对阵表。`;
-  if(champ&&champ!=="—")document.querySelector("#championHeadline").textContent=`${champ}是当前主预测冠军`;
+  if(matchNote)matchNote.textContent=currentLang==="en"?`Syncing live scores, recent results and upcoming fixtures; kickoff times use your local timezone: ${localTimeZoneLabel()}.`:`正在同步实时比分、近期赛果和接下来赛程；开球时间按你的本地时区显示：${localTimeZoneLabel()}。`;
+  document.querySelector("#officialFactTitle").innerHTML=officialNames.length?(currentLang==="en"?`${listNames(Object.keys(officialTeamMatches),3)}<br>have confirmed Round of 32 slots`:`${listNames(Object.keys(officialTeamMatches),3)}<br>已进入对应 32 强槽位`):(currentLang==="en"?"No confirmed knockout slots yet":"暂无官方确定槽位");
+  document.querySelector("#officialFactBody").textContent=officialNames.length?(currentLang==="en"?`${officialNames.join("; ")}. These team slots are confirmed; opponents and later paths are still model projections.`:`${officialNames.join("；")}。这表示球队位置已确定；对手或后续路径仍按实时模型预测。`):(currentLang==="en"?"The official knockout page has no readable confirmed team slots yet; the bracket is currently model-projected.":"淘汰赛官方页面还没有可读取的确定球队槽位，当前对阵树全部来自模型预测。");
+  document.querySelector("#variableTitle").textContent=thirdNames.length?(currentLang==="en"?`${thirdNames.length} best third-place spots still moving`:`${thirdNames.length} 个最佳第三名仍在变动`):(currentLang==="en"?"Best third-place teams pending":"最佳第三名待计算");
+  document.querySelector("#variableBody").textContent=thirdNames.length?(currentLang==="en"?`Current model favorites among third-place teams: ${listNames(thirdNames,5)}. The third-place combination directly changes Round of 32 matchups.`:`当前模型最看好的第三名：${listNames(thirdNames,5)}。第三名组合会直接改变 32 强对阵。`):(currentLang==="en"?"After standings sync and Elo simulation, this updates automatically.":"同步完成后会根据小组积分、剩余赛程和 Elo 模拟更新。");
+  document.querySelector("#bracketModelNote").textContent=currentLang==="en"?`Mint slots come from the official knockout page; all other teams, third-place mapping and later winners are generated from ${simulationCount?simulationCount.toLocaleString():"—"} Elo Monte Carlo simulations. The number beside each team is its Elo win probability for that match; ${lastSyncLabel}.`:`薄荷绿槽位来自官方淘汰赛页；其余球队、第三名映射和后续晋级均由 ${simulationCount?simulationCount.toLocaleString():"—"} 次 Elo 蒙特卡洛模拟生成。球队右侧为该场 Elo 晋级概率；${lastSyncLabel}，自动重算。`;
+  document.querySelector("#footerNote").textContent=currentLang==="en"?`Forecast basis: ${lastSourceStamp||lastSyncLabel} standings, goal difference, remaining fixtures, World Football Elo (${eloSourceTime}) and path difficulty. Third-place mappings can change with the eight best third-place teams. This is not an official FIFA bracket.`:`预测依据：${lastSourceStamp||lastSyncLabel} 的积分、净胜球、剩余赛程、World Football Elo（${eloSourceTime}）和淘汰赛路径难度；第三名具体配对随 8 支最佳第三名变化。本页面不是 FIFA 官方对阵表。`;
+  if(champ&&champ!=="—")document.querySelector("#championHeadline").textContent=currentLang==="en"?`${champ} is the current main title pick`:`${champ}是当前主预测冠军`;
 }
 let locked={};
 let r32=[
@@ -432,8 +505,8 @@ sf:[[101,"法国","西班牙","法国"],[102,"巴西","阿根廷","阿根廷"]],
 let officialTeamMatches={};
 function renderGroups(){
   document.querySelector("#groups").innerHTML=groups.map(([g,ts])=>`<article class="group">
-    <div class="group-head"><div class="group-title"><b>${g}</b><span>GROUP ${g}</span></div><small>${ts[0][2]} 轮后 · Elo MC</small></div>
-    <div class="group-body"><div class="group-table-head"><span>#</span><span>球队 / 形势</span><span>赛</span><span>分</span><span>净胜</span><span>晋级率</span></div>
+    <div class="group-head"><div class="group-title"><b>${g}</b><span>GROUP ${g}</span></div><small>${currentLang==="en"?`After ${ts[0][2]} matches · Elo MC`:`${ts[0][2]} 轮后 · Elo MC`}</small></div>
+    <div class="group-body"><div class="group-table-head"><span>#</span><span>${currentLang==="en"?"Team / status":"球队 / 形势"}</span><span>${currentLang==="en"?"P":"赛"}</span><span>${currentLang==="en"?"Pts":"分"}</span><span>${currentLang==="en"?"GD":"净胜"}</span><span>${currentLang==="en"?"Qual.":"晋级率"}</span></div>
     ${ts.map((t,i)=>{const q=qualifyChance(t,i);return `<div class="team-row ${t[5]?"eliminated":i<2?"direct":i===2?"third":""}">
       <span class="pos">${i+1}</span><span class="team-name"><strong>${flagIcon(t[0],t[1])} ${t[0]}</strong><small>${teamSituation(t,i,ts)}</small></span>
       <span>${t[2]}</span><span class="pts">${t[3]}</span><span class="gd">${t[4]>0?"+":""}${t[4]}</span>
@@ -443,11 +516,11 @@ function renderGroups(){
 }
 renderGroups();
 function renderThirds(){
-  document.querySelector("#thirdGrid").innerHTML=third.map((t,i)=>`<article class="third-card"><div class="top"><b>${i+1}. ${flagIcon(t[0],t[1])} ${t[0]}</b><span class="pct">${t[2]}%</span></div><small>预测以小组第三晋级</small><div class="prob"><i style="width:${t[2]}%"></i></div></article>`).join("");
+  document.querySelector("#thirdGrid").innerHTML=third.map((t,i)=>`<article class="third-card"><div class="top"><b>${i+1}. ${flagIcon(t[0],t[1])} ${t[0]}</b><span class="pct">${t[2]}%</span></div><small>${currentLang==="en"?"Projected to qualify as a third-place team":"预测以小组第三晋级"}</small><div class="prob"><i style="width:${t[2]}%"></i></div></article>`).join("");
 }
 renderThirds();
 function boardRows(items,valueLabel){
-  if(!items.length)return '<div class="board-row"><span>—</span><span class="board-name">等待赛事数据</span><b class="board-value">—</b></div>';
+  if(!items.length)return `<div class="board-row"><span>—</span><span class="board-name">${currentLang==="en"?"Waiting for tournament data":"等待赛事数据"}</span><b class="board-value">—</b></div>`;
   return items.slice(0,6).map((x,i)=>`<div class="board-row ${i===0?"top":""}">
     <span class="board-rank">${i+1}</span><span class="board-name">${x.flag||""} ${x.name}${x.note?`<small>${x.note}</small>`:""}</span>
     <b class="board-value">${x.value}${valueLabel||""}</b></div>`).join("");
@@ -455,9 +528,9 @@ function boardRows(items,valueLabel){
 function renderLeaderboards(){
   const all=groups.flatMap(([g,ts])=>ts.map(t=>({name:t[0],flag:flagIcon(t[0],t[1]),gf:t[6]||0,ga:(t[6]||0)-t[4],played:t[2]})));
   const attack=[...all].sort((a,b)=>b.gf-a.gf||a.played-b.played||(eloRatings[b.name]||0)-(eloRatings[a.name]||0))
-    .slice(0,6).map(x=>({name:x.name,flag:x.flag,note:`${x.played}场`,value:x.gf}));
+    .slice(0,6).map(x=>({name:x.name,flag:x.flag,note:currentLang==="en"?`${x.played} matches`:`${x.played}场`,value:x.gf}));
   const defence=[...all].filter(x=>x.played>0).sort((a,b)=>a.ga-b.ga||b.played-a.played||-b.gf+a.gf)
-    .slice(0,6).map(x=>({name:x.name,flag:x.flag,note:`${x.played}场`,value:x.ga}));
+    .slice(0,6).map(x=>({name:x.name,flag:x.flag,note:currentLang==="en"?`${x.played} matches`:`${x.played}场`,value:x.ga}));
   document.querySelector("#scorerBoard").innerHTML=boardRows(scorerLeaders,"");
   document.querySelector("#attackBoard").innerHTML=boardRows(attack,"");
   document.querySelector("#defenceBoard").innerHTML=boardRows(defence,"");
@@ -637,9 +710,9 @@ function winProbMarkup(m){
   const p=matchOutcomeProb(m);
   const drawCenter=p.home+p.draw/2;
   return `<div class="win-prob" style="--home:${p.home}fr;--draw:${p.draw}fr;--away:${p.away}fr;--draw-center:${drawCenter}%" aria-label="${p.label}">
-    <div class="prob-side"><b>${p.home}%</b><span>${m.home}胜</span></div>
-    <div class="prob-draw"><b>${p.draw}%</b><span>平</span></div>
-    <div class="prob-side away"><b>${p.away}%</b><span>${m.away}胜</span></div>
+    <div class="prob-side"><b>${p.home}%</b><span>${currentLang==="en"?`${m.home} win`:`${m.home}胜`}</span></div>
+    <div class="prob-draw"><b>${p.draw}%</b><span>${currentLang==="en"?"Draw":"平"}</span></div>
+    <div class="prob-side away"><b>${p.away}%</b><span>${currentLang==="en"?`${m.away} win`:`${m.away}胜`}</span></div>
     <div class="prob-bar"><i></i><i></i><i></i></div>
   </div>`;
 }
@@ -649,7 +722,7 @@ function formatGoal(g){
 }
 function formatGoals(m){
   const goals=m.goals||[];
-  if(!goals.length)return "进球：无";
+  if(!goals.length)return currentLang==="en"?"Goals: none":"进球：无";
   const homeGoals=goals.filter(g=>g.side==="home").map(formatGoal);
   const awayGoals=goals.filter(g=>g.side==="away").map(formatGoal);
   const unknownGoals=goals.filter(g=>g.side!=="home"&&g.side!=="away").map(formatGoal);
@@ -657,7 +730,7 @@ function formatGoals(m){
   if(homeGoals.length)parts.push(`${m.home}：${homeGoals.join("、")}`);
   if(awayGoals.length)parts.push(`${m.away}：${awayGoals.join("、")}`);
   if(unknownGoals.length)parts.push(unknownGoals.join("、"));
-  return `进球：${parts.join("；")}`;
+  return `${currentLang==="en"?"Goals":"进球"}：${parts.join("；")}`;
 }
 function localDayKey(d){
   return d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`:"";
@@ -667,19 +740,19 @@ function recentDayKeys(now=new Date()){
   return new Set([today,localDayKey(yesterday)]);
 }
 function matchCard(m){
-  const statusLabel={live:"进行中",final:"已完赛",upcoming:"未开赛"}[m.status]||"待同步";
+  const statusLabel=(currentLang==="en"?{live:"Live",final:"Final",upcoming:"Scheduled"}:{live:"进行中",final:"已完赛",upcoming:"未开赛"})[m.status]||(currentLang==="en"?"Syncing":"待同步");
   return `<article class="live-match ${m.status}">
     <div class="match-kicker"><span>${fmtMatchTime(m.kickoff)}</span><span class="match-state ${m.status}">${statusLabel}</span></div>
     <div class="scoreline">
-      <div class="score-team"><b>${flagIcon(m.home,m.homeFlag)} ${m.home}</b><small>主队</small></div>
+      <div class="score-team"><b>${flagIcon(m.home,m.homeFlag)} ${m.home}</b><small>${currentLang==="en"?"Home":"主队"}</small></div>
       <div class="score">${scoreDisplay(m)}</div>
-      <div class="score-team away"><b>${flagIcon(m.away,m.awayFlag)} ${m.away}</b><small>客队</small></div>
+      <div class="score-team away"><b>${flagIcon(m.away,m.awayFlag)} ${m.away}</b><small>${currentLang==="en"?"Away":"客队"}</small></div>
     </div>
     ${winProbMarkup(m)}
     <div class="match-meta">
       <span>📍 <b>${m.stadium}</b> · ${m.city}</span>
-      <span>🌤️ <span data-weather="${m.id}">${m.weather||"天气加载中"}</span></span>
-      <span>📡 比分源：${m.source||"Wikipedia"}${m.statusDetail?` · ${m.statusDetail}`:""}</span>
+      <span>🌤️ <span data-weather="${m.id}">${m.weather||(currentLang==="en"?"Loading weather":"天气加载中")}</span></span>
+      <span>📡 ${currentLang==="en"?"Score source":"比分源"}：${m.source||"Wikipedia"}${m.statusDetail?` · ${m.statusDetail}`:""}</span>
     </div>
   </article>`;
 }
@@ -696,25 +769,25 @@ function renderMatchCenter(){
   const displayed=liveMatches.length?liveMatches.slice(0,2):fallback;
   const panel=document.querySelector("#liveMatchCard");
   panel.className=`live-panel ${displayed.length>1?"multi":""}`;
-  const panelTitle=liveMatches.length?`${liveMatches.length} 场正在进行`:nextBatch.length>1?`${nextBatch.length} 场同时开赛`:nextBatch.length?"下一场比赛":"最近赛果";
-  const panelHint=liveMatches.length>2?`另有 ${liveMatches.length-2} 场进行中`:(liveMatches.length?"实时比分":"当前无 live");
+  const panelTitle=liveMatches.length?(currentLang==="en"?`${liveMatches.length} live`:`${liveMatches.length} 场正在进行`):nextBatch.length>1?(currentLang==="en"?`${nextBatch.length} simultaneous kickoffs`:`${nextBatch.length} 场同时开赛`):nextBatch.length?(currentLang==="en"?"Next match":"下一场比赛"):(currentLang==="en"?"Recent result":"最近赛果");
+  const panelHint=liveMatches.length>2?(currentLang==="en"?`${liveMatches.length-2} more live`:`另有 ${liveMatches.length-2} 场进行中`):(liveMatches.length?(currentLang==="en"?"Live score":"实时比分"):(currentLang==="en"?"No live match":"当前无 live"));
   panel.innerHTML=displayed.length?`
     <div class="live-panel-head"><b>${panelTitle}</b><span class="live-count">${panelHint}</span></div>
-    <div class="live-grid">${displayed.map(matchCard).join("")}</div>`:'<div class="empty-state">暂时没有读取到比赛卡。</div>';
+    <div class="live-grid">${displayed.map(matchCard).join("")}</div>`:`<div class="empty-state">${currentLang==="en"?"No match card loaded yet.":"暂时没有读取到比赛卡。"}</div>`;
   const shown=new Set(displayed.map(m=>m.id));
   const upcoming=(upcomingPool.filter(m=>!shown.has(m.id)).slice(0,6));
   document.querySelector("#upcomingList").innerHTML=upcoming.length?upcoming.map(m=>`
     <div class="fixture">
       <div class="fixture-time">${shortTime(m.kickoff)}</div>
       <div class="fixture-main"><b>${flagIcon(m.home,m.homeFlag)} ${m.home} vs ${flagIcon(m.away,m.awayFlag)} ${m.away}</b><small>${m.stadium} · ${m.city}</small></div>
-      <div class="fixture-weather" data-weather="${m.id}">${m.weather||"天气加载中"}</div>
-    </div>`).join(""):'<div class="empty-state">暂时没有更多赛程；点击刷新重新同步。</div>';
+      <div class="fixture-weather" data-weather="${m.id}">${m.weather||(currentLang==="en"?"Loading weather":"天气加载中")}</div>
+    </div>`).join(""):`<div class="empty-state">${currentLang==="en"?"No more fixtures loaded; refresh to sync again.":"暂时没有更多赛程；点击刷新重新同步。"}</div>`;
   document.querySelector("#completedList").innerHTML=recentFinal.length?recentFinal.slice(0,6).map(m=>`
     <div class="fixture final">
       <div class="fixture-time">${shortTime(m.kickoff)}</div>
       <div class="fixture-main"><b>${flagIcon(m.home,m.homeFlag)} ${m.home} vs ${flagIcon(m.away,m.awayFlag)} ${m.away}</b><small>${m.stadium} · ${m.city}${m.statusDetail?` · ${m.statusDetail}`:""}</small><span class="goal-list">${formatGoals(m)}</span></div>
       <div class="fixture-score">${scoreDisplay(m)}</div>
-    </div>`).join(""):'<div class="empty-state">今天/昨天暂无已结束比赛。</div>';
+    </div>`).join(""):`<div class="empty-state">${currentLang==="en"?"No final matches today/yesterday.":"今天/昨天暂无已结束比赛。"}</div>`;
 }
 const hostCityCoords={
   "Mexico City":[19.4326,-99.1332],"Zapopan":[20.7214,-103.3918],"Guadalajara":[20.6597,-103.3496],"Monterrey":[25.6866,-100.3161],
@@ -1213,31 +1286,31 @@ async function applyDataBundle({data,koData,espnPages=null,eloText=null,sourceLa
     applyOfficialStatus(official);
     runMonteCarlo(30000,Number(data.parse.revid)||20260623);
     rebuildKnockout(koDoc,official);renderGroups();recalcThirds();renderLeaderboards();
-    const now=new Intl.DateTimeFormat("zh-CN",{hour:"2-digit",minute:"2-digit"}).format(new Date());
-    lastSyncLabel=`${now} 已同步`;
+    const now=new Intl.DateTimeFormat(currentLang==="en"?"en-US":"zh-CN",{hour:"2-digit",minute:"2-digit"}).format(new Date());
+    lastSyncLabel=currentLang==="en"?`${now} synced`:`${now} 已同步`;
     lastSourceStamp=`${sourceLabel} · Wikipedia revision ${data.parse.revid} / knockout ${koData.parse.revid}`;
     liveDataReady=true;
     updateLiveCopy();
-    document.querySelector("#statsUpdated").textContent=`截至 ${now} · 已赛数据`;
-    document.querySelector("#matchUpdated").textContent=`截至 ${now}`;
+    document.querySelector("#statsUpdated").textContent=currentLang==="en"?`Updated ${now} · completed data`:`截至 ${now} · 已赛数据`;
+    document.querySelector("#matchUpdated").textContent=currentLang==="en"?`Updated ${now}`:`截至 ${now}`;
     return {now,sourceLabel,data,koData};
 }
 async function syncLatest(){
   const btn=document.querySelector("#syncBtn"),text=document.querySelector("#syncText");
-  btn.disabled=true;btn.classList.remove("live","error");text.textContent="↻ 正在刷新…";
+  btn.disabled=true;btn.classList.remove("live","error");text.textContent=`↻ ${t("refreshing")}`;
   try{
     let bundle,cacheError=null;
     try{bundle=await fetchSiteCache()}
     catch(error){cacheError=error;bundle=await fetchExternalBundle()}
     const result=await applyDataBundle(bundle);
     btn.classList.add("live");
-    text.textContent=`↻ 刷新数据 · ${result.now}`;
-    btn.title=`点击立即刷新；${result.sourceLabel}${cacheError?`（缓存不可用，已回退直连：${cacheError.message}）`:""}；积分 ${result.data.parse.revid} · 淘汰赛 ${result.koData.parse.revid} · Elo ${eloSourceTime}`;
+    text.textContent=`↻ ${t("refresh")} · ${result.now}`;
+    btn.title=currentLang==="en"?`Click to refresh; ${result.sourceLabel}${cacheError?` (cache unavailable, direct fallback: ${cacheError.message})`:""}; standings ${result.data.parse.revid} · knockout ${result.koData.parse.revid} · Elo ${eloSourceTime}`:`点击立即刷新；${result.sourceLabel}${cacheError?`（缓存不可用，已回退直连：${cacheError.message}）`:""}；积分 ${result.data.parse.revid} · 淘汰赛 ${result.koData.parse.revid} · Elo ${eloSourceTime}`;
   }catch(error){
-    lastSyncLabel="同步失败 · 显示离线兜底";
+    lastSyncLabel=currentLang==="en"?"Sync failed · offline fallback":"同步失败 · 显示离线兜底";
     liveDataReady=false;
     updateLiveCopy();
-    btn.classList.add("error");text.textContent="↻ 刷新失败 · 重试";btn.title=error.message;
+    btn.classList.add("error");text.textContent=`↻ ${t("refreshFail")}`;btn.title=error.message;
   }finally{btn.disabled=false}
 }
 async function refreshMatchCenterLive(){
@@ -1248,13 +1321,23 @@ async function refreshMatchCenterLive(){
     matchCards=fresh;
     renderMatchCenter();
     enrichWeather();
-    const now=new Intl.DateTimeFormat("zh-CN",{hour:"2-digit",minute:"2-digit"}).format(new Date());
-    document.querySelector("#matchUpdated").textContent=`比分 ${now}`;
+    const now=new Intl.DateTimeFormat(currentLang==="en"?"en-US":"zh-CN",{hour:"2-digit",minute:"2-digit"}).format(new Date());
+    document.querySelector("#matchUpdated").textContent=currentLang==="en"?`Scores ${now}`:`比分 ${now}`;
   }catch(error){}
 }
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>{x.classList.remove("active");x.setAttribute("aria-pressed","false")});document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));b.classList.add("active");b.setAttribute("aria-pressed","true");document.querySelector("#"+b.dataset.view).classList.add("active");if(b.dataset.view==="bracketView")requestAnimationFrame(drawRoutes)});
 document.querySelector("#syncBtn").addEventListener("click",syncLatest);
+document.querySelector("#langToggle").addEventListener("click",()=>{
+  currentLang=currentLang==="en"?"zh":"en";
+  localStorage.setItem("wc2026-lang",currentLang);
+  applyLanguage();
+  renderGroups();renderThirds();renderLeaderboards();renderMatchCenter();renderBracket();updateLiveCopy();
+  if(document.querySelector("#bracketView").classList.contains("active"))requestAnimationFrame(drawRoutes);
+  const text=document.querySelector("#syncText");
+  if(text&&!document.querySelector("#syncBtn").disabled)text.textContent=`↻ ${t("refresh")}${liveDataReady?` · ${lastSyncLabel.replace(/ 已同步| synced/,"")}`:""}`;
+});
 window.addEventListener("resize",()=>requestAnimationFrame(drawRoutes));
+applyLanguage();
 renderBracket();
 try{const cached=JSON.parse(localStorage.getItem("wc2026-elo"));if(cached?.ratings){eloRatings={...eloRatings,...cached.ratings};eloSourceTime=cached.time||"缓存"}}catch{}
 syncLatest();
