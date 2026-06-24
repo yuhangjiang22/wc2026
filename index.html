@@ -266,11 +266,11 @@
       <div class="section-head"><div><h2>赛况速览</h2><p>实时赛果、已确定槽位和模型预测集中展示。</p></div></div>
       <div class="notice"><b>官方确定状态</b><span id="officialSummary">同步后自动读取已确定的晋级球队与淘汰赛槽位。</span></div>
       <section class="match-center">
-        <div class="match-center-head"><div><h2>比赛中心</h2><p id="matchCenterNote">如果现在有比赛，会优先显示实时比分；否则显示今日/下一批 upcoming。时间按你的本地时区显示。</p></div><small id="matchUpdated">等待同步</small></div>
+        <div class="match-center-head"><div><h2>比赛中心</h2><p id="matchCenterNote">正在同步实时比分、近期赛果和接下来赛程；开球时间按你的本地时区显示。</p></div><small id="matchUpdated">等待同步</small></div>
         <div class="match-strip">
           <section class="live-panel" id="liveMatchCard"><div class="empty-state">正在读取比赛时间、球场和比分…</div></section>
           <article class="upcoming-panel">
-            <section class="list-section"><div class="board-head"><b><span class="label-mark">UP</span>Upcoming 对阵</b><span>本地时间 / 球场 / 天气</span></div><div class="upcoming-list" id="upcomingList"></div></section>
+            <section class="list-section"><div class="board-head"><b><span class="label-mark">UP</span>接下来赛程</b><span>本地时间 / 球场 / 天气</span></div><div class="upcoming-list" id="upcomingList"></div></section>
             <section class="list-section"><div class="board-head"><b><span class="label-mark defence">FT</span>已结束 · 今天/昨天</b><span>比分</span></div><div class="completed-list" id="completedList"></div></section>
           </article>
         </div>
@@ -383,7 +383,7 @@ function updateLiveCopy(){
   const summaryStatus=document.querySelector("#summaryStatus");
   if(summaryStatus)summaryStatus.textContent=`每 2 分钟自动同步；绿色数字是官方槽位，其余随赛果和模型重算。`;
   const matchNote=document.querySelector("#matchCenterNote");
-  if(matchNote)matchNote.textContent=`如果现在有比赛，会优先显示实时比分；否则显示今日/下一批 upcoming。所有开球时间按你的本地时区显示：${localTimeZoneLabel()}。`;
+  if(matchNote)matchNote.textContent=`正在同步实时比分、近期赛果和接下来赛程；开球时间按你的本地时区显示：${localTimeZoneLabel()}。`;
   document.querySelector("#officialFactTitle").innerHTML=officialNames.length?`${listNames(Object.keys(officialTeamMatches),3)}<br>已进入对应 32 强槽位`:"暂无官方确定槽位";
   document.querySelector("#officialFactBody").textContent=officialNames.length?`${officialNames.join("；")}。这表示球队位置已确定；对手或后续路径仍按实时模型预测。`:"淘汰赛官方页面还没有可读取的确定球队槽位，当前对阵树全部来自模型预测。";
   document.querySelector("#variableTitle").textContent=thirdNames.length?`${thirdNames.length} 个最佳第三名仍在变动`:"最佳第三名待计算";
@@ -629,7 +629,7 @@ function renderMatchCenter(){
       <div class="fixture-time">${shortTime(m.kickoff)}</div>
       <div class="fixture-main"><b>${flagIcon(m.home,m.homeFlag)} ${m.home} vs ${flagIcon(m.away,m.awayFlag)} ${m.away}</b><small>${m.stadium} · ${m.city}</small></div>
       <div class="fixture-weather" data-weather="${m.id}">${m.weather||"天气加载中"}</div>
-    </div>`).join(""):'<div class="empty-state">没有更多 upcoming；点击刷新重新同步。</div>';
+    </div>`).join(""):'<div class="empty-state">暂时没有更多赛程；点击刷新重新同步。</div>';
   document.querySelector("#completedList").innerHTML=recentFinal.length?recentFinal.slice(0,6).map(m=>`
     <div class="fixture final">
       <div class="fixture-time">${shortTime(m.kickoff)}</div>
