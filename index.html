@@ -239,7 +239,7 @@
       </div>
       <div class="hero-side">
         <a class="tournament-lockup" href="https://en.wikipedia.org/wiki/File:2026_FIFA_World_Cup_emblem.svg" target="_blank" rel="noreferrer" aria-label="查看2026世界杯官方徽标来源">
-          <img src="https://upload.wikimedia.org/wikipedia/en/thumb/1/17/2026_FIFA_World_Cup_emblem.svg/120px-2026_FIFA_World_Cup_emblem.svg.png" alt="2026 FIFA World Cup emblem">
+          <img src="assets/world-cup-2026-emblem.png" alt="2026 FIFA World Cup emblem">
           <div><small>OFFICIAL TOURNAMENT IDENTITY</small><b>FIFA World Cup 2026</b><span>Canada · Mexico · United States</span></div>
         </a>
         <div class="status-summary" aria-label="当前数据状态摘要">
@@ -1071,9 +1071,10 @@ async function fetchCachePayload(url,label){
   return cachePayloadToBundle(validateCachePayload(payload,label),label);
 }
 async function fetchSiteCache(){
-  const local=fetchCachePayload("data/cache.json","本站缓存");
+  const worker=fetchCachePayload("/api/cache","边缘缓存");
   const raw=fetchCachePayload("https://raw.githubusercontent.com/yuhangjiang22/wc2026/main/data/cache.json","GitHub缓存");
-  const results=await Promise.allSettled([local,raw]);
+  const local=fetchCachePayload("data/cache.json","本站缓存");
+  const results=await Promise.allSettled([worker,raw,local]);
   const bundles=results.filter(x=>x.status==="fulfilled").map(x=>x.value);
   if(!bundles.length)throw results[0]?.reason||new Error("缓存不可用");
   return bundles.sort((a,b)=>new Date(b.generatedAt||0)-new Date(a.generatedAt||0))[0];
