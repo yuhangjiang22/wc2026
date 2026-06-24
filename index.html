@@ -124,6 +124,7 @@
     .fixture{display:grid;grid-template-columns:76px minmax(0,1fr) auto;gap:12px;align-items:center;min-height:60px;padding:11px 12px;border:1px solid rgba(255,255,255,.055);border-radius:12px;background:rgba(255,255,255,.025);cursor:default}
     .fixture-time{color:var(--lime);font-size:12px;font-weight:900}.fixture-main{min-width:0}.fixture-main b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
     .fixture-main small{display:block;margin-top:4px;color:var(--muted);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .fixture-main .goal-list{display:block;margin-top:5px;color:#cfe4d9;font-size:10px;line-height:1.45;white-space:normal;overflow:visible;text-overflow:clip}
     .fixture-weather{justify-self:end;color:var(--muted);font-size:11px;text-align:right}.fixture.final .fixture-time{color:var(--muted)}.fixture-score{justify-self:end;color:var(--lime);font-size:18px;font-weight:950;letter-spacing:-.04em}.empty-state{padding:22px;color:var(--muted);font-size:12px;line-height:1.6}
 
     .groups{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.group{overflow:hidden;border:1px solid #23483a;
@@ -494,7 +495,7 @@ function parseMatchCards(doc){
     return {
       id:`wiki-${i}`,source:"Wikipedia",home:zhTeam(homeEn)||"待定",away:zhTeam(awayEn)||"待定",
       homeFlag:flag[zhTeam(homeEn)]||"🌐",awayFlag:flag[zhTeam(awayEn)]||"🌐",
-      scoreText,dateText,timeText,kickoff,localHour:parseLocalHour(timeText),...venue,status:"upcoming",weather:"天气加载中"
+      scoreText,dateText,timeText,kickoff,localHour:parseLocalHour(timeText),...venue,status:"upcoming",weather:"天气加载中",goals:[]
     };
   }).filter(x=>x.home!=="待定"&&x.away!=="待定").map(x=>({...x,status:matchStatus(x)})).sort((a,b)=>(a.kickoff||0)-(b.kickoff||0));
 }
@@ -522,13 +523,25 @@ async function fetchEspnMatches(){
       const venue=comp.venue||{},city=normalizeCity(venue.address?.city||""),kickoff=new Date(event.date);
       const statusType=event.status?.type||{},state=statusType.state;
       const scoreText=state==="pre"?"vs":`${home.score??""}–${away.score??""}`;
+      const sideByTeamId=Object.fromEntries(teams.map(t=>[String(t.team?.id||t.id||""),t.homeAway]));
+      const goals=(comp.details||[]).filter(d=>d.scoringPlay).map(d=>{
+        const player=d.athletesInvolved?.[0]||{};
+        const teamId=String(d.team?.id||player.team?.id||"");
+        return {
+          player:player.shortName||player.displayName||player.fullName||"Unknown",
+          minute:d.clock?.displayValue||"",
+          side:sideByTeamId[teamId]||"",
+          ownGoal:!!d.ownGoal,
+          penalty:!!d.penaltyKick
+        };
+      });
       matches.push({
         id:`espn-${event.id}`,source:"ESPN",home:homeName,away:awayName,
         homeFlag:flag[homeName]||"🌐",awayFlag:flag[awayName]||"🌐",
         scoreText,kickoff,localHour:kickoff.getUTCHours(),stadium:venue.fullName||"待定球场",city:city||"待定城市",
         status:state==="in"?"live":state==="post"?"final":"upcoming",
         statusDetail:statusType.shortDetail||statusType.detail||statusType.description||"",
-        weather:"天气加载中"
+        weather:"天气加载中",goals
       });
     }
   }
@@ -544,6 +557,22 @@ function shortTime(d){
 }
 function scoreDisplay(m){
   return /^\d+[–-]\d+$/.test(m.scoreText)?m.scoreText.replace("-", "–"):"vs";
+}
+function formatGoal(g){
+  const tag=g.ownGoal?"（乌龙）":g.penalty?"（点球）":"";
+  return `${g.player}${tag}${g.minute?` ${g.minute}`:""}`;
+}
+function formatGoals(m){
+  const goals=m.goals||[];
+  if(!goals.length)return "进球：无";
+  const homeGoals=goals.filter(g=>g.side==="home").map(formatGoal);
+  const awayGoals=goals.filter(g=>g.side==="away").map(formatGoal);
+  const unknownGoals=goals.filter(g=>g.side!=="home"&&g.side!=="away").map(formatGoal);
+  const parts=[];
+  if(homeGoals.length)parts.push(`${m.home}：${homeGoals.join("、")}`);
+  if(awayGoals.length)parts.push(`${m.away}：${awayGoals.join("、")}`);
+  if(unknownGoals.length)parts.push(unknownGoals.join("、"));
+  return `进球：${parts.join("；")}`;
 }
 function localDayKey(d){
   return d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`:"";
@@ -595,7 +624,7 @@ function renderMatchCenter(){
   document.querySelector("#completedList").innerHTML=recentFinal.length?recentFinal.slice(0,6).map(m=>`
     <div class="fixture final">
       <div class="fixture-time">${shortTime(m.kickoff)}</div>
-      <div class="fixture-main"><b>${flagIcon(m.home,m.homeFlag)} ${m.home} vs ${flagIcon(m.away,m.awayFlag)} ${m.away}</b><small>${m.stadium} · ${m.city}${m.statusDetail?` · ${m.statusDetail}`:""}</small></div>
+      <div class="fixture-main"><b>${flagIcon(m.home,m.homeFlag)} ${m.home} vs ${flagIcon(m.away,m.awayFlag)} ${m.away}</b><small>${m.stadium} · ${m.city}${m.statusDetail?` · ${m.statusDetail}`:""}</small><span class="goal-list">${formatGoals(m)}</span></div>
       <div class="fixture-score">${scoreDisplay(m)}</div>
     </div>`).join(""):'<div class="empty-state">今天/昨天暂无已结束比赛。</div>';
 }
