@@ -1,0 +1,35 @@
+name: Update cached tournament data
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-cache
+  cancel-in-progress: true
+
+jobs:
+  update-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate cache
+        run: python3 scripts/update_cache.py
+
+      - name: Commit cache if changed
+        run: |
+          if git diff --quiet -- data/cache.json; then
+            echo "No cache changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/cache.json
+          git commit -m "Update cached tournament data"
+          git push
