@@ -361,7 +361,7 @@ function renderGroupInsights(){
     .filter(x=>!x.t[5])
     .sort((a,b)=>b.t[3]-a.t[3]||b.t[4]-a.t[4]||(b.t[6]||0)-(a.t[6]||0));
   const cutoff=thirds[7],played=all.reduce((sum,x)=>sum+x.t[2],0)/2;
-  const safe=[...thirds].sort((a,b)=>b.chance-a.chance||b.t[3]-a.t[3]||b.t[4]-a.t[4]).slice(0,3);
+  const safe=[...thirds].sort((a,b)=>b.chance-a.chance||b.t[3]-a.t[3]||b.t[4]-a.t[4]).slice(0,5);
   const bubble=[...thirds].slice(5,10);
   const lineText=cutoff?`${cutoff.t[3]} 分 / ${cutoff.t[4]>=0?"+":""}${cutoff.t[4]} GD`:"等待同步";
   document.querySelector("#groupInsights").innerHTML=`
