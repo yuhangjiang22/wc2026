@@ -270,11 +270,11 @@
       </div>
       <div class="notice"><b>官方确定状态</b><span id="officialSummary">同步后自动读取已确定的晋级球队与淘汰赛槽位。</span></div>
       <section class="match-center">
-        <div class="match-center-head"><div><h2>比赛中心</h2><p>如果现在有比赛，会优先显示实时比分；否则显示今日/下一批 upcoming。</p></div><small id="matchUpdated">等待同步</small></div>
+        <div class="match-center-head"><div><h2>比赛中心</h2><p id="matchCenterNote">如果现在有比赛，会优先显示实时比分；否则显示今日/下一批 upcoming。时间按你的本地时区显示。</p></div><small id="matchUpdated">等待同步</small></div>
         <div class="match-strip">
           <section class="live-panel" id="liveMatchCard"><div class="empty-state">正在读取比赛时间、球场和比分…</div></section>
           <article class="upcoming-panel">
-            <section class="list-section"><div class="board-head"><b><span class="label-mark">UP</span>Upcoming 对阵</b><span>时间 / 球场 / 天气</span></div><div class="upcoming-list" id="upcomingList"></div></section>
+            <section class="list-section"><div class="board-head"><b><span class="label-mark">UP</span>Upcoming 对阵</b><span>本地时间 / 球场 / 天气</span></div><div class="upcoming-list" id="upcomingList"></div></section>
             <section class="list-section"><div class="board-head"><b><span class="label-mark defence">FT</span>已结束 · 今天/昨天</b><span>比分</span></div><div class="completed-list" id="completedList"></div></section>
           </article>
         </div>
@@ -386,6 +386,8 @@ function updateLiveCopy(){
   document.querySelector("#heroEyebrow").textContent=`2026 FIFA WORLD CUP · ${lastSyncLabel}`;
   const summaryStatus=document.querySelector("#summaryStatus");
   if(summaryStatus)summaryStatus.textContent=`每 2 分钟自动同步；绿色数字是官方槽位，其余随赛果和模型重算。`;
+  const matchNote=document.querySelector("#matchCenterNote");
+  if(matchNote)matchNote.textContent=`如果现在有比赛，会优先显示实时比分；否则显示今日/下一批 upcoming。所有开球时间按你的本地时区显示：${localTimeZoneLabel()}。`;
   document.querySelector("#officialFactTitle").innerHTML=officialNames.length?`${listNames(Object.keys(officialTeamMatches),3)}<br>已进入对应 32 强槽位`:"暂无官方确定槽位";
   document.querySelector("#officialFactBody").textContent=officialNames.length?`${officialNames.join("；")}。这表示球队位置已确定；对手或后续路径仍按实时模型预测。`:"淘汰赛官方页面还没有可读取的确定球队槽位，当前对阵树全部来自模型预测。";
   document.querySelector("#variableTitle").textContent=thirdNames.length?`${thirdNames.length} 个最佳第三名仍在变动`:"最佳第三名待计算";
@@ -442,6 +444,10 @@ function renderLeaderboards(){
   document.querySelector("#scorerBoard").innerHTML=boardRows(scorerLeaders,"");
   document.querySelector("#attackBoard").innerHTML=boardRows(attack,"");
   document.querySelector("#defenceBoard").innerHTML=boardRows(defence,"");
+}
+function localTimeZoneLabel(){
+  try{return Intl.DateTimeFormat().resolvedOptions().timeZone||"你的本地时区";}
+  catch{return "你的本地时区";}
 }
 function parseKickoff(dateText,timeText){
   const date=(dateText.match(/\d{4}-\d{2}-\d{2}/)||[])[0];
