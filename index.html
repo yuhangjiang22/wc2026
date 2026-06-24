@@ -48,10 +48,12 @@
     .eyebrow{color:var(--lime);font-size:12px;font-weight:900;letter-spacing:.18em}
     h1{margin:13px 0 15px;font-size:clamp(48px,6.5vw,92px);line-height:.92;letter-spacing:-.07em}
     h1 span{color:var(--lime)}.lead{max-width:700px;color:var(--muted);line-height:1.75;margin:0}
-    .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
-    .metric{padding:18px;border:1px solid var(--line);border-radius:18px;background:rgba(13,33,26,.8);cursor:default;user-select:none}
-    .metric b{display:block;font-size:30px;letter-spacing:-.05em}.metric span{color:var(--muted);font-size:11px}
-    .metric.primary{background:var(--mint);color:var(--ink)}.metric.primary span{color:#315d4b}
+    .status-summary{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:center;padding:14px 2px;
+      border-top:1px solid rgba(96,237,181,.22);border-bottom:1px solid rgba(96,237,181,.22);cursor:default;user-select:none}
+    .status-copy b{display:block;color:var(--text);font-size:13px}.status-copy span{display:block;margin-top:5px;color:var(--muted);font-size:11px;line-height:1.45}
+    .status-readouts{display:flex;gap:18px}.readout{min-width:62px;padding-left:15px;border-left:1px solid rgba(255,255,255,.11)}
+    .readout b{display:block;color:var(--text);font-size:28px;line-height:1;letter-spacing:-.06em}.readout:first-child b{color:var(--mint)}
+    .readout small{display:block;margin-top:7px;color:var(--muted);font-size:10px;white-space:nowrap}
     .nav{position:relative;z-index:20;display:flex;justify-content:space-between;align-items:center;
       padding:8px;border:1px solid var(--line);border-radius:16px;background:rgba(7,19,15,.92);backdrop-filter:blur(14px)}
     .tabs{display:flex;gap:6px}.tab{border:1px solid transparent;background:#10271f;color:#a8bbb2;
@@ -200,13 +202,13 @@
     .bracket-help{display:none;color:var(--muted);font-size:12px;margin:-10px 0 14px}
 
     footer{padding:26px 0 45px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;line-height:1.7}
-    @media(max-width:1000px){.hero{grid-template-columns:1fr}.hero-side{max-width:620px}.summary{grid-template-columns:repeat(3,1fr)}
+    @media(max-width:1000px){.hero{grid-template-columns:1fr}.hero-side{max-width:620px}
       .insights{grid-template-columns:1fr 1fr}.insight:first-child{grid-column:1/-1}.groups{grid-template-columns:repeat(2,1fr)}
       .group-insights{grid-template-columns:repeat(2,1fr)}.group-insight:nth-child(2){border-right:0}
       .group-insight:nth-child(-n+2){border-bottom:1px solid #244638}
       .bracket-help{display:block}}
     @media(max-width:650px){.shell{width:calc(100% - 22px)}header{height:66px}.source{display:none}.sync-btn{min-height:40px;padding:8px 11px;font-size:10px}.hero{padding:35px 0 28px}
-      h1{font-size:52px}.lead{font-size:13px}.summary{gap:6px}.metric{padding:13px 10px}.metric b{font-size:23px}
+      h1{font-size:52px}.lead{font-size:13px}.status-summary{grid-template-columns:1fr;gap:12px}.status-readouts{justify-content:space-between}.readout{min-width:0;flex:1}.readout b{font-size:24px}
       .nav{align-items:stretch;flex-direction:column;gap:8px}.tabs .tab{flex:1;min-height:44px;padding:9px 4px}.nav-note{text-align:center}
       .mobile-guide{display:block}
       .view{padding-top:30px}.section-head{align-items:flex-start;flex-direction:column}.legend{flex-wrap:wrap}
@@ -241,10 +243,13 @@
           <img src="https://upload.wikimedia.org/wikipedia/en/thumb/1/17/2026_FIFA_World_Cup_emblem.svg/120px-2026_FIFA_World_Cup_emblem.svg.png" alt="2026 FIFA World Cup emblem">
           <div><small>OFFICIAL TOURNAMENT IDENTITY</small><b>FIFA World Cup 2026</b><span>Canada · Mexico · United States</span></div>
         </a>
-        <div class="summary">
-          <div class="metric primary"><b>—</b><span>确定球队槽位</span></div>
-          <div class="metric"><b>—</b><span>预测球队位置</span></div>
-          <div class="metric"><b>—</b><span>完整确定对阵</span></div>
+        <div class="status-summary" aria-label="当前数据状态摘要">
+          <div class="status-copy"><b>实时数据状态</b><span id="summaryStatus">正在读取赛况、积分和 Elo 模型…</span></div>
+          <div class="status-readouts">
+            <span class="readout"><b id="confirmedMetric">—</b><small>确定槽位</small></span>
+            <span class="readout"><b id="predictedMetric">—</b><small>模型预测</small></span>
+            <span class="readout"><b id="completeMetric">—</b><small>确定对阵</small></span>
+          </div>
         </div>
       </div>
     </section>
@@ -379,6 +384,8 @@ function updateLiveCopy(){
   const thirdNames=third.map(x=>x[0]);
   const champ=paths?.base?.final?.[0]?.[3]||"—";
   document.querySelector("#heroEyebrow").textContent=`2026 FIFA WORLD CUP · ${lastSyncLabel}`;
+  const summaryStatus=document.querySelector("#summaryStatus");
+  if(summaryStatus)summaryStatus.textContent=`每 2 分钟自动同步；绿色数字是官方槽位，其余随赛果和模型重算。`;
   document.querySelector("#officialFactTitle").innerHTML=officialNames.length?`${listNames(Object.keys(officialTeamMatches),3)}<br>已进入对应 32 强槽位`:"暂无官方确定槽位";
   document.querySelector("#officialFactBody").textContent=officialNames.length?`${officialNames.join("；")}。这表示球队位置已确定；对手或后续路径仍按实时模型预测。`:"淘汰赛官方页面还没有可读取的确定球队槽位，当前对阵树全部来自模型预测。";
   document.querySelector("#variableTitle").textContent=thirdNames.length?`${thirdNames.length} 个最佳第三名仍在变动`:"最佳第三名待计算";
@@ -978,8 +985,9 @@ function rebuildKnockout(koDoc,official=parseOfficial(koDoc)){
   const confirmedCount=Object.keys(officialTeamMatches).length;
   const completeMatches=r32.filter(m=>officialTeamMatches[m[1]]===m[0]&&officialTeamMatches[m[2]]===m[0]).length;
   lastOfficialSlotCount=confirmedCount;lastCompleteMatchCount=completeMatches;
-  const metrics=document.querySelectorAll(".metric b");
-  if(metrics.length>=3){metrics[0].textContent=confirmedCount;metrics[1].textContent=32-confirmedCount;metrics[2].textContent=completeMatches}
+  document.querySelector("#confirmedMetric").textContent=confirmedCount;
+  document.querySelector("#predictedMetric").textContent=32-confirmedCount;
+  document.querySelector("#completeMetric").textContent=completeMatches;
   const officialNames=Object.entries(officialTeamMatches).map(([team,no])=>`${team}进入 M${no}`);
   document.querySelector("#officialSummary").textContent=officialNames.length?officialNames.join("；")+"。其余槽位由实时模型预测。":"当前尚无明确淘汰赛槽位。";
   const champion=paths.base.final[0][3],route=[...baseFirst,...paths.base.r16,...paths.base.qf,...paths.base.sf,...paths.base.final]
