@@ -94,7 +94,6 @@
     .board-head b{display:flex;align-items:center;gap:8px}
     .label-mark{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:6px;background:rgba(217,255,99,.12);color:var(--lime);font-size:10px;font-weight:950;letter-spacing:-.04em}
     .label-mark.attack{background:rgba(255,154,85,.13);color:var(--orange)}.label-mark.defence{background:rgba(96,237,181,.12);color:var(--mint)}
-    .meta-label{display:inline-flex;align-items:center;justify-content:center;min-width:34px;margin-right:6px;color:var(--lime);font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
     .board-head b{font-size:13px}.board-head span{color:var(--muted);font-size:10px}
     .board-row{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:8px;align-items:center;min-height:42px;padding:0 15px;border-top:1px solid rgba(255,255,255,.045);font-size:12px}
     .board-row:first-child{border-top:0}.board-rank{color:var(--muted);font-variant-numeric:tabular-nums}
@@ -560,9 +559,9 @@ function matchCard(m){
       <div class="score-team away"><b>${flagIcon(m.away,m.awayFlag)} ${m.away}</b><small>客队</small></div>
     </div>
     <div class="match-meta">
-      <span><span class="meta-label">VEN</span><b>${m.stadium}</b> · ${m.city}</span>
+      <span>📍 <b>${m.stadium}</b> · ${m.city}</span>
       <span>🌤️ <span data-weather="${m.id}">${m.weather||"天气加载中"}</span></span>
-      <span><span class="meta-label">SRC</span>${m.source||"Wikipedia"}${m.statusDetail?` · ${m.statusDetail}`:""}</span>
+      <span>📡 比分源：${m.source||"Wikipedia"}${m.statusDetail?` · ${m.statusDetail}`:""}</span>
     </div>
   </article>`;
 }
