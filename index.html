@@ -556,6 +556,9 @@ async function fetchEspnMatches(cachedPages=null){
   }
   return matches.sort((a,b)=>(a.kickoff||0)-(b.kickoff||0));
 }
+async function fetchEspnMatchesFresh(){
+  return fetchEspnMatches(null);
+}
 function fmtMatchTime(d){
   if(!d)return "时间待定";
   return new Intl.DateTimeFormat("zh-CN",{weekday:"short",month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}).format(d);
@@ -1102,7 +1105,9 @@ async function applyDataBundle({data,koData,espnPages=null,eloText=null,sourceLa
     if(fresh.length!==12)throw new Error("只读取到 "+fresh.length+" 个小组");
     groups=fresh.sort((a,b)=>a[0].localeCompare(b[0]));remainingFixtures=freshFixtures;completedResults=freshResults;
     scorerLeaders=parseScorers(doc);
-    const espnMatches=await fetchEspnMatches(espnPages);
+    let espnMatches=[];
+    try{espnMatches=await fetchEspnMatchesFresh()}catch(error){espnMatches=[]}
+    if(!espnMatches.length)espnMatches=await fetchEspnMatches(espnPages);
     matchCards=espnMatches.length?espnMatches:parseMatchCards(doc);
     renderMatchCenter();
     enrichWeather();
@@ -1137,12 +1142,25 @@ async function syncLatest(){
     btn.classList.add("error");text.textContent="↻ 刷新失败 · 重试";btn.title=error.message;
   }finally{btn.disabled=false}
 }
+async function refreshMatchCenterLive(){
+  if(document.hidden)return;
+  try{
+    const fresh=await fetchEspnMatchesFresh();
+    if(!fresh.length)return;
+    matchCards=fresh;
+    renderMatchCenter();
+    enrichWeather();
+    const now=new Intl.DateTimeFormat("zh-CN",{hour:"2-digit",minute:"2-digit"}).format(new Date());
+    document.querySelector("#matchUpdated").textContent=`比分 ${now}`;
+  }catch(error){}
+}
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>{x.classList.remove("active");x.setAttribute("aria-pressed","false")});document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));b.classList.add("active");b.setAttribute("aria-pressed","true");document.querySelector("#"+b.dataset.view).classList.add("active");if(b.dataset.view==="bracketView")requestAnimationFrame(drawRoutes)});
 document.querySelector("#syncBtn").addEventListener("click",syncLatest);
 window.addEventListener("resize",()=>requestAnimationFrame(drawRoutes));
 renderBracket();
 try{const cached=JSON.parse(localStorage.getItem("wc2026-elo"));if(cached?.ratings){eloRatings={...eloRatings,...cached.ratings};eloSourceTime=cached.time||"缓存"}}catch{}
 syncLatest();
+setInterval(refreshMatchCenterLive,30000);
 setInterval(()=>{if(!document.hidden)syncLatest()},120000);
 </script>
 </body>
