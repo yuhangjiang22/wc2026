@@ -442,10 +442,12 @@ function parseLocalHour(timeText){
 function parseVenue(text){
   const main=text.replace(/\s+/g," ").split(/Attendance:|Referee:/)[0].trim().replace(/\s+,/g,",");
   const parts=main.split(",").map(x=>x.trim()).filter(Boolean);
-  return {stadium:parts[0]||"待定球场",city:parts[1]||parts[0]||"待定城市"};
+  return {stadium:parts[0]||"待定球场",city:normalizeCity(parts[1]||parts[0]||"待定城市")};
 }
 function normalizeCity(city=""){
-  return city.replace(/\s+/g," ").split(",")[0].trim();
+  const clean=city.replace(/\s+/g," ").split(",")[0].trim();
+  const hostAlias={"Zapopan":"Guadalajara","Santa Clara":"San Francisco","Inglewood":"Los Angeles","Arlington":"Dallas","East Rutherford":"New York City","Foxborough":"Boston","Miami Gardens":"Miami"};
+  return hostAlias[clean]||clean;
 }
 function zhTeam(name){
   return teamZh[name]||espnTeamZh[name]||name;
