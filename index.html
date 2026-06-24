@@ -308,6 +308,12 @@ let remainingFixtures={},completedResults={},qualifyProb={},simulationCount=0,el
 let lastSyncLabel="等待同步",lastSourceStamp="",lastOfficialSlotCount=0,lastCompleteMatchCount=0,liveDataReady=false;
 const weatherCache=new Map();
 const flag=Object.fromEntries(groups.flatMap(g=>g[1].map(t=>[t[0],t[1]])));
+const espnTeamZh={
+  "United States":"美国","USA":"美国","Côte d'Ivoire":"科特迪瓦","Ivory Coast":"科特迪瓦","Korea Republic":"韩国","South Korea":"韩国",
+  "Czechia":"捷克","Czech Republic":"捷克","Congo DR":"民主刚果","DR Congo":"民主刚果","IR Iran":"伊朗","Iran":"伊朗",
+  "Bosnia & Herzegovina":"波黑","Bosnia and Herzegovina":"波黑","Bosnia-Herzegovina":"波黑","Cape Verde Islands":"佛得角","Cape Verde":"佛得角",
+  "Türkiye":"土耳其","Turkey":"土耳其","New Zealand":"新西兰","Saudi Arabia":"沙特","Uzbekistan":"乌兹别克斯坦"
+};
 function flagIcon(name,fallback=flag[name]||"🌐"){
   if(name==="英格兰")return '<span class="flag-emoji" title="英格兰">&#x1F3F4;&#xE0067;&#xE0062;&#xE0065;&#xE006E;&#xE0067;&#xE007F;</span>';
   if(name==="苏格兰")return '<span class="flag-emoji" title="苏格兰">&#x1F3F4;&#xE0067;&#xE0062;&#xE0073;&#xE0063;&#xE0074;&#xE007F;</span>';
@@ -438,7 +444,14 @@ function parseVenue(text){
   const parts=main.split(",").map(x=>x.trim()).filter(Boolean);
   return {stadium:parts[0]||"待定球场",city:parts[1]||parts[0]||"待定城市"};
 }
+function normalizeCity(city=""){
+  return city.replace(/\s+/g," ").split(",")[0].trim();
+}
+function zhTeam(name){
+  return teamZh[name]||espnTeamZh[name]||name;
+}
 function matchStatus(match,now=new Date()){
+  if(match.source==="ESPN"&&match.status)return match.status;
   if(match.scoreText&&/^\d+[–-]\d+$/.test(match.scoreText))return "final";
   if(!match.kickoff)return "upcoming";
   const mins=(now-match.kickoff)/60000;
@@ -456,11 +469,47 @@ function parseMatchCards(doc){
     const venue=parseVenue(box.querySelector(".fright")?.textContent||"");
     const kickoff=parseKickoff(dateText,timeText);
     return {
-      id:`match-${i}`,home:teamZh[homeEn]||homeEn||"待定",away:teamZh[awayEn]||awayEn||"待定",
-      homeFlag:flag[teamZh[homeEn]||homeEn]||"🌐",awayFlag:flag[teamZh[awayEn]||awayEn]||"🌐",
+      id:`wiki-${i}`,source:"Wikipedia",home:zhTeam(homeEn)||"待定",away:zhTeam(awayEn)||"待定",
+      homeFlag:flag[zhTeam(homeEn)]||"🌐",awayFlag:flag[zhTeam(awayEn)]||"🌐",
       scoreText,dateText,timeText,kickoff,localHour:parseLocalHour(timeText),...venue,status:"upcoming",weather:"天气加载中"
     };
   }).filter(x=>x.home!=="待定"&&x.away!=="待定").map(x=>({...x,status:matchStatus(x)})).sort((a,b)=>(a.kickoff||0)-(b.kickoff||0));
+}
+function dateKey(d){
+  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}`;
+}
+function aroundDateKeys(){
+  const base=new Date(),days=[];
+  for(const offset of [-1,0,1,2]){
+    const d=new Date(base);d.setDate(base.getDate()+offset);days.push(dateKey(d));
+  }
+  return days;
+}
+async function fetchEspnMatches(){
+  const urls=aroundDateKeys().map(d=>`https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${d}`);
+  const pages=await Promise.all(urls.map(url=>fetch(url,{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null)));
+  const seen=new Set(),matches=[];
+  for(const data of pages){
+    for(const event of data?.events||[]){
+      if(seen.has(event.id))continue;seen.add(event.id);
+      const comp=event.competitions?.[0]||{},teams=comp.competitors||[];
+      const home=teams.find(t=>t.homeAway==="home")||teams[0],away=teams.find(t=>t.homeAway==="away")||teams[1];
+      if(!home||!away)continue;
+      const homeName=zhTeam(home.team?.displayName||home.team?.name||""),awayName=zhTeam(away.team?.displayName||away.team?.name||"");
+      const venue=comp.venue||{},city=normalizeCity(venue.address?.city||""),kickoff=new Date(event.date);
+      const statusType=event.status?.type||{},state=statusType.state;
+      const scoreText=state==="pre"?"vs":`${home.score??""}–${away.score??""}`;
+      matches.push({
+        id:`espn-${event.id}`,source:"ESPN",home:homeName,away:awayName,
+        homeFlag:flag[homeName]||"🌐",awayFlag:flag[awayName]||"🌐",
+        scoreText,kickoff,localHour:kickoff.getUTCHours(),stadium:venue.fullName||"待定球场",city:city||"待定城市",
+        status:state==="in"?"live":state==="post"?"final":"upcoming",
+        statusDetail:statusType.shortDetail||statusType.detail||statusType.description||"",
+        weather:"天气加载中"
+      });
+    }
+  }
+  return matches.sort((a,b)=>(a.kickoff||0)-(b.kickoff||0));
 }
 function fmtMatchTime(d){
   if(!d)return "时间待定";
@@ -491,7 +540,7 @@ function renderMatchCenter(){
     <div class="match-meta">
       <span>📍 <b>${featured.stadium}</b> · ${featured.city}</span>
       <span>🌤️ <span data-weather="${featured.id}">${featured.weather||"天气加载中"}</span></span>
-      <span>数据来自 Wikipedia；实时比分取决于源页面更新速度。</span>
+      <span>比分源：${featured.source||"Wikipedia"}${featured.statusDetail?` · ${featured.statusDetail}`:""}；刷新按钮可立即同步。</span>
     </div>`:'<div class="empty-state">暂时没有读取到比赛卡。</div>';
   const upcoming=(next.filter(m=>m!==featured).slice(0,6));
   document.querySelector("#upcomingList").innerHTML=upcoming.length?upcoming.map(m=>`
@@ -523,15 +572,16 @@ async function enrichWeather(){
     const key=`${m.city}|${m.kickoff.toISOString().slice(0,10)}`;
     try{
       if(weatherCache.has(key)){m.weather=weatherCache.get(key);return}
-      const coords=hostCityCoords[m.city]; if(!coords){m.weather="天气待查";return}
+      const city=normalizeCity(m.city);
+      const coords=hostCityCoords[city]; if(!coords){m.weather="天气待查";return}
       const day=m.kickoff.toISOString().slice(0,10);
-      const url=`https://api.open-meteo.com/v1/forecast?latitude=${coords[0]}&longitude=${coords[1]}&hourly=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=auto&start_date=${day}&end_date=${day}`;
+      const url=`https://api.open-meteo.com/v1/forecast?latitude=${coords[0]}&longitude=${coords[1]}&hourly=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=GMT&start_date=${day}&end_date=${day}`;
       const data=await Promise.race([
         fetch(url,{cache:"force-cache"}).then(r=>r.json()),
         new Promise((_,reject)=>setTimeout(()=>reject(new Error("weather timeout")),4000))
       ]);
       const times=data.hourly?.time||[],temps=data.hourly?.temperature_2m||[],codes=data.hourly?.weather_code||[];
-      const targetHour=m.localHour??12,idx=times.reduce((best,t,i)=>Math.abs(Number(t.slice(11,13))-targetHour)<Math.abs(Number(times[best].slice(11,13))-targetHour)?i:best,0);
+      const targetHour=m.kickoff?.getUTCHours?.()??m.localHour??12,idx=times.reduce((best,t,i)=>Math.abs(Number(t.slice(11,13))-targetHour)<Math.abs(Number(times[best].slice(11,13))-targetHour)?i:best,0);
       const value=Number.isFinite(temps[idx])?`${Math.round(temps[idx])}°F · ${weatherText(codes[idx])}`:"天气待查";
       weatherCache.set(key,value);m.weather=value;
     }catch(e){m.weather="天气暂不可用"}
@@ -941,7 +991,8 @@ async function syncLatest(){
     if(fresh.length!==12)throw new Error("只读取到 "+fresh.length+" 个小组");
     groups=fresh.sort((a,b)=>a[0].localeCompare(b[0]));remainingFixtures=freshFixtures;completedResults=freshResults;
     scorerLeaders=parseScorers(doc);
-    matchCards=parseMatchCards(doc);
+    const espnMatches=await fetchEspnMatches();
+    matchCards=espnMatches.length?espnMatches:parseMatchCards(doc);
     renderMatchCenter();
     enrichWeather();
     const official=parseOfficial(koDoc);
