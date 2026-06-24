@@ -550,7 +550,7 @@ function matchCard(m){
     </div>
     <div class="match-meta">
       <span><span class="meta-label">VEN</span><b>${m.stadium}</b> · ${m.city}</span>
-      <span><span class="meta-label">WX</span><span data-weather="${m.id}">${m.weather||"天气加载中"}</span></span>
+      <span>🌤️ <span data-weather="${m.id}">${m.weather||"天气加载中"}</span></span>
       <span><span class="meta-label">SRC</span>${m.source||"Wikipedia"}${m.statusDetail?` · ${m.statusDetail}`:""}</span>
     </div>
   </article>`;
