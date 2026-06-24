@@ -120,11 +120,12 @@
     .score-team small{display:block;margin-top:6px;color:var(--muted);font-size:11px}.score{min-width:88px;text-align:center;font-size:38px;font-weight:950;letter-spacing:-.06em;color:var(--lime);line-height:1}
     .live-panel.multi .scoreline{grid-template-columns:1fr}.live-panel.multi .score-team.away{text-align:left}.live-panel.multi .score{min-width:0;text-align:left;font-size:34px}
     .match-meta{display:grid;grid-template-columns:1fr;gap:7px;padding-top:2px;color:var(--muted);font-size:12px;line-height:1.45}.match-meta b{color:var(--text)}
-    .upcoming-panel{padding:13px}.upcoming-list{display:grid;gap:8px}
+    .upcoming-panel{padding:13px}.upcoming-list,.completed-list{display:grid;gap:8px}
+    .list-section+.list-section{margin-top:15px;padding-top:13px;border-top:1px solid rgba(255,255,255,.07)}
     .fixture{display:grid;grid-template-columns:76px minmax(0,1fr) auto;gap:12px;align-items:center;min-height:60px;padding:11px 12px;border:1px solid rgba(255,255,255,.055);border-radius:12px;background:rgba(255,255,255,.025);cursor:default}
     .fixture-time{color:var(--lime);font-size:12px;font-weight:900}.fixture-main{min-width:0}.fixture-main b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
     .fixture-main small{display:block;margin-top:4px;color:var(--muted);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .fixture-weather{justify-self:end;color:var(--muted);font-size:11px;text-align:right}.empty-state{padding:22px;color:var(--muted);font-size:12px;line-height:1.6}
+    .fixture-weather{justify-self:end;color:var(--muted);font-size:11px;text-align:right}.fixture.final .fixture-time{color:var(--muted)}.fixture-score{justify-self:end;color:var(--lime);font-size:18px;font-weight:950;letter-spacing:-.04em}.empty-state{padding:22px;color:var(--muted);font-size:12px;line-height:1.6}
 
     .groups{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.group{overflow:hidden;border:1px solid #23483a;
       border-radius:12px;background:rgba(10,30,23,.72);box-shadow:0 8px 28px rgba(0,0,0,.12)}
@@ -211,7 +212,7 @@
       .view{padding-top:30px}.section-head{align-items:flex-start;flex-direction:column}.legend{flex-wrap:wrap}
       .insights,.groups,.third-grid,.group-insights,.leaderboards,.match-strip{grid-template-columns:1fr}.group-insight{border-right:0;border-bottom:1px solid #244638}
       .live-panel{padding:12px}.live-panel.multi .live-grid{grid-template-columns:1fr}.scoreline{gap:8px}.score-team{padding:11px 9px}.score-team b{font-size:17px}.score{min-width:72px;font-size:32px}
-      .match-meta{font-size:11px}.fixture{grid-template-columns:66px minmax(0,1fr)}.fixture-weather{grid-column:2;justify-self:start;text-align:left}
+      .match-meta{font-size:11px}.fixture{grid-template-columns:66px minmax(0,1fr)}.fixture-weather,.fixture-score{grid-column:2;justify-self:start;text-align:left}
       .group-insight:last-child{border-bottom:0}.insight:first-child{grid-column:auto}.third-grid{gap:7px}
       .third-card{display:grid;grid-template-columns:1fr auto;align-items:center}.third-card .prob{grid-column:1/-1}
       .section-head h2{font-size:29px}}
@@ -267,7 +268,10 @@
         <div class="match-center-head"><div><h2>比赛中心</h2><p>如果现在有比赛，会优先显示实时比分；否则显示今日/下一批 upcoming。</p></div><small id="matchUpdated">等待同步</small></div>
         <div class="match-strip">
           <section class="live-panel" id="liveMatchCard"><div class="empty-state">正在读取比赛时间、球场和比分…</div></section>
-          <article class="upcoming-panel"><div class="board-head"><b><span class="label-mark">UP</span>Upcoming 对阵</b><span>时间 / 球场 / 天气</span></div><div class="upcoming-list" id="upcomingList"></div></article>
+          <article class="upcoming-panel">
+            <section class="list-section"><div class="board-head"><b><span class="label-mark">UP</span>Upcoming 对阵</b><span>时间 / 球场 / 天气</span></div><div class="upcoming-list" id="upcomingList"></div></section>
+            <section class="list-section"><div class="board-head"><b><span class="label-mark defence">FT</span>已结束 · 今天/昨天</b><span>比分</span></div><div class="completed-list" id="completedList"></div></section>
+          </article>
         </div>
       </section>
       <div class="insights">
@@ -539,6 +543,13 @@ function shortTime(d){
 function scoreDisplay(m){
   return /^\d+[–-]\d+$/.test(m.scoreText)?m.scoreText.replace("-", "–"):"vs";
 }
+function localDayKey(d){
+  return d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`:"";
+}
+function recentDayKeys(now=new Date()){
+  const today=localDayKey(now),yesterday=new Date(now);yesterday.setDate(now.getDate()-1);
+  return new Set([today,localDayKey(yesterday)]);
+}
 function matchCard(m){
   const statusLabel={live:"进行中",final:"已完赛",upcoming:"未开赛"}[m.status]||"待同步";
   return `<article class="live-match ${m.status}">
@@ -560,7 +571,8 @@ function renderMatchCenter(){
   matchCards=matchCards.map(m=>({...m,status:matchStatus(m,now)}));
   const liveMatches=matchCards.filter(m=>m.status==="live").sort((a,b)=>Math.abs(now-a.kickoff)-Math.abs(now-b.kickoff));
   const upcomingPool=matchCards.filter(m=>m.status==="upcoming"&&m.kickoff&&m.kickoff>new Date(now.getTime()-10*60000)).sort((a,b)=>a.kickoff-b.kickoff);
-  const recentFinal=[...matchCards].filter(m=>m.status==="final").sort((a,b)=>b.kickoff-a.kickoff);
+  const dayKeys=recentDayKeys(now);
+  const recentFinal=[...matchCards].filter(m=>m.status==="final"&&dayKeys.has(localDayKey(m.kickoff))).sort((a,b)=>b.kickoff-a.kickoff);
   const fallback=upcomingPool[0]||recentFinal[0]||matchCards.at(-1);
   const displayed=liveMatches.length?liveMatches.slice(0,2):(fallback?[fallback]:[]);
   const panel=document.querySelector("#liveMatchCard");
@@ -578,6 +590,12 @@ function renderMatchCenter(){
       <div class="fixture-main"><b>${flagIcon(m.home,m.homeFlag)} ${m.home} vs ${flagIcon(m.away,m.awayFlag)} ${m.away}</b><small>${m.stadium} · ${m.city}</small></div>
       <div class="fixture-weather" data-weather="${m.id}">${m.weather||"天气加载中"}</div>
     </div>`).join(""):'<div class="empty-state">没有更多 upcoming；点击刷新重新同步。</div>';
+  document.querySelector("#completedList").innerHTML=recentFinal.length?recentFinal.slice(0,6).map(m=>`
+    <div class="fixture final">
+      <div class="fixture-time">${shortTime(m.kickoff)}</div>
+      <div class="fixture-main"><b>${flagIcon(m.home,m.homeFlag)} ${m.home} vs ${flagIcon(m.away,m.awayFlag)} ${m.away}</b><small>${m.stadium} · ${m.city}${m.statusDetail?` · ${m.statusDetail}`:""}</small></div>
+      <div class="fixture-score">${scoreDisplay(m)}</div>
+    </div>`).join(""):'<div class="empty-state">今天/昨天暂无已结束比赛。</div>';
 }
 const hostCityCoords={
   "Mexico City":[19.4326,-99.1332],"Zapopan":[20.7214,-103.3918],"Guadalajara":[20.6597,-103.3496],"Monterrey":[25.6866,-100.3161],
