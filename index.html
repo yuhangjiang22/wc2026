@@ -124,9 +124,9 @@
     .score-team{min-width:0}.score-team b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:21px;line-height:1.15}.score-team.away{text-align:right}
     .score-team small{display:block;margin-top:6px;color:var(--muted);font-size:11px}.score{min-width:88px;text-align:center;font-size:38px;font-weight:950;letter-spacing:-.06em;color:var(--lime);line-height:1}
     .live-panel.multi .scoreline{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px}.live-panel.multi .score{min-width:72px;font-size:34px}
-    .win-prob{position:relative;display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-top:-3px;padding-bottom:11px}
-    .prob-side{min-width:0}.prob-side.away{text-align:right}.prob-side b,.prob-draw b{display:block;color:var(--lime);font-size:13px;font-weight:950;font-variant-numeric:tabular-nums}
-    .prob-side span,.prob-draw span{display:block;margin-top:2px;color:var(--muted);font-size:9px;white-space:nowrap}.prob-draw{position:absolute;left:var(--draw-center);bottom:16px;transform:translateX(-50%);text-align:center;color:var(--muted)}
+    .win-prob{position:relative;height:42px;margin-top:-3px}
+    .prob-side,.prob-draw{position:absolute;bottom:8px;min-width:0}.prob-side{left:0}.prob-side.away{left:auto;right:0;text-align:right}.prob-side b,.prob-draw b{display:block;color:var(--lime);font-size:13px;font-weight:950;font-variant-numeric:tabular-nums}
+    .prob-side span,.prob-draw span{display:block;margin-top:2px;color:var(--muted);font-size:9px;white-space:nowrap}.prob-draw{left:var(--draw-center);transform:translateX(-50%);text-align:center;color:var(--muted)}
     .prob-bar{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:var(--home) var(--draw) var(--away);height:5px;overflow:hidden;border-radius:999px;background:#18372c}
     .prob-bar i:nth-child(1){background:var(--mint)}.prob-bar i:nth-child(2){background:#6c7d76}.prob-bar i:nth-child(3){background:var(--orange)}
     .match-meta{display:flex;flex-wrap:wrap;gap:12px 18px;padding-top:2px;color:var(--muted);font-size:12px;line-height:1.45}.match-meta b{color:var(--text)}
