@@ -613,11 +613,13 @@ function renderMatchCenter(){
   const upcomingPool=matchCards.filter(m=>m.status==="upcoming"&&m.kickoff&&m.kickoff>new Date(now.getTime()-10*60000)).sort((a,b)=>a.kickoff-b.kickoff);
   const dayKeys=recentDayKeys(now);
   const recentFinal=[...matchCards].filter(m=>m.status==="final"&&dayKeys.has(localDayKey(m.kickoff))).sort((a,b)=>b.kickoff-a.kickoff);
-  const fallback=upcomingPool[0]||recentFinal[0]||matchCards.at(-1);
-  const displayed=liveMatches.length?liveMatches.slice(0,2):(fallback?[fallback]:[]);
+  const nextKickoff=upcomingPool[0]?.kickoff?.getTime?.();
+  const nextBatch=nextKickoff?upcomingPool.filter(m=>Math.abs(m.kickoff.getTime()-nextKickoff)<60000).slice(0,2):[];
+  const fallback=nextBatch.length?nextBatch:(recentFinal[0]?[recentFinal[0]]:(matchCards.at(-1)?[matchCards.at(-1)]:[]));
+  const displayed=liveMatches.length?liveMatches.slice(0,2):fallback;
   const panel=document.querySelector("#liveMatchCard");
   panel.className=`live-panel ${displayed.length>1?"multi":""}`;
-  const panelTitle=liveMatches.length?`${liveMatches.length} 场正在进行`:fallback?.status==="upcoming"?"下一场比赛":"最近赛果";
+  const panelTitle=liveMatches.length?`${liveMatches.length} 场正在进行`:nextBatch.length>1?`${nextBatch.length} 场同时开赛`:nextBatch.length?"下一场比赛":"最近赛果";
   const panelHint=liveMatches.length>2?`另有 ${liveMatches.length-2} 场进行中`:(liveMatches.length?"实时比分":"当前无 live");
   panel.innerHTML=displayed.length?`
     <div class="live-panel-head"><b>${panelTitle}</b><span class="live-count">${panelHint}</span></div>
