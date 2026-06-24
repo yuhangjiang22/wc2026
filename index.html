@@ -1050,18 +1050,33 @@ function formatCacheTime(iso){
   if(!iso)return "本站缓存";
   return new Intl.DateTimeFormat("zh-CN",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}).format(new Date(iso));
 }
-async function fetchSiteCache(){
-  const response=await fetch(`data/cache.json?ts=${Date.now()}`,{cache:"no-store"});
-  if(!response.ok)throw new Error("本站缓存 HTTP "+response.status);
-  const payload=await response.json();
-  if(payload.schemaVersion!==1||!payload.wiki?.worldCup?.parse||!payload.wiki?.knockout?.parse)throw new Error("本站缓存格式不完整");
+function validateCachePayload(payload,label){
+  if(payload.schemaVersion!==1||!payload.wiki?.worldCup?.parse||!payload.wiki?.knockout?.parse)throw new Error(`${label}格式不完整`);
+  return payload;
+}
+function cachePayloadToBundle(payload,label){
   return {
     data:payload.wiki.worldCup,
     koData:payload.wiki.knockout,
     espnPages:payload.espn,
     eloText:payload.eloText,
-    sourceLabel:`本站缓存 ${formatCacheTime(payload.generatedAt)}`
+    generatedAt:payload.generatedAt,
+    sourceLabel:`${label} ${formatCacheTime(payload.generatedAt)}`
   };
+}
+async function fetchCachePayload(url,label){
+  const response=await fetch(`${url}${url.includes("?")?"&":"?"}ts=${Date.now()}`,{cache:"no-store"});
+  if(!response.ok)throw new Error(`${label} HTTP ${response.status}`);
+  const payload=await response.json();
+  return cachePayloadToBundle(validateCachePayload(payload,label),label);
+}
+async function fetchSiteCache(){
+  const local=fetchCachePayload("data/cache.json","本站缓存");
+  const raw=fetchCachePayload("https://raw.githubusercontent.com/yuhangjiang22/wc2026/main/data/cache.json","GitHub缓存");
+  const results=await Promise.allSettled([local,raw]);
+  const bundles=results.filter(x=>x.status==="fulfilled").map(x=>x.value);
+  if(!bundles.length)throw results[0]?.reason||new Error("缓存不可用");
+  return bundles.sort((a,b)=>new Date(b.generatedAt||0)-new Date(a.generatedAt||0))[0];
 }
 async function fetchExternalBundle(){
   const api="https://en.wikipedia.org/w/api.php?action=parse&prop=text%7Crevid&format=json&origin=*&maxage=0&smaxage=0&page=";
