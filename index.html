@@ -411,7 +411,14 @@ let groups=[
 ];
 let third=[];
 let remainingFixtures={},completedResults={},qualifyProb={},simulationCount=0,eloSourceTime="实时榜单",scorerLeaders=[],matchCards=[];
+let baseGroups=[],baseRemainingFixtures={},baseCompletedResults={},latestKoDoc=null,latestOfficial={};
 let lastSyncLabel="等待同步",lastSourceStamp="",lastOfficialSlotCount=0,lastCompleteMatchCount=0,liveDataReady=false;
+const cloneGroups=x=>x.map(([g,ts])=>[g,ts.map(t=>[...t])]);
+const cloneMap=x=>Object.fromEntries(Object.entries(x||{}).map(([g,rows])=>[g,rows.map(r=>[...r])]));
+function samePair(row,a,b){return (row[0]===a&&row[1]===b)||(row[0]===b&&row[1]===a)}
+function groupForPair(a,b){
+  return (baseGroups.length?baseGroups:groups).find(([g,ts])=>ts.some(t=>t[0]===a)&&ts.some(t=>t[0]===b))?.[0]||"";
+}
 const weatherCache=new Map();
 const flag=Object.fromEntries(groups.flatMap(g=>g[1].map(t=>[t[0],t[1]])));
 const teamEn={
@@ -1003,6 +1010,45 @@ function rankGroup(state,matches){
   }
   return ranked;
 }
+function applyResultToTeams(teams,a,b,ga,gb){
+  const ta=teams.find(t=>t[0]===a),tb=teams.find(t=>t[0]===b);
+  if(!ta||!tb)return false;
+  ta[2]=(ta[2]||0)+1;tb[2]=(tb[2]||0)+1;
+  ta[6]=(ta[6]||0)+ga;tb[6]=(tb[6]||0)+gb;
+  ta[4]=(ta[4]||0)+ga-gb;tb[4]=(tb[4]||0)+gb-ga;
+  if(ga>gb)ta[3]=(ta[3]||0)+3;
+  else if(gb>ga)tb[3]=(tb[3]||0)+3;
+  else{ta[3]=(ta[3]||0)+1;tb[3]=(tb[3]||0)+1}
+  return true;
+}
+function sortLiveGroups(){
+  groups=groups.map(([g,teams])=>{
+    const ranked=rankGroup(teams.map((t,i)=>({name:t[0],pts:t[3],gd:t[4],gf:t[6]??Math.max(0,t[4]+t[2]),out:!!t[5],tie:i})),completedResults[g]||[]);
+    const byName=Object.fromEntries(teams.map(t=>[t[0],t]));
+    return [g,ranked.map(x=>byName[x.name]).filter(Boolean)];
+  });
+}
+function applyLiveMatchesToGroups(matches){
+  if(!baseGroups.length)return false;
+  groups=cloneGroups(baseGroups);
+  remainingFixtures=cloneMap(baseRemainingFixtures);
+  completedResults=cloneMap(baseCompletedResults);
+  let changed=false;
+  for(const m of matches){
+    const score=scoreParts(m);
+    if(!score||!["live","final"].includes(m.status))continue;
+    const g=groupForPair(m.home,m.away);if(!g)continue;
+    const alreadyDone=(baseCompletedResults[g]||[]).some(r=>samePair(r,m.home,m.away));
+    if(alreadyDone)continue;
+    const group=groups.find(x=>x[0]===g);if(!group)continue;
+    if(!applyResultToTeams(group[1],m.home,m.away,score[0],score[1]))continue;
+    remainingFixtures[g]=(remainingFixtures[g]||[]).filter(r=>!samePair(r,m.home,m.away));
+    completedResults[g]=[...(completedResults[g]||[]),[m.home,m.away,score[0],score[1]]];
+    changed=true;
+  }
+  if(changed)sortLiveGroups();
+  return changed;
+}
 function runMonteCarlo(iterations=30000,seed=20260623){
   const rng=seededRandom(seed),counts=Object.fromEntries(groups.flatMap(x=>x[1].map(t=>[t[0],0])));
   for(let sim=0;sim<iterations;sim++){
@@ -1302,7 +1348,10 @@ async function applyDataBundle({data,koData,espnPages=null,eloText=null,sourceLa
       }
     }
     if(fresh.length!==12)throw new Error("只读取到 "+fresh.length+" 个小组");
-    groups=fresh.sort((a,b)=>a[0].localeCompare(b[0]));remainingFixtures=freshFixtures;completedResults=freshResults;
+    baseGroups=cloneGroups(fresh.sort((a,b)=>a[0].localeCompare(b[0])));
+    baseRemainingFixtures=cloneMap(freshFixtures);
+    baseCompletedResults=cloneMap(freshResults);
+    groups=cloneGroups(baseGroups);remainingFixtures=cloneMap(baseRemainingFixtures);completedResults=cloneMap(baseCompletedResults);
     scorerLeaders=parseScorers(doc);
     let espnMatches=[];
     try{espnMatches=await fetchEspnMatchesFresh()}catch(error){espnMatches=[]}
@@ -1311,6 +1360,7 @@ async function applyDataBundle({data,koData,espnPages=null,eloText=null,sourceLa
     renderMatchCenter();
     enrichWeather();
     const official=parseOfficial(koDoc);
+    latestKoDoc=koDoc;latestOfficial=official;
     applyOfficialStatus(official);
     runMonteCarlo(30000,Number(data.parse.revid)||20260623);
     rebuildKnockout(koDoc,official);renderGroups();recalcThirds();renderLeaderboards();
@@ -1348,6 +1398,13 @@ async function refreshMatchCenterLive(){
     if(!fresh.length)return;
     matchCards=fresh;
     renderMatchCenter();
+    if(applyLiveMatchesToGroups(fresh)){
+      runMonteCarlo(12000,Date.now()%100000000);
+      rebuildKnockout(latestKoDoc,latestOfficial);
+      recalcThirds();
+      renderGroups();
+      renderLeaderboards();
+    }
     enrichWeather();
     const now=new Intl.DateTimeFormat(currentLang==="en"?"en-US":"zh-CN",{hour:"2-digit",minute:"2-digit"}).format(new Date());
     document.querySelector("#matchUpdated").textContent=currentLang==="en"?`Scores ${now}`:`比分 ${now}`;
