@@ -894,7 +894,7 @@ function finalCol(m,champ){
   return `<div class="round center"><div class="round-name">${currentLang==="en"?"Final":"Final · 决赛"}</div><div class="final-stage">
     <article class="match" data-match="${no}"><div class="match-top"><b class="forecast-label">${currentLang==="en"?"Projected final":"预测决赛"}</b><span>M${no}</span></div>
       ${teamRow(a,winner,"",no,probA)+teamRow(b,winner,"",no,probB)}</article>
-    <div class="champion"><div class="cup">🏆</div><b>${teamWithFlag(champ)}</b><small>${currentLang==="en"?"Projected champion · Elo main path":"预测冠军 · Elo 主路径"}</small></div>
+    <div class="champion"><div class="cup">🏆</div><b>${teamWithFlag(champ)}</b><small>${currentLang==="en"?"Projected champion":"预测冠军"}</small></div>
   </div></div>`;
 }
 const routeMap=[
