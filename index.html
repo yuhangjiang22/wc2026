@@ -1368,6 +1368,7 @@ async function applyDataBundle({data,koData,espnPages=null,eloText=null,sourceLa
     const official=parseOfficial(koDoc);
     latestKoDoc=koDoc;latestOfficial=official;
     applyOfficialStatus(official);
+    applyLiveMatchesToGroups(matchCards);
     runMonteCarlo(30000,Number(data.parse.revid)||20260623);
     rebuildKnockout(koDoc,official);renderGroups();recalcThirds();renderLeaderboards();
     const now=new Intl.DateTimeFormat(currentLang==="en"?"en-US":"zh-CN",{hour:"2-digit",minute:"2-digit"}).format(new Date());
