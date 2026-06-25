@@ -554,7 +554,7 @@ renderThirds();
 function boardRows(items,valueLabel){
   if(!items.length)return `<div class="board-row"><span>—</span><span class="board-name">${currentLang==="en"?"Waiting for tournament data":"等待赛事数据"}</span><b class="board-value">—</b></div>`;
   return items.slice(0,6).map((x,i)=>`<div class="board-row ${i===0?"top":""}">
-    <span class="board-rank">${i+1}</span><span class="board-name">${x.flag||""} ${x.name}${x.note?`<small>${x.note}</small>`:""}</span>
+    <span class="board-rank">${i+1}</span><span class="board-name">${x.flag||""} ${x.name}${x.team?`<small>${teamName(x.team)}</small>`:(x.note?`<small>${x.note}</small>`:"")}</span>
     <b class="board-value">${x.value}${valueLabel||""}</b></div>`).join("");
 }
 function renderLeaderboards(){
@@ -1116,7 +1116,7 @@ function parseScorers(doc){
     }
   }
   return Object.values(totals).sort((a,b)=>b.goals-a.goals||(eloRatings[b.team]||0)-(eloRatings[a.team]||0)||a.name.localeCompare(b.name))
-    .map(x=>({name:x.name,flag:flagIcon(x.team),note:teamName(x.team),value:x.goals}));
+    .map(x=>({name:x.name,flag:flagIcon(x.team),team:x.team,value:x.goals}));
 }
 function projectedGroups(official={}){
   const out={};
