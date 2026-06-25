@@ -908,7 +908,7 @@ function bracketTime(d){
 function bracketMeta(no){
   const meta=koMatchMeta[no];
   if(!meta)return "";
-  const time=bracketTime(meta.kickoff),venue=[meta.stadium,meta.city].filter(Boolean).join(" · ");
+  const time=bracketTime(meta.kickoff),venue=meta.city||meta.stadium||"";
   if(!time&&!venue)return "";
   return `<div class="match-meta"><span class="meta-time">${time||"TBD"}</span>${venue?`<span class="meta-dot">·</span><span class="meta-venue">${venue}</span>`:""}</div>`;
 }
