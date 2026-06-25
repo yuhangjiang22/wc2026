@@ -488,6 +488,11 @@ function qualifyChance(t,pos){
   const remaining=Math.max(0,3-t[2]),score=t[3]*13+t[4]*3+remaining*7+(pos<2?19:pos===2?6:-12);
   return Math.max(3,Math.min(99,Math.round(score)));
 }
+function displayedQualifyChance(t,pos){
+  const q=qualifyChance(t,pos);
+  if(t[5]||confirmedGroupWinners.has(t[0])||confirmedQualified.has(t[0]))return q;
+  return Math.max(1,Math.min(99,q));
+}
 let liveGroupKeys=new Set();
 function setsEqual(a,b){return a.size===b.size&&[...a].every(x=>b.has(x))}
 function groupHasLive(g){return liveGroupKeys.has(g)}
@@ -508,7 +513,7 @@ function teamSituation(t,pos,groupTeams,g=""){
   }
   if(confirmedGroupWinners.has(t[0]))return currentLang==="en"?"Group winner":"锁定头名";
   if(confirmedQualified.has(t[0]))return currentLang==="en"?"Qualified":"已晋级";
-  const q=qualifyChance(t,pos);
+  const q=displayedQualifyChance(t,pos);
   if(currentLang==="en")return q>=90?"Strong position":q>=70?"In control":q>=45?"Key final match":q>=20?"Needs points":"Near elimination";
   return q>=90?"晋级在望":q>=70?"掌握主动":q>=45?"末轮关键":q>=20?"需要抢分":"濒临出局";
 }
@@ -573,7 +578,7 @@ function renderGroups(){
   document.querySelector("#groups").innerHTML=groups.map(([g,ts])=>`<article class="group">
     <div class="group-head"><div class="group-title"><b>${g}</b><span>GROUP ${g}</span></div><small>${groupHeadNote(g,ts)}</small></div>
     <div class="group-body"><div class="group-table-head"><span>#</span><span>${currentLang==="en"?"Team / status":"球队 / 形势"}</span><span>${currentLang==="en"?"P":"赛"}</span><span>${currentLang==="en"?"Pts":"分"}</span><span>${currentLang==="en"?"GD":"净胜"}</span><span>${currentLang==="en"?"Qual.":"晋级率"}</span></div>
-    ${ts.map((t,i)=>{const q=qualifyChance(t,i);return `<div class="team-row ${t[5]?"eliminated":i<2?"direct":i===2?"third":""}">
+    ${ts.map((t,i)=>{const q=displayedQualifyChance(t,i);return `<div class="team-row ${t[5]?"eliminated":i<2?"direct":i===2?"third":""}">
       <span class="pos">${i+1}</span><span class="team-name"><strong>${teamWithFlag(t[0],t[1])}</strong><small>${teamSituation(t,i,ts,g)}</small></span>
       <span>${t[2]}</span><span class="pts">${t[3]}</span><span class="gd">${t[4]>0?"+":""}${t[4]}</span>
       <span class="qualify"><b>${q}%</b><i style="--q:${q}%"></i></span>
