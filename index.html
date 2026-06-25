@@ -764,16 +764,25 @@ function matchOutcomeProb(m){
   }
   if(score&&m.status==="live"){
     const minute=matchMinute(m),progress=Math.max(.05,Math.min(.98,minute/90)),scoreDiff=score[0]-score[1];
-    const weight=Math.pow(progress,1.35)*4.2;
-    const tieBoost=scoreDiff===0?progress*.9:0;
+    const weight=.45+Math.pow(progress,1.65)*2.15;
+    const tieBoost=scoreDiff===0?progress*.55:0;
     [home,draw,away]=softmax([
       Math.log(home+.001)+scoreDiff*weight,
-      Math.log(draw+.001)-Math.abs(scoreDiff)*weight*.85+tieBoost,
+      Math.log(draw+.001)-Math.abs(scoreDiff)*weight*.55+tieBoost,
       Math.log(away+.001)-scoreDiff*weight
     ]);
   }
-  const h=Math.round(home*100),d=Math.round(draw*100);
-  return {home:h,draw:d,away:Math.max(0,100-h-d),label:m.status==="live"?"实时胜率":"赛前胜率"};
+  let h=Math.round(home*100),d=Math.round(draw*100),a=Math.max(0,100-h-d);
+  if(m.status==="live"){
+    const minute=matchMinute(m),cap=minute>=88?99:minute>=75?97:94,min=1;
+    const values=[h,d,a],maxIndex=values.indexOf(Math.max(...values));
+    values[maxIndex]=Math.min(cap,values[maxIndex]);
+    for(let i=0;i<3;i++)if(i!==maxIndex)values[i]=Math.max(min,values[i]);
+    const total=values.reduce((x,y)=>x+y,0);
+    if(total!==100)values[maxIndex]+=100-total;
+    [h,d,a]=values;
+  }
+  return {home:h,draw:d,away:a,label:m.status==="live"?"实时胜率":"赛前胜率"};
 }
 function winProbMarkup(m){
   const p=matchOutcomeProb(m);
