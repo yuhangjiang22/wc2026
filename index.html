@@ -29,7 +29,7 @@
     .brand{display:flex;align-items:center;gap:12px}.logo{display:grid;place-items:center;width:40px;height:40px;
       border-radius:12px;background:var(--lime);color:var(--ink);font-weight:950;text-decoration:none}
     .brand b{display:block}.brand small{color:var(--muted);font-size:10px;letter-spacing:.18em}
-    .source-tools{display:flex;align-items:center;gap:8px}.source,.sync-btn,.lang-toggle{color:var(--text);font-size:12px;font-weight:850;text-decoration:none;
+    .source-tools{display:flex;align-items:center;gap:8px}.source,.sync-btn,.lang-toggle{display:inline-flex;align-items:center;color:var(--text);font-size:12px;font-weight:850;text-decoration:none;
       border:1px solid #4d806d;padding:9px 13px;border-radius:999px;background:#123328;cursor:pointer;transition:.16s ease;box-shadow:0 0 0 1px rgba(96,237,181,.04)}
     .lang-toggle{min-width:48px;background:#0f2b22}
     .source:after{content:" ↗";color:var(--lime)}.sync-btn:after{content:"";display:inline-block;width:6px;height:6px;margin-left:8px;border-top:2px solid currentColor;border-right:2px solid currentColor;transform:rotate(45deg);opacity:.85}
@@ -202,19 +202,19 @@
     .routes{position:absolute;inset:0;z-index:0;overflow:visible;pointer-events:none}
     .route-line{fill:none;stroke:var(--route);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:1;filter:drop-shadow(0 0 2px rgba(145,215,185,.28))}
     .route-node{fill:var(--route)}
-    .round{z-index:1;display:grid;grid-template-rows:24px repeat(8,86px);gap:6px;position:relative}
+    .round{z-index:1;display:grid;grid-template-rows:24px repeat(8,90px);gap:6px;position:relative}
     .round-name{grid-row:1;align-self:start;color:var(--muted);font-size:10px;letter-spacing:.14em;text-transform:uppercase}
     .round.right .round-name{text-align:right}.round.center .round-name{text-align:center;color:var(--lime)}
-    .match-wrap{align-self:center;display:grid;gap:3px;min-width:0}
-    .match-wrap .match-meta:empty{display:none}
-    .match{position:relative;width:100%;height:64px;padding:7px;border:1px solid rgba(145,215,185,.22);border-radius:11px;background:rgba(13,33,26,.92);box-shadow:0 4px 12px rgba(0,0,0,.14)}
+    .match-wrap{align-self:center;display:grid;gap:5px;min-width:0}
+    .match-wrap .bracket-match-meta:empty{display:none}
+    .match{position:relative;width:100%;height:68px;padding:8px;border:1px solid rgba(145,215,185,.22);border-radius:11px;background:rgba(13,33,26,.92);box-shadow:0 4px 12px rgba(0,0,0,.14)}
     .match.locked{border-color:var(--mint);box-shadow:inset 3px 0 var(--mint),0 5px 14px rgba(0,0,0,.16)}
     .match-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;color:var(--muted);font-size:7.5px;line-height:1}
     .match-top.quiet{justify-content:flex-end;margin-bottom:5px}
     .match-top b{display:inline-flex;align-items:center;gap:4px;padding:2px 5px;border-radius:999px;background:rgba(255,255,255,.035);font-weight:900}
     .match-code{margin-left:auto;color:rgba(168,187,178,.88);font-size:9px;font-weight:850;letter-spacing:.02em}
     .match-top .official-label{color:var(--mint);background:rgba(96,237,181,.1)}.match-top .forecast-label{color:var(--orange);background:rgba(255,154,85,.08)}
-    .team{position:relative;box-sizing:border-box;display:grid;grid-template-columns:17px minmax(0,1fr) auto;align-items:center;gap:4px;min-height:19px;
+    .team{position:relative;box-sizing:border-box;display:grid;grid-template-columns:17px minmax(0,1fr) auto;align-items:center;gap:4px;min-height:20px;
       padding:1px 5px;border-radius:6px;font-size:10px;overflow:hidden}.team+.team{margin-top:1px}.team .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .flag-emoji{display:inline-block;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
       font-size:13px;line-height:1;vertical-align:-1px}
@@ -232,8 +232,8 @@
     .team.advances::before,.team.official.advances::before{content:"";position:absolute;left:0;top:3px;bottom:3px;width:3px;border-radius:999px;background:var(--lime)}
     .team.advances .status{color:var(--lime)}
     .team.loses{color:#bac6c0}.locked-note{display:none}
-    .match-meta{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:5px;padding:0 4px;color:rgba(145,166,157,.68);font-size:7.2px;line-height:1;white-space:nowrap;overflow:hidden}
-    .match-meta .meta-time{color:rgba(217,255,99,.92);font-weight:900}.match-meta .meta-dot{display:none}.match-meta .meta-venue{overflow:hidden;text-overflow:ellipsis;min-width:0}
+    .bracket-match-meta{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:5px;padding:0 6px;color:rgba(145,166,157,.64);font-size:7px;line-height:1;white-space:nowrap;overflow:hidden}
+    .bracket-match-meta .meta-time{color:rgba(217,255,99,.9);font-weight:900}.bracket-match-meta .meta-dot{display:none}.bracket-match-meta .meta-venue{overflow:hidden;text-overflow:ellipsis;min-width:0}
     .final-stage{align-self:center;grid-row:2/span 8}
     .final-stage .match{position:relative;height:64px}
     .champion{margin-top:12px;padding:16px 8px;text-align:center;border:1px solid var(--lime);border-radius:13px;
@@ -247,7 +247,7 @@
       .group-insights{grid-template-columns:repeat(2,1fr)}.group-insight:nth-child(2){border-right:0}
       .group-insight:nth-child(-n+2){border-bottom:1px solid #244638}
       .bracket-help{display:block}}
-    @media(max-width:650px){.shell{width:calc(100% - 22px)}header{height:66px}.source{display:none}.sync-btn,.lang-toggle{min-height:40px;padding:8px 11px;font-size:10px}.hero{padding:35px 0 28px}
+    @media(max-width:650px){.shell{width:calc(100% - 22px)}header{height:66px}.source{display:none}.source-tools{gap:6px}.sync-btn,.lang-toggle{min-height:40px;padding:8px 11px;font-size:10px}.sync-btn{padding-inline:13px;min-width:96px;justify-content:center}.sync-btn:after{display:none}.sync-dot{margin-right:5px}.hero{padding:35px 0 28px}
       h1{font-size:52px}.lead{font-size:13px}.status-summary{grid-template-columns:1fr;gap:12px}.status-readouts{justify-content:space-between}.readout{min-width:0;flex:1}.readout b{font-size:24px}
       .nav{align-items:stretch;flex-direction:column;gap:8px}.tabs .tab{flex:1;min-height:44px;padding:9px 4px}
       .mobile-guide{display:block}
@@ -255,7 +255,7 @@
       .scenario-tabs{gap:6px}.scenario-tab{flex:1;min-width:96px;padding:9px 8px}
       .insights,.groups,.third-grid,.group-insights,.leaderboards,.match-strip,.upcoming-panel{grid-template-columns:1fr}.group-insight{border-right:0;border-bottom:1px solid #244638}
       .live-panel{padding:12px}.live-panel.multi .live-grid{grid-template-columns:1fr}.scoreline{gap:8px}.score-team{padding:11px 9px}.score-team b{font-size:17px}.score{min-width:72px;font-size:32px}
-      .match-meta{display:grid;font-size:11px}.list-section+.list-section{border-left:0;border-top:1px solid rgba(255,255,255,.07);padding-left:0;padding-top:13px;margin-top:2px}.fixture{grid-template-columns:66px minmax(0,1fr)}.fixture-weather,.fixture-score{grid-column:2;justify-self:start;text-align:left}
+      .match-meta{display:grid;font-size:11px}.bracket-match-meta{font-size:9px}.list-section+.list-section{border-left:0;border-top:1px solid rgba(255,255,255,.07);padding-left:0;padding-top:13px;margin-top:2px}.fixture{grid-template-columns:66px minmax(0,1fr)}.fixture-weather,.fixture-score{grid-column:2;justify-self:start;text-align:left}
       .group-insight:last-child{border-bottom:0}.insight:first-child{grid-column:auto}.third-grid{gap:7px}
       .third-card{display:grid;grid-template-columns:1fr auto;align-items:center}.third-card .prob{grid-column:1/-1}
       .section-head h2{font-size:29px}}
@@ -281,7 +281,7 @@
         <p class="lead">实时追踪小组赛形势与官方晋级结果，并结合最新积分、World Football Elo 和蒙特卡洛模拟，推演最可能的淘汰赛对阵与冠军路径。</p>
       </div>
       <div class="hero-side">
-        <a class="tournament-lockup" href="https://en.wikipedia.org/wiki/File:2026_FIFA_World_Cup_emblem.svg" target="_blank" rel="noreferrer" aria-label="查看2026世界杯官方徽标来源">
+        <a class="tournament-lockup" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026" target="_blank" rel="noreferrer" aria-label="查看2026世界杯官方网站">
           <img src="assets/world-cup-2026-emblem.png" alt="2026 FIFA World Cup emblem">
           <div><small>OFFICIAL TOURNAMENT IDENTITY</small><b>FIFA World Cup 2026</b><span>Canada · Mexico · United States</span></div>
         </a>
@@ -498,6 +498,13 @@ function displaySourceLabel(text=""){
   return String(text||"")
     .replace("边缘缓存","edge cache").replace("GitHub缓存","GitHub cache").replace("本站缓存","site cache").replace("浏览器直连","direct browser fetch")
     .replace("数据源","data source").replace("实时榜单","live ratings").replace("缓存","cached").replace("Wikipedia revision","Wikipedia revision").replace("淘汰赛","knockout");
+}
+function isMobileLayout(){return window.matchMedia?.("(max-width: 650px)")?.matches}
+function syncButtonLabel(now="",state="ready"){
+  if(state==="loading")return isMobileLayout()?"↻ …":`↻ ${t("refreshing")}`;
+  if(state==="error")return isMobileLayout()?`↻ ${currentLang==="en"?"Retry":"重试"}`:`↻ ${t("refreshFail")}`;
+  if(isMobileLayout())return `↻ ${now||t("refresh")}`;
+  return `↻ ${t("refresh")}${now?` · ${now}`:""}`;
 }
 const espnTeamZh={
   "United States":"美国","USA":"美国","Côte d'Ivoire":"科特迪瓦","Ivory Coast":"科特迪瓦","Korea Republic":"韩国","South Korea":"韩国",
@@ -1000,7 +1007,7 @@ function bracketMeta(no){
   if(!meta)return "";
   const time=bracketTime(meta.kickoff),venue=meta.city||meta.stadium||"";
   if(!time&&!venue)return "";
-  return `<div class="match-meta"><span class="meta-time">${time||"TBD"}</span>${venue?`<span class="meta-dot">·</span><span class="meta-venue">${venue}</span>`:""}</div>`;
+  return `<div class="bracket-match-meta"><span class="meta-time">${time||"TBD"}</span>${venue?`<span class="meta-dot">·</span><span class="meta-venue">${venue}</span>`:""}</div>`;
 }
 function card(m,round,index){
   const [no,a,b,winner]=m;
@@ -1722,20 +1729,20 @@ async function applyDataBundle({data,koData,espnPages=null,eloText=null,polymark
 }
 async function syncLatest(){
   const btn=document.querySelector("#syncBtn"),text=document.querySelector("#syncText");
-  btn.disabled=true;btn.classList.remove("live","error");text.textContent=`↻ ${t("refreshing")}`;
+  btn.disabled=true;btn.classList.remove("live","error");text.textContent=syncButtonLabel("", "loading");
   try{
     let bundle,cacheError=null;
     try{bundle=await fetchSiteCache()}
     catch(error){cacheError=error;bundle=await fetchExternalBundle()}
     const result=await applyDataBundle(bundle);
     btn.classList.add("live");
-    text.textContent=`↻ ${t("refresh")} · ${result.now}`;
+    text.textContent=syncButtonLabel(result.now);
     btn.title=currentLang==="en"?`Click to refresh; ${result.sourceLabel}${cacheError?` (cache unavailable, direct fallback: ${cacheError.message})`:""}; standings ${result.data.parse.revid} · knockout ${result.koData.parse.revid} · Elo ${eloSourceTime}`:`点击立即刷新；${result.sourceLabel}${cacheError?`（缓存不可用，已回退直连：${cacheError.message}）`:""}；积分 ${result.data.parse.revid} · 淘汰赛 ${result.koData.parse.revid} · Elo ${eloSourceTime}`;
   }catch(error){
     lastSyncLabel=currentLang==="en"?"Sync failed · offline fallback":"同步失败 · 显示离线兜底";
     liveDataReady=false;
     updateLiveCopy();
-    btn.classList.add("error");text.textContent=`↻ ${t("refreshFail")}`;btn.title=error.message;
+    btn.classList.add("error");text.textContent=syncButtonLabel("", "error");btn.title=error.message;
   }finally{btn.disabled=false}
 }
 async function refreshMatchCenterLive(){
@@ -1766,9 +1773,13 @@ document.querySelector("#langToggle").addEventListener("click",()=>{
   renderGroups();renderThirds();renderLeaderboards();renderMatchCenter();renderBracket();updateLiveCopy();
   if(document.querySelector("#bracketView").classList.contains("active"))requestAnimationFrame(drawRoutes);
   const text=document.querySelector("#syncText");
-  if(text&&!document.querySelector("#syncBtn").disabled)text.textContent=`↻ ${t("refresh")}${liveDataReady?` · ${lastSyncLabel.replace(/ 已同步| synced/,"")}`:""}`;
+  if(text&&!document.querySelector("#syncBtn").disabled)text.textContent=syncButtonLabel(liveDataReady?lastSyncLabel.replace(/ 已同步| synced/,""):"");
 });
-window.addEventListener("resize",()=>requestAnimationFrame(drawRoutes));
+window.addEventListener("resize",()=>{
+  requestAnimationFrame(drawRoutes);
+  const text=document.querySelector("#syncText");
+  if(text&&!document.querySelector("#syncBtn").disabled)text.textContent=syncButtonLabel(liveDataReady?lastSyncLabel.replace(/ 已同步| synced/,""):"");
+});
 applyLanguage();
 renderBracket();
 try{const cached=JSON.parse(localStorage.getItem("wc2026-elo"));if(cached?.ratings){eloRatings={...eloRatings,...cached.ratings};eloSourceTime=cached.time||"缓存"}}catch{}
