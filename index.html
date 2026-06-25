@@ -497,7 +497,6 @@ function teamSituation(t,pos,groupTeams,g=""){
     if(pos===2)return qualifyChance(t,pos)>=100?(currentLang==="en"?"Qualified as third":"第三名晋级"):(currentLang==="en"?"Third-place bubble":"第三名待定");
     return currentLang==="en"?"Eliminated":"已出局";
   }
-  if(groupHasLive(g))return currentLang==="en"?"Live table":"实时积分榜";
   if(confirmedGroupWinners.has(t[0]))return currentLang==="en"?"Group winner":"锁定头名";
   if(confirmedQualified.has(t[0]))return currentLang==="en"?"Qualified":"已晋级";
   const q=qualifyChance(t,pos);
