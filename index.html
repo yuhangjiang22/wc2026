@@ -193,34 +193,34 @@
     .routes{position:absolute;inset:0;z-index:0;overflow:visible;pointer-events:none}
     .route-line{fill:none;stroke:var(--route);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:1;filter:drop-shadow(0 0 2px rgba(145,215,185,.28))}
     .route-node{fill:var(--route)}
-    .round{z-index:1;display:grid;grid-template-rows:24px repeat(8,92px);gap:5px;position:relative}
+    .round{z-index:1;display:grid;grid-template-rows:24px repeat(8,86px);gap:6px;position:relative}
     .round-name{grid-row:1;align-self:start;color:var(--muted);font-size:10px;letter-spacing:.14em;text-transform:uppercase}
     .round.right .round-name{text-align:right}.round.center .round-name{text-align:center;color:var(--lime)}
-    .match{align-self:center;position:relative;width:100%;height:84px;padding:7px;border:1px solid var(--line);border-radius:10px;background:var(--surface);box-shadow:0 4px 12px rgba(0,0,0,.16)}
-    .match.locked{border-color:var(--mint);box-shadow:inset 3px 0 var(--mint),0 5px 14px rgba(0,0,0,.18)}
-    .match-top{display:flex;justify-content:space-between;margin-bottom:3px;color:var(--muted);font-size:8px}
-    .match-top .official-label{color:var(--mint);font-weight:850}.match-top .forecast-label{color:var(--orange)}
-    .team{display:grid;grid-template-columns:17px minmax(0,1fr) auto;align-items:center;gap:4px;min-height:21px;
-      padding:2px 5px;border-radius:6px;font-size:10px}.team+.team{margin-top:2px}.team .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .match{align-self:center;position:relative;width:100%;height:78px;padding:7px;border:1px solid rgba(145,215,185,.22);border-radius:11px;background:rgba(13,33,26,.92);box-shadow:0 4px 12px rgba(0,0,0,.14)}
+    .match.locked{border-color:var(--mint);box-shadow:inset 3px 0 var(--mint),0 5px 14px rgba(0,0,0,.16)}
+    .match-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;color:var(--muted);font-size:7.5px;line-height:1}
+    .match-top b{display:inline-flex;align-items:center;gap:4px;padding:2px 5px;border-radius:999px;background:rgba(255,255,255,.035);font-weight:900}
+    .match-top .official-label{color:var(--mint);background:rgba(96,237,181,.1)}.match-top .forecast-label{color:var(--orange);background:rgba(255,154,85,.08)}
+    .team{display:grid;grid-template-columns:17px minmax(0,1fr) auto;align-items:center;gap:4px;min-height:19px;
+      padding:1px 5px;border-radius:6px;font-size:10px}.team+.team{margin-top:1px}.team .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .flag-emoji{display:inline-block;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
       font-size:13px;line-height:1;vertical-align:-1px}
-    .team .status{overflow:hidden;font-size:9px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--muted);text-overflow:ellipsis;white-space:nowrap}.team.official{background:var(--mint);color:var(--ink);font-weight:850}
-    .team.official .status{color:#174e3a;font-weight:900}.team.predicted-opponent{border:1px dashed rgba(255,154,85,.72);color:var(--orange)}
-    .team.official.advances{background:var(--mint);border:0;border-left:3px solid var(--lime);color:var(--ink);
-      box-shadow:inset 4px 0 0 rgba(217,255,99,.45)}
+    .team .status{overflow:hidden;font-size:9px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--muted);text-overflow:ellipsis;white-space:nowrap}.team.official{background:rgba(96,237,181,.9);color:var(--ink);font-weight:850}
+    .team.official .status{color:#174e3a;font-weight:900}.team.predicted-opponent{color:var(--orange)}
+    .team.official.advances{background:var(--mint);border:0;border-left:3px solid var(--lime);color:var(--ink)}
     .team.official.advances .name{font-weight:950}
     .team.official.advances .status{color:#174e3a}
     .official-pick{display:inline-block;margin-left:5px;padding:2px 5px;border-radius:4px;background:var(--lime);
       color:var(--ink);font-size:7px;font-style:normal;font-weight:900;vertical-align:1px}
-    .team.predicted{border:1px dashed rgba(255,154,85,.54);color:#d8e0dc}
+    .team.predicted{color:#d8e0dc}
     .team.predicted .status{color:var(--orange)}
-    .team.advances{background:rgba(217,255,99,.13);border-left:3px solid var(--lime);color:var(--text);font-weight:850}
+    .team.advances{background:rgba(217,255,99,.12);border-left:3px solid var(--lime);color:var(--text);font-weight:850}
     .team.advances .status{color:var(--lime)}
     .team.loses{color:#bac6c0}.locked-note{display:none}
-    .match-meta{display:flex;align-items:center;gap:5px;margin-top:4px;padding-top:4px;border-top:1px solid rgba(145,215,185,.12);color:var(--muted);font-size:8px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .match-meta .meta-time{color:var(--lime);font-weight:900}.match-meta .meta-venue{overflow:hidden;text-overflow:ellipsis}
+    .match-meta{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:6px;margin-top:4px;padding-top:4px;border-top:1px solid rgba(145,215,185,.09);color:rgba(145,166,157,.84);font-size:7.5px;line-height:1.1;white-space:nowrap;overflow:hidden}
+    .match-meta .meta-time{color:var(--lime);font-weight:900}.match-meta .meta-dot{display:none}.match-meta .meta-venue{overflow:hidden;text-overflow:ellipsis;min-width:0}
     .final-stage{align-self:center;grid-row:2/span 8}
-    .final-stage .match{position:relative;height:70px}
+    .final-stage .match{position:relative;height:78px}
     .champion{margin-top:12px;padding:16px 8px;text-align:center;border:1px solid var(--lime);border-radius:13px;
       background:linear-gradient(145deg,var(--lime),#b8f27c);color:var(--ink);box-shadow:0 12px 34px rgba(217,255,99,.12)}
     .champion .cup{font-size:29px}.champion b{display:block;margin-top:5px;font-size:13px}.champion small{font-size:9px;color:#496439}
@@ -901,7 +901,7 @@ function teamRow(name,winner,type="",matchNo="",prob=null){
 }
 function bracketTime(d){
   if(!d)return "";
-  return new Intl.DateTimeFormat(currentLang==="en"?"en-US":"zh-CN",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}).format(d);
+  return new Intl.DateTimeFormat(currentLang==="en"?"en-US":"zh-CN",{month:currentLang==="en"?"short":"numeric",day:"numeric",hour:"numeric",minute:"2-digit"}).format(d).replace(",","");
 }
 function bracketMeta(no){
   const meta=koMatchMeta[no];
