@@ -184,10 +184,10 @@
     .routes{position:absolute;inset:0;z-index:0;overflow:visible;pointer-events:none}
     .route-line{fill:none;stroke:var(--route);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:1;filter:drop-shadow(0 0 2px rgba(145,215,185,.28))}
     .route-node{fill:var(--route)}
-    .round{z-index:1;display:grid;grid-template-rows:24px repeat(8,78px);gap:5px;position:relative}
+    .round{z-index:1;display:grid;grid-template-rows:24px repeat(8,92px);gap:5px;position:relative}
     .round-name{grid-row:1;align-self:start;color:var(--muted);font-size:10px;letter-spacing:.14em;text-transform:uppercase}
     .round.right .round-name{text-align:right}.round.center .round-name{text-align:center;color:var(--lime)}
-    .match{align-self:center;position:relative;width:100%;height:70px;padding:7px;border:1px solid var(--line);border-radius:10px;background:var(--surface);box-shadow:0 4px 12px rgba(0,0,0,.16)}
+    .match{align-self:center;position:relative;width:100%;height:84px;padding:7px;border:1px solid var(--line);border-radius:10px;background:var(--surface);box-shadow:0 4px 12px rgba(0,0,0,.16)}
     .match.locked{border-color:var(--mint);box-shadow:inset 3px 0 var(--mint),0 5px 14px rgba(0,0,0,.18)}
     .match-top{display:flex;justify-content:space-between;margin-bottom:3px;color:var(--muted);font-size:8px}
     .match-top .official-label{color:var(--mint);font-weight:850}.match-top .forecast-label{color:var(--orange)}
@@ -208,6 +208,8 @@
     .team.advances{background:rgba(217,255,99,.13);border-left:3px solid var(--lime);color:var(--text);font-weight:850}
     .team.advances .status{color:var(--lime)}
     .team.loses{color:#bac6c0}.locked-note{display:none}
+    .match-meta{display:flex;align-items:center;gap:5px;margin-top:4px;padding-top:4px;border-top:1px solid rgba(145,215,185,.12);color:var(--muted);font-size:8px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .match-meta .meta-time{color:var(--lime);font-weight:900}.match-meta .meta-venue{overflow:hidden;text-overflow:ellipsis}
     .final-stage{align-self:center;grid-row:2/span 8}
     .final-stage .match{position:relative;height:70px}
     .champion{margin-top:12px;padding:16px 8px;text-align:center;border:1px solid var(--lime);border-radius:13px;
@@ -416,7 +418,7 @@ let groups=[
 ];
 let third=[];
 let remainingFixtures={},completedResults={},qualifyProb={},simulationCount=0,eloSourceTime="实时榜单",scorerLeaders=[],matchCards=[];
-let baseGroups=[],baseRemainingFixtures={},baseCompletedResults={},latestKoDoc=null,latestOfficial={};
+let baseGroups=[],baseRemainingFixtures={},baseCompletedResults={},latestKoDoc=null,latestOfficial={},koMatchMeta={};
 let lastSyncLabel="等待同步",lastSourceStamp="",lastOfficialSlotCount=0,lastCompleteMatchCount=0,liveDataReady=false;
 const cloneGroups=x=>x.map(([g,ts])=>[g,ts.map(t=>[...t])]);
 const cloneMap=x=>Object.fromEntries(Object.entries(x||{}).map(([g,rows])=>[g,rows.map(r=>[...r])]));
@@ -635,6 +637,18 @@ function parseMatchCards(doc){
       scoreText,dateText,timeText,kickoff,localHour:parseLocalHour(timeText),...venue,status:"upcoming",weather:"天气加载中",goals:[]
     };
   }).filter(x=>x.home!=="待定"&&x.away!=="待定").map(x=>({...x,status:matchStatus(x)})).sort((a,b)=>(a.kickoff||0)-(b.kickoff||0));
+}
+function parseKoMatchMeta(koDoc){
+  const out={};
+  for(const box of koDoc.querySelectorAll(".footballbox")){
+    const no=Number((box.querySelector(".fscore")?.textContent||"").match(/Match\s+(\d+)/i)?.[1]);
+    if(!no)continue;
+    const dateText=box.querySelector(".fdate")?.textContent||"";
+    const timeText=box.querySelector(".ftime")?.textContent||"";
+    const venue=parseVenue(box.querySelector(".fright")?.textContent||"");
+    out[no]={no,kickoff:parseKickoff(dateText,timeText),dateText,timeText,...venue};
+  }
+  return out;
 }
 function dateKey(d){
   return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}`;
@@ -875,6 +889,17 @@ function teamRow(name,winner,type="",matchNo="",prob=null){
   const status=Number.isFinite(prob)?`${prob}%`:(name===winner?(currentLang==="en"?"Adv.":"晋级"):"—");
   return `<div class="team ${cls}">${flagIcon(name)}<span class="name">${teamName(name)}</span><span class="status">${status}</span></div>`;
 }
+function bracketTime(d){
+  if(!d)return "";
+  return new Intl.DateTimeFormat(currentLang==="en"?"en-US":"zh-CN",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}).format(d);
+}
+function bracketMeta(no){
+  const meta=koMatchMeta[no];
+  if(!meta)return "";
+  const time=bracketTime(meta.kickoff),venue=[meta.stadium,meta.city].filter(Boolean).join(" · ");
+  if(!time&&!venue)return "";
+  return `<div class="match-meta"><span class="meta-time">${time||"TBD"}</span>${venue?`<span class="meta-dot">·</span><span class="meta-venue">${venue}</span>`:""}</div>`;
+}
 function card(m,round,index){
   const [no,a,b,winner]=m,l=round==="r32"?locked[no]:null;
   const typeA=officialTeamMatches[a]===no?"official":l&&a===l.opponent?"opponent":"";
@@ -885,6 +910,7 @@ function card(m,round,index){
   return `<article class="match ${officialCount?"locked":""}" data-match="${no}" style="grid-row:${row}/span ${span}">
     <div class="match-top"><span>${officialCount?`<b class="official-label">${officialCount===2?(currentLang==="en"?"Confirmed matchup":"官方对阵确定"):(currentLang==="en"?"Confirmed slot":"官方确定槽位")}</b>`:`<b class="forecast-label">${currentLang==="en"?"Projected matchup":"预测对阵"}</b>`}</span><span>M${no}</span></div>
     ${teamRow(a,winner,typeA,no,probA)+teamRow(b,winner,typeB,no,probB)}
+    ${bracketMeta(no)}
   </article>`;
 }
 function roundCol(title,key,data,side="left"){return `<div class="round ${side}"><div class="round-name">${title}</div>${data.map((m,i)=>card(m,key,i)).join("")}</div>`}
@@ -893,7 +919,7 @@ function finalCol(m,champ){
   const [probA,probB]=matchWinPerc(a,b);
   return `<div class="round center"><div class="round-name">${currentLang==="en"?"Final":"Final · 决赛"}</div><div class="final-stage">
     <article class="match" data-match="${no}"><div class="match-top"><b class="forecast-label">${currentLang==="en"?"Projected final":"预测决赛"}</b><span>M${no}</span></div>
-      ${teamRow(a,winner,"",no,probA)+teamRow(b,winner,"",no,probB)}</article>
+      ${teamRow(a,winner,"",no,probA)+teamRow(b,winner,"",no,probB)}${bracketMeta(no)}</article>
     <div class="champion"><div class="cup">🏆</div><b>${teamWithFlag(champ)}</b><small>${currentLang==="en"?"Projected champion":"预测冠军"}</small></div>
   </div></div>`;
 }
@@ -1382,6 +1408,7 @@ async function applyDataBundle({data,koData,espnPages=null,eloText=null,sourceLa
     await syncElo(eloText);
     const doc=new DOMParser().parseFromString(data.parse.text["*"],"text/html");
     const koDoc=new DOMParser().parseFromString(koData.parse.text["*"],"text/html");
+    koMatchMeta=parseKoMatchMeta(koDoc);
     const fresh=[],freshFixtures={},freshResults={};
     for(const h of Array.from(doc.querySelectorAll("h3"))){
       const match=h.textContent.trim().match(/^Group ([A-L])$/);if(!match)continue;
