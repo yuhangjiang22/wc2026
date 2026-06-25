@@ -203,20 +203,22 @@
     .match-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;color:var(--muted);font-size:7.5px;line-height:1}
     .match-top b{display:inline-flex;align-items:center;gap:4px;padding:2px 5px;border-radius:999px;background:rgba(255,255,255,.035);font-weight:900}
     .match-top .official-label{color:var(--mint);background:rgba(96,237,181,.1)}.match-top .forecast-label{color:var(--orange);background:rgba(255,154,85,.08)}
-    .team{display:grid;grid-template-columns:17px minmax(0,1fr) auto;align-items:center;gap:4px;min-height:19px;
-      padding:1px 5px;border-radius:6px;font-size:10px}.team+.team{margin-top:1px}.team .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .team{position:relative;box-sizing:border-box;display:grid;grid-template-columns:17px minmax(0,1fr) auto;align-items:center;gap:4px;min-height:19px;
+      padding:1px 5px;border-radius:6px;font-size:10px;overflow:hidden}.team+.team{margin-top:1px}.team .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .flag-emoji{display:inline-block;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
       font-size:13px;line-height:1;vertical-align:-1px}
     .team .status{overflow:hidden;font-size:9px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--muted);text-overflow:ellipsis;white-space:nowrap}.team.official{background:rgba(96,237,181,.9);color:var(--ink);font-weight:850}
     .team.official .status{color:#174e3a;font-weight:900}.team.predicted-opponent{color:var(--orange)}
-    .team.official.advances{background:var(--mint);border:0;border-left:3px solid var(--lime);color:var(--ink)}
+    .team.official.advances{background:var(--mint);border:0;color:var(--ink)}
     .team.official.advances .name{font-weight:950}
     .team.official.advances .status{color:#174e3a}
     .official-pick{display:inline-block;margin-left:5px;padding:2px 5px;border-radius:4px;background:var(--lime);
       color:var(--ink);font-size:7px;font-style:normal;font-weight:900;vertical-align:1px}
+    .team.predicted,.team.predicted-opponent{outline:1px dashed rgba(255,154,85,.82);outline-offset:-2px}
     .team.predicted{color:#d8e0dc}
     .team.predicted .status{color:var(--orange)}
-    .team.advances{background:rgba(217,255,99,.12);border-left:3px solid var(--lime);color:var(--text);font-weight:850}
+    .team.advances{background:rgba(217,255,99,.12);color:var(--text);font-weight:850}
+    .team.advances::before,.team.official.advances::before{content:"";position:absolute;left:0;top:3px;bottom:3px;width:3px;border-radius:999px;background:var(--lime)}
     .team.advances .status{color:var(--lime)}
     .team.loses{color:#bac6c0}.locked-note{display:none}
     .match-meta{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:5px;padding:0 3px;color:rgba(145,166,157,.78);font-size:7.5px;line-height:1;white-space:nowrap;overflow:hidden}
