@@ -550,7 +550,7 @@ r16:[[89,"德国","法国","法国"],[90,"瑞士","荷兰","荷兰"],[93,"葡萄
 qf:[[97,"法国","荷兰","法国"],[98,"西班牙","美国","西班牙"],[99,"巴西","英格兰","巴西"],[100,"阿根廷","哥伦比亚","阿根廷"]],
 sf:[[101,"法国","西班牙","法国"],[102,"巴西","阿根廷","阿根廷"]],final:[[104,"法国","阿根廷","阿根廷"]]}
 };
-let officialTeamMatches={},slotLockSource={};
+let officialTeamMatches={},slotLockSource={},lockedSlotGroups={};
 function renderGroups(){
   document.querySelector("#groups").innerHTML=groups.map(([g,ts])=>`<article class="group">
     <div class="group-head"><div class="group-title"><b>${g}</b><span>GROUP ${g}</span></div><small>${currentLang==="en"?`${ts[0][2]}/3 played · Elo MC`:`${ts[0][2]} 轮后 · Elo MC`}</small></div>
@@ -1281,16 +1281,22 @@ function mergeLockedSlots(official={}){
   }
   return merged;
 }
+function lockTeamSlot(team,no,group,source){
+  if(!team)return;
+  officialTeamMatches[team]=Number(no);
+  slotLockSource[team]=source||"standings";
+  lockedSlotGroups[team]=group||"";
+}
 function rebuildKnockout(koDoc,official=parseOfficial(koDoc)){
   const lockedOfficial=mergeLockedSlots(official);
   applyOfficialStatus(lockedOfficial);
   const projected=projectedGroups(lockedOfficial);
-  officialTeamMatches={};slotLockSource={};locked={};
+  officialTeamMatches={};slotLockSource={};lockedSlotGroups={};locked={};
   for(const [g,pos] of Object.entries(lockedOfficial)){
-    if(pos.winner){officialTeamMatches[pos.winner]=winnerMatch[g];slotLockSource[pos.winner]=pos.source?.winner||"standings"}
+    if(pos.winner)lockTeamSlot(pos.winner,winnerMatch[g],g,pos.source?.winner);
   }
   for(const [no,gs] of Object.entries(runnerSlots)){
-    for(const g of gs){const pos=lockedOfficial[g],team=pos?.runner;if(team){officialTeamMatches[team]=Number(no);slotLockSource[team]=pos.source?.runner||"standings"}}
+    for(const g of gs){const pos=lockedOfficial[g],team=pos?.runner;if(team&&isGroupComplete(groups.find(x=>x[0]===g)?.[1]))lockTeamSlot(team,no,g,pos.source?.runner)}
   }
   const thirdCandidates=Object.entries(projected).map(([g,ts])=>({g,t:ts[2],score:ts[2][5]?-999:(qualifyProb[ts[2][0]]??0)*1000+ts[2][3]*12+ts[2][4]*2+teamElo(ts[2][0])/40}))
     .filter(x=>!x.t[5])
