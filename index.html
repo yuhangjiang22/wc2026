@@ -196,7 +196,9 @@
     .round{z-index:1;display:grid;grid-template-rows:24px repeat(8,86px);gap:6px;position:relative}
     .round-name{grid-row:1;align-self:start;color:var(--muted);font-size:10px;letter-spacing:.14em;text-transform:uppercase}
     .round.right .round-name{text-align:right}.round.center .round-name{text-align:center;color:var(--lime)}
-    .match{align-self:center;position:relative;width:100%;height:78px;padding:7px;border:1px solid rgba(145,215,185,.22);border-radius:11px;background:rgba(13,33,26,.92);box-shadow:0 4px 12px rgba(0,0,0,.14)}
+    .match-wrap{align-self:center;display:grid;gap:3px;min-width:0}
+    .match-wrap .match-meta:empty{display:none}
+    .match{position:relative;width:100%;height:64px;padding:7px;border:1px solid rgba(145,215,185,.22);border-radius:11px;background:rgba(13,33,26,.92);box-shadow:0 4px 12px rgba(0,0,0,.14)}
     .match.locked{border-color:var(--mint);box-shadow:inset 3px 0 var(--mint),0 5px 14px rgba(0,0,0,.16)}
     .match-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;color:var(--muted);font-size:7.5px;line-height:1}
     .match-top b{display:inline-flex;align-items:center;gap:4px;padding:2px 5px;border-radius:999px;background:rgba(255,255,255,.035);font-weight:900}
@@ -217,10 +219,10 @@
     .team.advances{background:rgba(217,255,99,.12);border-left:3px solid var(--lime);color:var(--text);font-weight:850}
     .team.advances .status{color:var(--lime)}
     .team.loses{color:#bac6c0}.locked-note{display:none}
-    .match-meta{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:6px;margin-top:4px;padding-top:4px;border-top:1px solid rgba(145,215,185,.09);color:rgba(145,166,157,.84);font-size:7.5px;line-height:1.1;white-space:nowrap;overflow:hidden}
+    .match-meta{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:5px;padding:0 3px;color:rgba(145,166,157,.78);font-size:7.5px;line-height:1;white-space:nowrap;overflow:hidden}
     .match-meta .meta-time{color:var(--lime);font-weight:900}.match-meta .meta-dot{display:none}.match-meta .meta-venue{overflow:hidden;text-overflow:ellipsis;min-width:0}
     .final-stage{align-self:center;grid-row:2/span 8}
-    .final-stage .match{position:relative;height:78px}
+    .final-stage .match{position:relative;height:64px}
     .champion{margin-top:12px;padding:16px 8px;text-align:center;border:1px solid var(--lime);border-radius:13px;
       background:linear-gradient(145deg,var(--lime),#b8f27c);color:var(--ink);box-shadow:0 12px 34px rgba(217,255,99,.12)}
     .champion .cup{font-size:29px}.champion b{display:block;margin-top:5px;font-size:13px}.champion small{font-size:9px;color:#496439}
@@ -917,19 +919,18 @@ function card(m,round,index){
   const officialCount=[typeA,typeB].filter(x=>x==="official").length;
   const [probA,probB]=matchWinPerc(a,b);
   const span={r32:1,r16:2,qf:4,sf:8}[round],row=2+index*span;
-  return `<article class="match ${officialCount?"locked":""}" data-match="${no}" style="grid-row:${row}/span ${span}">
+  return `<div class="match-wrap" style="grid-row:${row}/span ${span}">${bracketMeta(no)}<article class="match ${officialCount?"locked":""}" data-match="${no}">
     <div class="match-top"><span>${officialCount?`<b class="official-label">${officialCount===2?(currentLang==="en"?"Locked matchup":"对阵已锁定"):(currentLang==="en"?"Locked slot":"锁定席位")}</b>`:`<b class="forecast-label">${currentLang==="en"?"Projected matchup":"预测对阵"}</b>`}</span><span>M${no}</span></div>
     ${teamRow(a,winner,typeA,no,probA)+teamRow(b,winner,typeB,no,probB)}
-    ${bracketMeta(no)}
-  </article>`;
+  </article></div>`;
 }
 function roundCol(title,key,data,side="left"){return `<div class="round ${side}"><div class="round-name">${title}</div>${data.map((m,i)=>card(m,key,i)).join("")}</div>`}
 function finalCol(m,champ){
   const [no,a,b,winner]=m;
   const [probA,probB]=matchWinPerc(a,b);
   return `<div class="round center"><div class="round-name">${currentLang==="en"?"Final":"Final · 决赛"}</div><div class="final-stage">
-    <article class="match" data-match="${no}"><div class="match-top"><b class="forecast-label">${currentLang==="en"?"Projected final":"预测决赛"}</b><span>M${no}</span></div>
-      ${teamRow(a,winner,"",no,probA)+teamRow(b,winner,"",no,probB)}${bracketMeta(no)}</article>
+    <div class="match-wrap">${bracketMeta(no)}<article class="match" data-match="${no}"><div class="match-top"><b class="forecast-label">${currentLang==="en"?"Projected final":"预测决赛"}</b><span>M${no}</span></div>
+      ${teamRow(a,winner,"",no,probA)+teamRow(b,winner,"",no,probB)}</article></div>
     <div class="champion"><div class="cup">🏆</div><b>${teamWithFlag(champ)}</b><small>${currentLang==="en"?"Projected champion":"预测冠军"}</small></div>
   </div></div>`;
 }
