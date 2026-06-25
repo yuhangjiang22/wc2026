@@ -11,6 +11,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 import pathlib
+import re
 import time
 import urllib.parse
 import urllib.request
@@ -21,6 +22,7 @@ OUT = ROOT / "data" / "cache.json"
 WIKI_API = "https://en.wikipedia.org/w/api.php"
 ESPN_API = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard"
 ELO_URL = "https://r.jina.ai/http://www.eloratings.net/2026_World_Cup.tsv"
+POLYMARKET_URL = "https://polymarket.com/sports/world-cup/games"
 
 
 def fetch_json(url: str, timeout: int = 25) -> dict:
@@ -30,7 +32,7 @@ def fetch_json(url: str, timeout: int = 25) -> dict:
 
 
 def fetch_text(url: str, timeout: int = 25) -> str:
-    request = urllib.request.Request(url, headers={"User-Agent": "worldcup-knockout-cache/1.0"})
+    request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 worldcup-knockout-cache/1.0"})
     with urllib.request.urlopen(request, timeout=timeout) as response:
         return response.read().decode("utf-8", errors="replace")
 
@@ -73,6 +75,43 @@ def espn_scoreboard(date_key: str) -> dict:
     return with_retries(lambda: fetch_json(f"{ESPN_API}?{query}"))
 
 
+def polymarket_games() -> dict:
+    """Extract World Cup 1X2 prices from the public Polymarket sports page.
+
+    The page renders each trading button twice for responsive layouts, followed
+    later by single winner-only buttons. We keep the first full sequence of
+    HOME / DRAW / AWAY prices.
+    """
+    try:
+        html = with_retries(lambda: fetch_text(POLYMARKET_URL, timeout=20), attempts=2)
+        pairs = re.findall(
+            r'<span class="opacity-70[^>]*>\s*([A-Z0-9]{2,5}|DRAW)\s*</span>'
+            r'<span[^>]*class="ml-1 text-sm">\s*([0-9.]+)¢\s*</span>',
+            html,
+        )
+        compact: list[tuple[str, str]] = []
+        for pair in pairs:
+            if not compact or compact[-1] != pair:
+                compact.append(pair)
+        matches = []
+        for i in range(0, len(compact) - 2, 3):
+            home, draw, away = compact[i : i + 3]
+            if draw[0] != "DRAW" or home[0] == "DRAW" or away[0] == "DRAW":
+                break
+            matches.append(
+                {
+                    "homeCode": home[0],
+                    "awayCode": away[0],
+                    "home": float(home[1]),
+                    "draw": float(draw[1]),
+                    "away": float(away[1]),
+                }
+            )
+        return {"source": POLYMARKET_URL, "matches": matches}
+    except Exception as error:  # noqa: BLE001 - optional signal, never block cache
+        return {"source": POLYMARKET_URL, "matches": [], "error": str(error)}
+
+
 def main() -> None:
     generated_at = dt.datetime.now(dt.UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     pages = {
@@ -81,6 +120,7 @@ def main() -> None:
     }
     espn = {key: espn_scoreboard(key) for key in date_keys()}
     elo_text = with_retries(lambda: fetch_text(ELO_URL))
+    polymarket = polymarket_games()
 
     payload = {
         "schemaVersion": 1,
@@ -90,10 +130,12 @@ def main() -> None:
             "knockout": "https://en.wikipedia.org/wiki/2026_FIFA_World_Cup_knockout_stage",
             "espn": ESPN_API,
             "elo": ELO_URL,
+            "polymarket": POLYMARKET_URL,
         },
         "wiki": pages,
         "espn": espn,
         "eloText": elo_text,
+        "polymarket": polymarket,
     }
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
