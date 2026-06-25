@@ -1019,6 +1019,7 @@ function rankGroup(state,matches){
 function applyResultToTeams(teams,a,b,ga,gb){
   const ta=teams.find(t=>t[0]===a),tb=teams.find(t=>t[0]===b);
   if(!ta||!tb)return false;
+  if((ta[2]||0)>=3||(tb[2]||0)>=3)return false;
   ta[2]=(ta[2]||0)+1;tb[2]=(tb[2]||0)+1;
   ta[6]=(ta[6]||0)+ga;tb[6]=(tb[6]||0)+gb;
   ta[4]=(ta[4]||0)+ga-gb;tb[4]=(tb[4]||0)+gb-ga;
