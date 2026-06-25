@@ -335,11 +335,11 @@ const copy={
     tabOverview:"形势速览",tabGroups:"小组积分",tabBracket:"淘汰赛树",mobileGuide:"可点击：刷新数据、上方页签、数据来源链接；比赛卡和榜单为只读信息",
     overviewTitle:"赛况速览",overviewDesc:"实时赛果、已确定槽位和模型预测集中展示。",officialStatus:"官方确定状态",officialLoading:"同步后自动读取已确定的晋级球队与淘汰赛槽位。",
     matchCenter:"比赛中心",matchCenterNote:"正在同步实时比分、近期赛果和接下来赛程；开球时间按你的本地时区显示。",waitSync:"等待同步",
-    upcoming:"接下来赛程",localVenueWeather:"本地时间 / 球场 / 天气",completed:"已结束 · 今天/昨天",score:"比分",
+    upcoming:"接下来赛程",localVenueWeather:"Time / Venue / WX",completed:"已结束 · 今天/昨天",score:"Score",
     officialFact:"官方事实",officialFactTitle:"等待同步官方槽位",officialFactBody:"同步后自动读取淘汰赛页面里已经确定的球队槽位。",
     eloCall:"Elo 模型判断",champCalc:"正在计算冠军主路径",champPath:"根据实时 Elo 和最新淘汰赛组合自动更新。",
     biggestVariable:"最大变量",thirdTitle:"等待计算最佳第三名",thirdBody:"同步积分并完成模拟后，自动更新最可能进入 32 强的第三名球队。",
-    statsTitle:"赛事榜单",statsDesc:"射手、球队火力和防守表现随比赛结果自动更新。",scorers:"射手榜",goals:"进球",attack:"球队进球榜",defence:"最佳防守",ga:"失球",
+    statsTitle:"赛事榜单",statsDesc:"射手、球队火力和防守表现随比赛结果自动更新。",scorers:"射手榜",goals:"G",attack:"球队进球榜",defence:"最佳防守",ga:"GA",
     groupsTitle:"小组赛数据中心",groupsDesc:"跨组比较只聚焦最佳第三名线；每组内部排名仍按小组规则单独计算。",
     bracketTitle:"最可能的淘汰赛路径",bracketDesc:"每次同步后自动重算小组名次、最佳第三名组合、32 强配对及后续晋级路径。",
     legendOfficial:"薄荷绿：唯一确定",legendProjected:"橙虚线：所有预测球队",legendAdvance:"黄左线：预测晋级",legendRoute:"连线：预测路径",liveModel:"实时模型",
@@ -384,10 +384,15 @@ function applyLanguage(){
   setText("#overview .notice b","officialStatus");if(!liveDataReady)setText("#officialSummary","officialLoading");
   setText(".match-center-head h2","matchCenter");setText("#matchCenterNote","matchCenterNote");if(!liveDataReady)setText("#matchUpdated","waitSync");
   const heads=document.querySelectorAll(".upcoming-panel .board-head");heads[0].querySelector("b").lastChild.textContent=t("upcoming");heads[0].querySelector("span:last-child").textContent=t("localVenueWeather");heads[1].querySelector("b").lastChild.textContent=t("completed");heads[1].querySelector("span:last-child").textContent=t("score");
+  document.querySelectorAll(".upcoming-panel .label-mark")[0].textContent="UP";
+  document.querySelectorAll(".upcoming-panel .label-mark")[1].textContent="FT";
   const insights=document.querySelectorAll(".insight small");insights[0].textContent=t("officialFact");insights[1].textContent=t("eloCall");insights[2].textContent=t("biggestVariable");
   if(!liveDataReady){setText("#officialFactTitle","officialFactTitle");setText("#officialFactBody","officialFactBody");setText("#championHeadline","champCalc");setText("#championPath","champPath");setText("#variableTitle","thirdTitle");setText("#variableBody","thirdBody")}
   setText(".stats-head h2","statsTitle");setText(".stats-head p","statsDesc");
   const lb=document.querySelectorAll(".leaderboard .board-head");lb[0].querySelector("b").lastChild.textContent=t("scorers");lb[0].querySelector("span:last-child").textContent=t("goals");lb[1].querySelector("b").lastChild.textContent=t("attack");lb[2].querySelector("b").lastChild.textContent=t("defence");lb[2].querySelector("span:last-child").textContent=t("ga");
+  document.querySelectorAll(".leaderboard .label-mark")[0].textContent="G";
+  document.querySelectorAll(".leaderboard .label-mark")[1].textContent="GF";
+  document.querySelectorAll(".leaderboard .label-mark")[2].textContent="GA";
   setText("#groupsView .section-head h2","groupsTitle");setText("#groupsView .section-head p","groupsDesc");
   setText("#bracketView .section-head h2","bracketTitle");setText("#bracketView .section-head p","bracketDesc");
   const keys=document.querySelectorAll(".legend .key");keys[0].textContent=t("legendOfficial");keys[1].textContent=t("legendProjected");keys[2].textContent=t("legendAdvance");keys[3].textContent=t("legendRoute");
