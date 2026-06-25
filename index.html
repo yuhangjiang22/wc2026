@@ -189,6 +189,13 @@
     .group-insight .mini-list b{flex:none;display:inline;margin:0;font-size:12px;letter-spacing:0}
 
     .bracket-scroller{overflow-x:auto;padding:4px 2px 22px;scrollbar-color:var(--lime) var(--surface)}
+    .scenario-tabs{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:14px 0 12px}
+    .scenario-tab{border:1px solid rgba(145,215,185,.26);border-radius:999px;background:rgba(16,39,31,.92);color:var(--muted);
+      padding:8px 12px;font-size:11px;font-weight:900;cursor:pointer;transition:.15s ease}
+    .scenario-tab:hover{border-color:rgba(217,255,99,.6);color:var(--text)}
+    .scenario-tab.active{border-color:var(--lime);background:var(--lime);color:var(--ink);box-shadow:0 8px 24px rgba(217,255,99,.12)}
+    .scenario-tab small{margin-left:5px;font-size:10px;font-weight:950;opacity:.8}
+    .scenario-note{margin:-2px 0 12px;color:var(--muted);font-size:11px;line-height:1.5}
     .bracket{position:relative;width:100%;min-width:1080px;display:grid;
       grid-template-columns:repeat(9,minmax(0,1fr));gap:18px}
     .routes{position:absolute;inset:0;z-index:0;overflow:visible;pointer-events:none}
@@ -242,6 +249,7 @@
       .nav{align-items:stretch;flex-direction:column;gap:8px}.tabs .tab{flex:1;min-height:44px;padding:9px 4px}
       .mobile-guide{display:block}
       .view{padding-top:30px}.section-head{align-items:flex-start;flex-direction:column}.legend{flex-wrap:wrap}
+      .scenario-tabs{gap:6px}.scenario-tab{flex:1;min-width:96px;padding:9px 8px}
       .insights,.groups,.third-grid,.group-insights,.leaderboards,.match-strip,.upcoming-panel{grid-template-columns:1fr}.group-insight{border-right:0;border-bottom:1px solid #244638}
       .live-panel{padding:12px}.live-panel.multi .live-grid{grid-template-columns:1fr}.scoreline{gap:8px}.score-team{padding:11px 9px}.score-team b{font-size:17px}.score{min-width:72px;font-size:32px}
       .match-meta{display:grid;font-size:11px}.list-section+.list-section{border-left:0;border-top:1px solid rgba(255,255,255,.07);padding-left:0;padding-top:13px;margin-top:2px}.fixture{grid-template-columns:66px minmax(0,1fr)}.fixture-weather,.fixture-score{grid-column:2;justify-self:start;text-align:left}
@@ -334,6 +342,8 @@
         <div class="legend"><span class="key official">薄荷绿：唯一确定</span><span class="key projected">橙虚线：所有预测球队</span><span class="key advance">黄左线：预测晋级</span><span class="key route">连线：预测路径</span></div>
       </div>
       <div class="notice"><b>实时模型</b><span id="bracketModelNote">等待同步后自动生成 32 强对阵、第三名映射和后续晋级路径。</span></div>
+      <div class="scenario-tabs" id="scenarioTabs" aria-label="淘汰赛场景切换"></div>
+      <p class="scenario-note" id="scenarioNote"></p>
       <p class="bracket-help">横向滑动查看后续轮次 →</p>
       <div class="bracket-scroller"><div class="bracket" id="bracket"></div></div>
     </section>
@@ -435,6 +445,7 @@ let third=[];
 let remainingFixtures={},completedResults={},qualifyProb={},simulationCount=0,eloSourceTime="实时榜单",scorerLeaders=[],matchCards=[],polymarketOdds=[];
 let baseGroups=[],monteCarloGroups=[],baseRemainingFixtures={},baseCompletedResults={},latestKoDoc=null,latestOfficial={},koMatchMeta={},liveMatchStates={};
 let lastSyncLabel="等待同步",lastSourceStamp="",lastOfficialSlotCount=0,lastCompleteMatchCount=0,liveDataReady=false;
+let bracketScenarios=[],activeScenarioIndex=0;
 const cloneGroups=x=>x.map(([g,ts])=>[g,ts.map(t=>[...t])]);
 const cloneMap=x=>Object.fromEntries(Object.entries(x||{}).map(([g,rows])=>[g,rows.map(r=>[...r])]));
 function samePair(row,a,b){return (row[0]===a&&row[1]===b)||(row[0]===b&&row[1]===a)}
@@ -989,9 +1000,11 @@ function bracketMeta(no){
   return `<div class="match-meta"><span class="meta-time">${time||"TBD"}</span>${venue?`<span class="meta-dot">·</span><span class="meta-venue">${venue}</span>`:""}</div>`;
 }
 function card(m,round,index){
-  const [no,a,b,winner]=m,l=round==="r32"?locked[no]:null;
-  const typeA=officialTeamMatches[a]===no?"official":l&&a===l.opponent?"opponent":"";
-  const typeB=officialTeamMatches[b]===no?"official":l&&b===l.opponent?"opponent":"";
+  const [no,a,b,winner]=m;
+  const scenario=bracketScenarios[activeScenarioIndex],scenarioLocked=scenario?.locked||locked;
+  const activeLock=round==="r32"?scenarioLocked[no]:null;
+  const typeA=officialTeamMatches[a]===no?"official":activeLock&&a===activeLock.opponent?"opponent":"";
+  const typeB=officialTeamMatches[b]===no?"official":activeLock&&b===activeLock.opponent?"opponent":"";
   const officialCount=[typeA,typeB].filter(x=>x==="official").length;
   const [probA,probB]=matchWinPerc(a,b);
   const span={r32:1,r16:2,qf:4,sf:8}[round],row=2+index*span;
@@ -1035,8 +1048,9 @@ function drawRoutes(){
   bracket.insertAdjacentHTML("afterbegin",`<svg class="routes" width="${bracket.scrollWidth}" height="${bracket.offsetHeight}" viewBox="0 0 ${bracket.scrollWidth} ${bracket.offsetHeight}" aria-hidden="true">${paths.join("")}</svg>`);
 }
 function renderBracket(){
-  const p=paths.base,champ=p.final[0][3];
-  const firstRound=r32;
+  const scenario=bracketScenarios[activeScenarioIndex]||makeScenario(r32,locked,1,"Top 1");
+  const p=scenario.paths,champ=p.final[0][3];
+  const firstRound=scenario.r32;
   const left32=firstRound.slice(0,8),right32=firstRound.slice(8);
   const left16=p.r16.slice(0,4),right16=p.r16.slice(4);
   const leftQf=p.qf.slice(0,2),rightQf=p.qf.slice(2);
@@ -1044,7 +1058,29 @@ function renderBracket(){
     roundCol(currentLang==="en"?"Round of 32 · top":"32强 · 上半区","r32",left32)+roundCol(currentLang==="en"?"Round of 16":"16强","r16",left16)+roundCol(currentLang==="en"?"Quarterfinals":"8强","qf",leftQf)+roundCol(currentLang==="en"?"Semifinals":"半决赛","sf",[p.sf[0]])+
     finalCol(p.final[0],champ)+
     roundCol(currentLang==="en"?"Semifinals":"半决赛","sf",[p.sf[1]],"right")+roundCol(currentLang==="en"?"Quarterfinals":"8强","qf",rightQf,"right")+roundCol(currentLang==="en"?"Round of 16":"16强","r16",right16,"right")+roundCol(currentLang==="en"?"Bottom · Round of 32":"下半区 · 32强","r32",right32,"right");
+  renderScenarioTabs();
   requestAnimationFrame(drawRoutes);
+}
+function renderScenarioTabs(){
+  const tabs=document.querySelector("#scenarioTabs"),note=document.querySelector("#scenarioNote");
+  if(!tabs||!note)return;
+  if(!bracketScenarios.length){
+    tabs.innerHTML="";note.textContent="";return;
+  }
+  tabs.innerHTML=bracketScenarios.map((s,i)=>{
+    const pct=Math.max(.1,(s.probability||0)*100).toFixed(1).replace(/\.0$/,"");
+    return `<button class="scenario-tab ${i===activeScenarioIndex?"active":""}" type="button" data-scenario="${i}" aria-pressed="${i===activeScenarioIndex?"true":"false"}">${s.label}<small>· ${pct}%</small></button>`;
+  }).join("");
+  const active=bracketScenarios[activeScenarioIndex]||bracketScenarios[0];
+  const pct=Math.max(.1,(active.probability||0)*100).toFixed(1).replace(/\.0$/,"");
+  const groupsText=active.thirdGroups?.length?active.thirdGroups.join("/"):"—";
+  note.textContent=currentLang==="en"
+    ?`${active.label}: best third-place groups ${groupsText}, appearing in ${pct}% of sampled tournaments. The tree shows the most common bracket inside that scenario.`
+    :`${active.label}：最佳第三名组合为 ${groupsText}，约占样本 ${pct}%；当前树展示该场景下最常见的一套对阵。`;
+  tabs.querySelectorAll(".scenario-tab").forEach(btn=>btn.onclick=()=>{
+    activeScenarioIndex=Number(btn.dataset.scenario)||0;
+    renderBracket();
+  });
 }
 const teamZh={
   "Mexico":"墨西哥","South Korea":"韩国","Czech Republic":"捷克","South Africa":"南非",
@@ -1358,6 +1394,97 @@ function buildRounds(first){
   const r16=[89,90,93,94,91,92,95,96].map(make),qf=[97,98,99,100].map(make),sf=[101,102].map(make),final=[104].map(make);
   return {r16,qf,sf,final};
 }
+function simulatedGroupProjection(rng,official={}){
+  const sourceGroups=monteCarloGroups.length?monteCarloGroups:groups;
+  const out={},thirds=[];
+  for(const [g,teams] of sourceGroups){
+    const state=teams.map(t=>({name:t[0],flag:t[1],played:t[2]||0,pts:t[3]||0,gd:t[4]||0,gf:t[6]??Math.max(0,(t[4]||0)+(t[2]||0)),out:!!t[5],tie:rng()}));
+    const map=Object.fromEntries(state.map(x=>[x.name,x]));
+    const matches=[...(completedResults[g]||[])];
+    const liveByPair=Object.fromEntries((liveMatchStates[g]||[]).map(x=>[pairKey(x.home,x.away),x]));
+    for(const [an,bn] of remainingFixtures[g]||[]){
+      const a=teams.find(t=>t[0]===an),b=teams.find(t=>t[0]===bn);if(!a||!b||!map[an]||!map[bn])continue;
+      const live=liveByPair[pairKey(an,bn)];
+      const [ga,gb]=live?simulateLiveRemainder(a,b,live.score,live.minute,rng):simulateMatch(a,b,rng),sa=map[an],sb=map[bn];
+      matches.push([an,bn,ga,gb]);
+      sa.gf+=ga;sb.gf+=gb;sa.gd+=ga-gb;sb.gd+=gb-ga;sa.played++;sb.played++;
+      if(ga>gb)sa.pts+=3;else if(gb>ga)sb.pts+=3;else{sa.pts++;sb.pts++}
+    }
+    const ranked=rankGroup(state,matches);
+    const winner=official[g]?.winner,runner=official[g]?.runner;
+    if(winner){const i=ranked.findIndex(x=>x.name===winner);if(i>0)ranked.unshift(ranked.splice(i,1)[0])}
+    if(runner){const i=ranked.findIndex(x=>x.name===runner);if(i>=0&&i!==1)ranked.splice(1,0,ranked.splice(i,1)[0])}
+    out[g]=ranked.map(x=>[x.name,x.flag,x.played,x.pts,x.gd,x.out,x.gf]);
+    if(ranked[2])thirds.push({...ranked[2],group:g});
+  }
+  const rankedThirds=thirds.filter(x=>!x.out).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf||b.tie-a.tie);
+  return {projected:out,thirdCandidates:rankedThirds.slice(0,8).map(x=>({g:x.group,t:[x.name,x.flag,x.played,x.pts,x.gd,x.out,x.gf]}))};
+}
+function firstRoundFromProjection(projected,thirdCandidates,koDoc,lockedOfficial={}){
+  const thirdByGroup=Object.fromEntries(thirdCandidates.map(x=>[x.g,x.t[0]]));
+  const combo=parseCombo(koDoc,thirdCandidates.map(x=>x.g));
+  const thirdSlot={};
+  if(combo){
+    for(const [wg,tg] of Object.entries(combo))thirdSlot[winnerMatch[wg]]=thirdByGroup[tg];
+  }else{
+    const available=[...thirdCandidates];
+    for(const no of [74,77,79,80,82,81,85,87]){
+      const allowed=thirdRanges[no].split("/"),i=available.findIndex(x=>allowed.includes(x.g));
+      if(i>=0)thirdSlot[no]=available.splice(i,1)[0].t[0];
+    }
+  }
+  const matches={};
+  matches[73]=[73,projected.A[1][0],projected.B[1][0]];
+  matches[76]=[76,projected.C[0][0],projected.F[1][0]];
+  matches[75]=[75,projected.F[0][0],projected.C[1][0]];
+  matches[78]=[78,projected.E[1][0],projected.I[1][0]];
+  matches[84]=[84,projected.H[0][0],projected.J[1][0]];
+  matches[83]=[83,projected.K[1][0],projected.L[1][0]];
+  matches[88]=[88,projected.D[1][0],projected.G[1][0]];
+  matches[86]=[86,projected.J[0][0],projected.H[1][0]];
+  const scenarioLocked={};
+  for(const [g,no] of Object.entries(winnerMatch)){
+    if(thirdSlot[no]){
+      const a=projected[g][0][0],b=thirdSlot[no];matches[no]=[no,a,b];
+      if(lockedOfficial[g]?.winner)scenarioLocked[no]={team:lockedOfficial[g].winner,opponent:b,range:thirdRanges[no]+"组最佳第三"};
+    }
+  }
+  const first=bracketOrder.map(no=>{const m=matches[no];return [...m,pickWinner(m[1],m[2])]});
+  return {first,locked:scenarioLocked};
+}
+function scenarioSignature(first){return first.map(m=>`${m[0]}:${m[1]}|${m[2]}`).join(";")}
+function makeScenario(first,locked={},probability=0,label="Top 1"){
+  return {label,probability,r32:first,paths:buildRounds(first),locked};
+}
+function generateBracketScenarios(koDoc,lockedOfficial,baseFirst,baseLocked){
+  if(!koDoc||!groups.length)return [makeScenario(baseFirst,baseLocked,1,"Top 1")];
+  const iterations=Math.min(3000,Math.max(1200,Math.floor((simulationCount||30000)/12)));
+  const seedText=groups.map(([g,ts])=>g+ts.map(t=>`${t[0]}:${t[2]}:${t[3]}:${t[4]}:${t[5]?1:0}`).join("|")).join(";");
+  const seed=[...seedText].reduce((n,ch)=>(n*31+ch.charCodeAt(0))>>>0,20260625);
+  const rng=seededRandom(seed);
+  const seen=new Map();
+  for(let i=0;i<iterations;i++){
+    const projection=simulatedGroupProjection(rng,lockedOfficial);
+    const built=firstRoundFromProjection(projection.projected,projection.thirdCandidates,koDoc,lockedOfficial);
+    if(!built.first.every(m=>m&&m[1]&&m[2]))continue;
+    const thirdSig=projection.thirdCandidates.map(x=>x.g).sort().join("");
+    const fullSig=scenarioSignature(built.first);
+    const row=seen.get(thirdSig)||{count:0,variants:new Map(),thirdSig};
+    row.count++;
+    const variant=row.variants.get(fullSig)||{count:0,first:built.first,locked:built.locked};
+    variant.count++;row.variants.set(fullSig,variant);
+    seen.set(thirdSig,row);
+  }
+  const top=[...seen.values()].sort((a,b)=>b.count-a.count).slice(0,3)
+    .map((x,i)=>{
+      const variant=[...x.variants.values()].sort((a,b)=>b.count-a.count)[0];
+      const scenario=makeScenario(variant.first,variant.locked,x.count/iterations,`Top ${i+1}`);
+      scenario.thirdGroups=x.thirdSig.split("");
+      return scenario;
+    });
+  if(!top.length)return [makeScenario(baseFirst,baseLocked,1,"Top 1")];
+  return top;
+}
 function applyOfficialStatus(official){
   confirmedGroupWinners.clear();
   confirmedQualified.clear();
@@ -1428,6 +1555,8 @@ function rebuildKnockout(koDoc,official=parseOfficial(koDoc)){
   }
   const baseFirst=bracketOrder.map(no=>{const m=matches[no],w=pickWinner(m[1],m[2]);return [...m,w]});
   r32=baseFirst;paths={base:buildRounds(baseFirst)};
+  bracketScenarios=generateBracketScenarios(koDoc,lockedOfficial,baseFirst,locked);
+  activeScenarioIndex=Math.min(activeScenarioIndex,Math.max(0,bracketScenarios.length-1));
   const confirmedCount=Object.keys(officialTeamMatches).length;
   const completeMatches=r32.filter(m=>officialTeamMatches[m[1]]===m[0]&&officialTeamMatches[m[2]]===m[0]).length;
   lastOfficialSlotCount=confirmedCount;lastCompleteMatchCount=completeMatches;
