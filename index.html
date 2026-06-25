@@ -538,7 +538,7 @@ r16:[[89,"德国","法国","法国"],[90,"瑞士","荷兰","荷兰"],[93,"葡萄
 qf:[[97,"法国","荷兰","法国"],[98,"西班牙","美国","西班牙"],[99,"巴西","英格兰","巴西"],[100,"阿根廷","哥伦比亚","阿根廷"]],
 sf:[[101,"法国","西班牙","法国"],[102,"巴西","阿根廷","阿根廷"]],final:[[104,"法国","阿根廷","阿根廷"]]}
 };
-let officialTeamMatches={};
+let officialTeamMatches={},slotLockSource={};
 function renderGroups(){
   document.querySelector("#groups").innerHTML=groups.map(([g,ts])=>`<article class="group">
     <div class="group-head"><div class="group-title"><b>${g}</b><span>GROUP ${g}</span></div><small>${currentLang==="en"?`After ${ts[0][2]} matches · Elo MC`:`${ts[0][2]} 轮后 · Elo MC`}</small></div>
@@ -908,7 +908,7 @@ function card(m,round,index){
   const [probA,probB]=matchWinPerc(a,b);
   const span={r32:1,r16:2,qf:4,sf:8}[round],row=2+index*span;
   return `<article class="match ${officialCount?"locked":""}" data-match="${no}" style="grid-row:${row}/span ${span}">
-    <div class="match-top"><span>${officialCount?`<b class="official-label">${officialCount===2?(currentLang==="en"?"Confirmed matchup":"官方对阵确定"):(currentLang==="en"?"Confirmed slot":"官方确定槽位")}</b>`:`<b class="forecast-label">${currentLang==="en"?"Projected matchup":"预测对阵"}</b>`}</span><span>M${no}</span></div>
+    <div class="match-top"><span>${officialCount?`<b class="official-label">${officialCount===2?(currentLang==="en"?"Locked matchup":"对阵已锁定"):(currentLang==="en"?"Locked slot":"锁定席位")}</b>`:`<b class="forecast-label">${currentLang==="en"?"Projected matchup":"预测对阵"}</b>`}</span><span>M${no}</span></div>
     ${teamRow(a,winner,typeA,no,probA)+teamRow(b,winner,typeB,no,probB)}
     ${bracketMeta(no)}
   </article>`;
@@ -1199,7 +1199,7 @@ function projectedGroups(official={}){
       .sort((a,b)=>b.score-a.score||b.t[4]-a.t[4]||b.t[3]-a.t[3]);
     const winner=official[g]?.winner,runner=official[g]?.runner;
     if(winner){const i=ranked.findIndex(x=>x.t[0]===winner);if(i>0)ranked.unshift(ranked.splice(i,1)[0])}
-    if(runner){const i=ranked.findIndex(x=>x.t[0]===runner);if(i>1)ranked.splice(1,0,ranked.splice(i,1)[0])}
+    if(runner){const i=ranked.findIndex(x=>x.t[0]===runner);if(i>=0&&i!==1)ranked.splice(1,0,ranked.splice(i,1)[0])}
     out[g]=ranked.map(x=>x.t);
   }
   return out;
@@ -1256,12 +1256,12 @@ function applyOfficialStatus(official){
   Object.values(official).forEach(x=>x.qualified?.forEach(t=>confirmedQualified.add(t)));
 }
 function mergeLockedSlots(official={}){
-  const merged=Object.fromEntries(Object.entries(official).map(([g,pos])=>[g,{winner:pos.winner||"",runner:pos.runner||"",qualified:[...(pos.qualified||[])]}]));
+  const merged=Object.fromEntries(Object.entries(official).map(([g,pos])=>[g,{winner:pos.winner||"",runner:pos.runner||"",qualified:[...(pos.qualified||[])],source:{winner:pos.winner?"official":"",runner:pos.runner?"official":""}}]));
   for(const [g,teams] of groups){
     if(!isGroupComplete(teams))continue;
-    merged[g]??={winner:"",runner:"",qualified:[]};
-    if(!merged[g].winner)merged[g].winner=teams[0]?.[0]||"";
-    if(!merged[g].runner)merged[g].runner=teams[1]?.[0]||"";
+    merged[g]??={winner:"",runner:"",qualified:[],source:{winner:"",runner:""}};
+    if(!merged[g].winner){merged[g].winner=teams[0]?.[0]||"";merged[g].source.winner="standings"}
+    if(!merged[g].runner){merged[g].runner=teams[1]?.[0]||"";merged[g].source.runner="standings"}
     const q=new Set(merged[g].qualified||[]);
     if(teams[0])q.add(teams[0][0]);
     if(teams[1])q.add(teams[1][0]);
@@ -1274,12 +1274,12 @@ function rebuildKnockout(koDoc,official=parseOfficial(koDoc)){
   const lockedOfficial=mergeLockedSlots(official);
   applyOfficialStatus(lockedOfficial);
   const projected=projectedGroups(lockedOfficial);
-  officialTeamMatches={};locked={};
+  officialTeamMatches={};slotLockSource={};locked={};
   for(const [g,pos] of Object.entries(lockedOfficial)){
-    if(pos.winner)officialTeamMatches[pos.winner]=winnerMatch[g];
+    if(pos.winner){officialTeamMatches[pos.winner]=winnerMatch[g];slotLockSource[pos.winner]=pos.source?.winner||"standings"}
   }
   for(const [no,gs] of Object.entries(runnerSlots)){
-    for(const g of gs){const team=lockedOfficial[g]?.runner;if(team)officialTeamMatches[team]=Number(no)}
+    for(const g of gs){const pos=lockedOfficial[g],team=pos?.runner;if(team){officialTeamMatches[team]=Number(no);slotLockSource[team]=pos.source?.runner||"standings"}}
   }
   const thirdCandidates=Object.entries(projected).map(([g,ts])=>({g,t:ts[2],score:ts[2][5]?-999:(qualifyProb[ts[2][0]]??0)*1000+ts[2][3]*12+ts[2][4]*2+teamElo(ts[2][0])/40}))
     .filter(x=>!x.t[5])
