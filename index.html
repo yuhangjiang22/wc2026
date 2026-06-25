@@ -432,7 +432,7 @@ let groups=[
 ];
 let third=[];
 let remainingFixtures={},completedResults={},qualifyProb={},simulationCount=0,eloSourceTime="实时榜单",scorerLeaders=[],matchCards=[],polymarketOdds=[];
-let baseGroups=[],baseRemainingFixtures={},baseCompletedResults={},latestKoDoc=null,latestOfficial={},koMatchMeta={};
+let baseGroups=[],monteCarloGroups=[],baseRemainingFixtures={},baseCompletedResults={},latestKoDoc=null,latestOfficial={},koMatchMeta={},liveMatchStates={};
 let lastSyncLabel="等待同步",lastSourceStamp="",lastOfficialSlotCount=0,lastCompleteMatchCount=0,liveDataReady=false;
 const cloneGroups=x=>x.map(([g,ts])=>[g,ts.map(t=>[...t])]);
 const cloneMap=x=>Object.fromEntries(Object.entries(x||{}).map(([g,rows])=>[g,rows.map(r=>[...r])]));
@@ -1082,6 +1082,12 @@ function simulateMatch(a,b,rng){
   const total=2.55,la=Math.max(.22,total*(.28+.44*share)),lb=Math.max(.22,total-la);
   return [poisson(la,rng),poisson(lb,rng)];
 }
+function simulateLiveRemainder(a,b,current,minute,rng){
+  const diff=liveElo(a)-liveElo(b),share=1/(1+Math.pow(10,-diff/400));
+  const remaining=Math.max(.03,Math.min(1,(96-Math.max(0,minute||0))/90));
+  const total=2.55*remaining,la=Math.max(.01,total*(.28+.44*share)),lb=Math.max(.01,total-la);
+  return [current[0]+poisson(la,rng),current[1]+poisson(lb,rng)];
+}
 function h2hMetrics(teamNames,matches){
   const stats=Object.fromEntries(teamNames.map(n=>[n,{pts:0,gd:0,gf:0}]));
   for(const [a,b,ga,gb] of matches){
@@ -1176,7 +1182,9 @@ function applyLiveMatchesToGroups(matches){
   const nextLiveGroups=new Set((matches||[]).filter(m=>m.status==="live").map(m=>groupForPair(m.home,m.away)).filter(Boolean));
   const liveChanged=!setsEqual(liveGroupKeys,nextLiveGroups);
   liveGroupKeys=nextLiveGroups;
+  liveMatchStates={};
   groups=cloneGroups(baseGroups);
+  monteCarloGroups=cloneGroups(baseGroups);
   remainingFixtures=cloneMap(baseRemainingFixtures);
   completedResults=cloneMap(baseCompletedResults);
   let changed=reconcileRemainingFixturesWithStandings(matches);
@@ -1186,6 +1194,12 @@ function applyLiveMatchesToGroups(matches){
     const g=groupForPair(m.home,m.away);if(!g)continue;
     const alreadyDone=(completedResults[g]||[]).some(r=>samePair(r,m.home,m.away));
     if(alreadyDone)continue;
+    if(m.status==="live"){
+      liveMatchStates[g]??=[];
+      liveMatchStates[g].push({home:m.home,away:m.away,score,minute:matchMinute(m)});
+      const group=groups.find(x=>x[0]===g);if(group&&applyResultToTeams(group[1],m.home,m.away,score[0],score[1]))changed=true;
+      continue;
+    }
     if(tableAlreadyAbsorbedMatch(g,m.home,m.away)){
       remainingFixtures[g]=(remainingFixtures[g]||[]).filter(r=>!samePair(r,m.home,m.away));
       completedResults[g]=[...(completedResults[g]||[]),[m.home,m.away,score[0],score[1]]];
@@ -1193,6 +1207,8 @@ function applyLiveMatchesToGroups(matches){
     }
     const group=groups.find(x=>x[0]===g);if(!group)continue;
     if(!applyResultToTeams(group[1],m.home,m.away,score[0],score[1]))continue;
+    const modelGroup=monteCarloGroups.find(x=>x[0]===g);
+    if(modelGroup)applyResultToTeams(modelGroup[1],m.home,m.away,score[0],score[1]);
     remainingFixtures[g]=(remainingFixtures[g]||[]).filter(r=>!samePair(r,m.home,m.away));
     completedResults[g]=[...(completedResults[g]||[]),[m.home,m.away,score[0],score[1]]];
     changed=true;
@@ -1201,16 +1217,19 @@ function applyLiveMatchesToGroups(matches){
   return changed||liveChanged;
 }
 function runMonteCarlo(iterations=30000,seed=20260623){
-  const rng=seededRandom(seed),counts=Object.fromEntries(groups.flatMap(x=>x[1].map(t=>[t[0],0])));
+  const sourceGroups=monteCarloGroups.length?monteCarloGroups:groups;
+  const rng=seededRandom(seed),counts=Object.fromEntries(sourceGroups.flatMap(x=>x[1].map(t=>[t[0],0])));
   for(let sim=0;sim<iterations;sim++){
     const thirds=[];
-    for(const [g,teams] of groups){
+    for(const [g,teams] of sourceGroups){
       const state=teams.map(t=>({name:t[0],pts:t[3],gd:t[4],gf:t[6]??Math.max(0,t[4]+t[2]),out:!!t[5],tie:rng()}));
       const map=Object.fromEntries(state.map(x=>[x.name,x]));
       const matches=[...(completedResults[g]||[])];
+      const liveByPair=Object.fromEntries((liveMatchStates[g]||[]).map(x=>[pairKey(x.home,x.away),x]));
       for(const [an,bn] of remainingFixtures[g]||[]){
         const a=teams.find(t=>t[0]===an),b=teams.find(t=>t[0]===bn);if(!a||!b)continue;
-        const [ga,gb]=simulateMatch(a,b,rng),sa=map[an],sb=map[bn];
+        const live=liveByPair[pairKey(an,bn)];
+        const [ga,gb]=live?simulateLiveRemainder(a,b,live.score,live.minute,rng):simulateMatch(a,b,rng),sa=map[an],sb=map[bn];
         matches.push([an,bn,ga,gb]);
         sa.gf+=ga;sb.gf+=gb;sa.gd+=ga-gb;sb.gd+=gb-ga;
         if(ga>gb)sa.pts+=3;else if(gb>ga)sb.pts+=3;else{sa.pts++;sb.pts++}
