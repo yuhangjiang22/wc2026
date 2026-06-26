@@ -81,13 +81,14 @@
     .notice{display:flex;gap:12px;align-items:flex-start;padding:15px 18px;margin-bottom:18px;border:1px solid #315849;
       border-radius:14px;background:rgba(96,237,181,.06);font-size:13px;line-height:1.6;color:var(--muted)}
     .notice b{color:var(--mint);white-space:nowrap}
-    body.lang-en{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:-.01em}
-    body.lang-en .brand b{font-size:15px;letter-spacing:-.02em}body.lang-en .brand small{font-size:9px;letter-spacing:.22em}
-    body.lang-en h1{font-size:clamp(54px,6vw,86px);line-height:.9;letter-spacing:-.075em;max-width:720px}
-    body.lang-en .lead{max-width:760px;font-size:15px;line-height:1.65;color:#a8bbb2}
-    body.lang-en .section-head h2{font-size:32px;letter-spacing:-.055em}body.lang-en .section-head p{font-size:13px;max-width:760px;line-height:1.55}
+    body.lang-en{font-family:"Avenir Next",Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:-.015em}
+    body.lang-en .brand b{font-size:15px;letter-spacing:-.025em}body.lang-en .brand small{font-size:9px;letter-spacing:.24em}
+    body.lang-en h1{font-size:clamp(54px,6vw,86px);line-height:.9;letter-spacing:-.07em;max-width:740px}
+    body.lang-en .lead{max-width:780px;font-size:15px;line-height:1.62;color:#a8bbb2}
+    body.lang-en .section-head h2{font-size:32px;letter-spacing:-.05em}body.lang-en .section-head p{font-size:13px;max-width:780px;line-height:1.55}
     body.lang-en .tab{font-size:13px;font-weight:800;padding-inline:16px}body.lang-en .readout small{font-size:9px;letter-spacing:.02em;text-transform:uppercase}
-    body.lang-en .insight h3{font-size:23px;letter-spacing:-.045em}body.lang-en .insight small,.board-head span,.round-name{letter-spacing:.12em}
+    body.lang-en .insight h3{font-size:23px;line-height:1.08;letter-spacing:-.04em}body.lang-en .insight small,body.lang-en .board-head span,body.lang-en .round-name{letter-spacing:.12em}
+    body.lang-en .insight p{font-size:12px;line-height:1.6}
     body.lang-en .team .name,.board-name,.fixture-main b{letter-spacing:-.025em}
     body.lang-en .group-title span{letter-spacing:.22em}body.lang-en .match-top{font-size:7.5px;letter-spacing:.04em;text-transform:uppercase}
 
@@ -383,21 +384,21 @@ const copy={
   en:{
     title:"World Cup Knockout Forecast",description:"Live 2026 World Cup bracket forecasts using scores, market prices, Elo ratings and Monte Carlo simulation.",
     langBtn:"ZH",brand:"Knockout Radar",tagline:"WORLD CUP FORECAST",refresh:"Refresh",refreshing:"Refreshing…",refreshFail:"Refresh failed",source:"Sources",
-    heroTitle:"World Cup<br><span>Knockout Forecast</span>",lead:"A live view of the 2026 World Cup bracket race: current tables, locked slots, market-informed win odds, Elo simulations and the most likely knockout paths.",
-    dataStatus:"Data status",summaryLoading:"Loading scores, tables and model inputs…",confirmedSlots:"Locked slots",modelPredictions:"Projected slots",confirmedMatchups:"Locked ties",
+    heroTitle:"World Cup<br><span>Knockout Forecast</span>",lead:"Track the live group-stage picture, confirmed knockout slots, Elo simulations and the paths most likely to shape the 2026 World Cup bracket.",
+    dataStatus:"Live model status",summaryLoading:"Loading scores, tables and model inputs…",confirmedSlots:"Clinched slots",modelPredictions:"Projected slots",confirmedMatchups:"Set matchups",
     tabOverview:"Overview",tabGroups:"Group tables",tabBracket:"Bracket",mobileGuide:"Interactive: Refresh, view tabs, language toggle and source links. Match cards and tables are read-only.",
-    overviewTitle:"Live tournament picture",overviewDesc:"Confirmed facts and projections are separated clearly, then brought together in one bracket view.",officialStatus:"Locked bracket slots",officialLoading:"Locked teams and Round of 32 slots will appear after the first sync.",
-    matchCenter:"Match hub",matchCenterNote:"Live scores, recent finals and upcoming fixtures. Kickoff times use your local timezone.",waitSync:"Waiting for sync",
+    overviewTitle:"Tournament outlook",overviewDesc:"Confirmed slots, live scores and model projections in one view.",officialStatus:"Clinched bracket slots",officialLoading:"Clinched teams will appear here after the first sync.",
+    matchCenter:"Match center",matchCenterNote:"Live scores, recent results and upcoming fixtures. Kickoff times are shown in your local timezone.",waitSync:"Waiting for sync",
     upcoming:"Upcoming fixtures",localVenueWeather:"Local time / city / weather",completed:"Finals · today/yesterday",score:"Score",
-    officialFact:"Confirmed",officialFactTitle:"Waiting for locked slots",officialFactBody:"When a team clinches a group position, it is placed into the bracket automatically.",
-    eloCall:"Projection",champCalc:"Calculating title favorite",champPath:"The title path updates whenever standings, markets or Elo inputs change.",
-    biggestVariable:"Key swing factor",thirdTitle:"Best third-place race",thirdBody:"The eight best third-place teams can reshape the Round of 32 draw.",
+    officialFact:"Clinched",officialFactTitle:"Waiting for clinched slots",officialFactBody:"Teams are added automatically once their knockout slot is settled.",
+    eloCall:"Model read",champCalc:"Finding the title favorite",champPath:"The route updates as standings, markets and Elo inputs move.",
+    biggestVariable:"Bracket swing",thirdTitle:"Third-place race",thirdBody:"The eight best third-place teams can reshape the Round of 32.",
     statsTitle:"Tournament leaders",statsDesc:"Top scorers, team goals and defensive records update as results come in.",scorers:"Top scorers",goals:"Goals",attack:"Team goals",defence:"Fewest goals allowed",ga:"GA",
     groupsTitle:"Group-stage dashboard",groupsDesc:"Each group is ranked independently; cross-group comparisons focus only on the best third-place race.",
-    bracketTitle:"Most likely knockout path",bracketDesc:"Every sync recalculates group positions, locked slots, best-third mapping, Round of 32 pairings and projected winners.",
-    legendOfficial:"Mint: locked slot",legendProjected:"Dashed: projection",legendAdvance:"Lime rail: projected winner",legendRoute:"Line: projected route",liveModel:"Live projection",
-    bracketWait:"Sync to generate the Round of 32 bracket, best-third mapping and projected path.",bracketHelp:"Scroll sideways to see later rounds →",
-    footer:"Inputs: synced standings, goal difference, remaining fixtures, market prices, World Football Elo and path difficulty. This is not an official FIFA bracket."
+    bracketTitle:"Most likely knockout paths",bracketDesc:"Each sync rebuilds the Round of 32 draw, best-third mapping and projected winners.",
+    legendOfficial:"Mint: clinched",legendProjected:"Dashed: projected",legendAdvance:"Lime rail: favored",legendRoute:"Line: path",liveModel:"Live bracket model",
+    bracketWait:"Sync to build the Round of 32 draw, best-third mapping and projected route.",bracketHelp:"Scroll sideways for later rounds →",
+    footer:"Model inputs: synced tables, goal difference, remaining fixtures, market prices, World Football Elo and path difficulty. This is not an official FIFA bracket."
   }
 };
 const t=k=>(copy[currentLang]&&copy[currentLang][k])||copy.zh[k]||k;
@@ -582,23 +583,46 @@ function listNames(items,limit=4){
   const head=items.slice(0,limit).map(teamName).join(currentLang==="en"?", ":"、");
   return items.length>limit?(currentLang==="en"?`${head} and ${items.length-limit} more`:`${head} 等 ${items.length} 支`):head;
 }
+function formatSlotList(entries,limit=6){
+  if(!entries.length)return "";
+  const shown=entries.slice(0,limit).map(([team,no])=>currentLang==="en"?`${teamName(team)} (M${no})`:`${team}进入 M${no}`);
+  const more=entries.length-limit;
+  if(currentLang==="en")return shown.join(", ")+(more>0?`, +${more} more`:"");
+  return shown.join("；")+(more>0?`；另有 ${more} 支`:"");
+}
+function championRouteText(champ){
+  if(!champ||champ==="—"||!paths?.base)return "";
+  const route=[...(r32||[]),...(paths.base.r16||[]),...(paths.base.qf||[]),...(paths.base.sf||[]),...(paths.base.final||[])]
+    .filter(m=>m[1]===champ||m[2]===champ).map(m=>m[1]===champ?m[2]:m[1]);
+  return currentLang==="en"
+    ?`Likely route: ${route.map(teamName).join(" → ")}. Rebuilt after every sync.`
+    :`Elo 主路径预计依次面对 ${route.join("、")}；每次同步后重新计算。`;
+}
 function updateLiveCopy(){
-  const officialNames=Object.entries(officialTeamMatches).map(([team,no])=>`${teamName(team)}→M${no}`);
+  const officialEntries=Object.entries(officialTeamMatches);
+  const officialNames=officialEntries.map(([team,no])=>`${teamName(team)}→M${no}`);
   const thirdNames=third.map(x=>x[0]);
   const champ=paths?.base?.final?.[0]?.[3]||"—";
-  document.querySelector("#heroEyebrow").textContent=`2026 FIFA WORLD CUP · ${lastSyncLabel}`;
+  document.querySelector("#heroEyebrow").textContent=`2026 FIFA WORLD CUP · ${displaySyncLabel()}`;
+  if(liveDataReady)document.querySelector("#statsUpdated").textContent=currentLang==="en"?`Updated ${lastSyncLabel.replace(" synced","")} · match data`:`截至 ${lastSyncLabel.replace(" 已同步","")} · 已赛数据`;
   const summaryStatus=document.querySelector("#summaryStatus");
-  if(summaryStatus)summaryStatus.textContent=currentLang==="en"?"Syncs every 2 minutes. Locked slots stay separate from model projections.":"每 2 分钟自动同步；绿色数字是锁定槽位，其余随赛果和模型重算。";
+  if(summaryStatus)summaryStatus.textContent=currentLang==="en"?"Auto-syncs every 2 minutes. Green numbers are clinched; everything else is model-driven.":"每 2 分钟自动同步；绿色数字是锁定槽位，其余随赛果和模型重算。";
   const matchNote=document.querySelector("#matchCenterNote");
-  if(matchNote)matchNote.textContent=currentLang==="en"?`Live scores, recent results and upcoming fixtures. Times are local to ${localTimeZoneLabel()}.`:`正在同步实时比分、近期赛果和接下来赛程；开球时间按你的本地时区显示：${localTimeZoneLabel()}。`;
-  document.querySelector("#officialSummary").textContent=officialNames.length?(currentLang==="en"?`${officialNames.join("; ")}. Other slots remain projected.`:`${officialNames.join("；")}。其余槽位由实时模型预测。`):(currentLang==="en"?"No knockout slots are locked yet.":"当前尚无明确淘汰赛槽位。");
-  document.querySelector("#officialFactTitle").innerHTML=officialNames.length?(currentLang==="en"?`${listNames(Object.keys(officialTeamMatches),3)}<br>have locked Round of 32 slots`:`${listNames(Object.keys(officialTeamMatches),3)}<br>已进入对应 32 强槽位`):(currentLang==="en"?"No locked slots yet":"暂无锁定槽位");
-  document.querySelector("#officialFactBody").textContent=officialNames.length?(currentLang==="en"?`${officialNames.join("; ")}. Opponents and later rounds still update with the model.`:`${officialNames.join("；")}。这表示球队位置已确定；对手或后续路径仍按实时模型预测。`):(currentLang==="en"?"Once a team clinches a group position, it appears here and in the bracket.":"淘汰赛官方页面还没有可读取的确定球队槽位，当前对阵树全部来自模型预测。");
-  document.querySelector("#variableTitle").textContent=thirdNames.length?(currentLang==="en"?`${thirdNames.length} third-place paths still open`:`${thirdNames.length} 个最佳第三名仍在变动`):(currentLang==="en"?"Best third-place race pending":"最佳第三名待计算");
-  document.querySelector("#variableBody").textContent=thirdNames.length?(currentLang==="en"?`Current favorites: ${listNames(thirdNames,5)}. This pool directly changes the Round of 32 draw.`:`当前模型最看好的第三名：${listNames(thirdNames,5)}。第三名组合会直接改变 32 强对阵。`):(currentLang==="en"?"This updates after standings and Elo simulations finish.":"同步完成后会根据小组积分、剩余赛程和 Elo 模拟更新。");
-  document.querySelector("#bracketModelNote").textContent=currentLang==="en"?`Locked slots are shown in mint. Every other team, best-third mapping and later-round pick is projected from ${simulationCount?simulationCount.toLocaleString():"—"} Elo Monte Carlo simulations, with market prices used where available. Team-side numbers are match win probabilities. ${displaySyncLabel()}.`:`薄荷绿槽位来自小组锁定或官方淘汰赛页；其余球队、第三名映射和后续晋级均由 ${simulationCount?simulationCount.toLocaleString():"—"} 次 Elo 蒙特卡洛模拟生成。球队右侧为该场 Elo 晋级概率；${lastSyncLabel}，自动重算。`;
+  if(matchNote)matchNote.textContent=currentLang==="en"?`Live scores, recent results and upcoming fixtures. Times shown in ${localTimeZoneLabel()}.`:`正在同步实时比分、近期赛果和接下来赛程；开球时间按你的本地时区显示：${localTimeZoneLabel()}。`;
+  document.querySelector("#officialSummary").textContent=officialEntries.length?(currentLang==="en"?`Clinched slots: ${formatSlotList(officialEntries)}. Remaining slots are projected.`:`${officialNames.join("；")}。其余槽位由实时模型预测。`):(currentLang==="en"?"No Round of 32 slots have clinched yet.":"当前尚无明确淘汰赛槽位。");
+  const clinchedTitle=currentLang==="en"
+    ?`${officialEntries.length} ${officialEntries.length===1?"team":"teams"}<br>clinched ${officialEntries.length===1?"a Round of 32 slot":"Round of 32 slots"}`
+    :`${listNames(Object.keys(officialTeamMatches),3)}<br>已进入对应 32 强槽位`;
+  document.querySelector("#officialFactTitle").innerHTML=officialEntries.length?clinchedTitle:(currentLang==="en"?"No clinched slots yet":"暂无锁定槽位");
+  document.querySelector("#officialFactBody").textContent=officialEntries.length?(currentLang==="en"?`${formatSlotList(officialEntries)}. Opponents and later rounds still move with the model.`:`${officialNames.join("；")}。这表示球队位置已确定；对手或后续路径仍按实时模型预测。`):(currentLang==="en"?"Clinched teams will appear here and in the bracket automatically.":"淘汰赛官方页面还没有可读取的确定球队槽位，当前对阵树全部来自模型预测。");
+  document.querySelector("#variableTitle").textContent=thirdNames.length?(currentLang==="en"?`${thirdNames.length} third-place contenders in play`:`${thirdNames.length} 个最佳第三名仍在变动`):(currentLang==="en"?"Third-place picture pending":"最佳第三名待计算");
+  document.querySelector("#variableBody").textContent=thirdNames.length?(currentLang==="en"?`Most likely to advance: ${listNames(thirdNames,5)}. This group can still redraw the Round of 32.`:`当前模型最看好的第三名：${listNames(thirdNames,5)}。第三名组合会直接改变 32 强对阵。`):(currentLang==="en"?"Updates once standings and Elo simulations finish.":"同步完成后会根据小组积分、剩余赛程和 Elo 模拟更新。");
+  document.querySelector("#bracketModelNote").textContent=currentLang==="en"?`Mint slots are clinched. The rest of the bracket is generated from ${simulationCount?simulationCount.toLocaleString():"—"} Elo Monte Carlo runs, with market prices blended in when available. Team percentages are match win probabilities. ${displaySyncLabel()}.`:`薄荷绿槽位来自小组锁定或官方淘汰赛页；其余球队、第三名映射和后续晋级均由 ${simulationCount?simulationCount.toLocaleString():"—"} 次 Elo 蒙特卡洛模拟生成。球队右侧为该场 Elo 晋级概率；${lastSyncLabel}，自动重算。`;
   document.querySelector("#footerNote").textContent=currentLang==="en"?`Inputs: ${displaySourceLabel(lastSourceStamp)||displaySyncLabel()} standings, goal difference, remaining fixtures, market prices, World Football Elo (${displaySourceLabel(eloSourceTime)}) and path difficulty. Best-third mappings may change as the race moves. Not an official FIFA bracket.`:`预测依据：${lastSourceStamp||lastSyncLabel} 的积分、净胜球、剩余赛程、World Football Elo（${eloSourceTime}）和淘汰赛路径难度；第三名具体配对随 8 支最佳第三名变化。本页面不是 FIFA 官方对阵表。`;
-  if(champ&&champ!=="—")document.querySelector("#championHeadline").textContent=currentLang==="en"?`${teamName(champ)} is the current title favorite`:`${champ}是当前主预测冠军`;
+  if(champ&&champ!=="—"){
+    document.querySelector("#championHeadline").textContent=currentLang==="en"?`${teamName(champ)} leads the title race`:`${champ}是当前主预测冠军`;
+    document.querySelector("#championPath").textContent=championRouteText(champ);
+  }
 }
 let locked={};
 let r32=[
@@ -1581,12 +1605,12 @@ function rebuildKnockout(koDoc,official=parseOfficial(koDoc)){
   document.querySelector("#confirmedMetric").textContent=confirmedCount;
   document.querySelector("#predictedMetric").textContent=32-confirmedCount;
   document.querySelector("#completeMetric").textContent=completeMatches;
-  const officialNames=Object.entries(officialTeamMatches).map(([team,no])=>currentLang==="en"?`${teamName(team)} → M${no}`:`${team}进入 M${no}`);
-  document.querySelector("#officialSummary").textContent=officialNames.length?(currentLang==="en"?`${officialNames.join("; ")}. All remaining slots are model projections.`:officialNames.join("；")+"。其余槽位由实时模型预测。"):(currentLang==="en"?"No knockout slots are confirmed yet.":"当前尚无明确淘汰赛槽位。");
-  const champion=paths.base.final[0][3],route=[...baseFirst,...paths.base.r16,...paths.base.qf,...paths.base.sf,...paths.base.final]
-    .filter(m=>m[1]===champion||m[2]===champion).map(m=>m[1]===champion?m[2]:m[1]);
-  document.querySelector("#championHeadline").textContent=currentLang==="en"?`${teamName(champion)} is the current title favorite`:`${champion}是当前主预测冠军`;
-  document.querySelector("#championPath").textContent=currentLang==="en"?`Projected Elo path: ${route.map(teamName).join(", ")}. Recalculated after every sync.`:`Elo 主路径预计依次面对 ${route.join("、")}；每次同步后重新计算。`;
+  const officialEntries=Object.entries(officialTeamMatches);
+  const officialNames=officialEntries.map(([team,no])=>currentLang==="en"?`${teamName(team)} M${no}`:`${team}进入 M${no}`);
+  document.querySelector("#officialSummary").textContent=officialEntries.length?(currentLang==="en"?`Clinched slots: ${formatSlotList(officialEntries)}. Remaining slots are projected.`:officialNames.join("；")+"。其余槽位由实时模型预测。"):(currentLang==="en"?"No Round of 32 slots have clinched yet.":"当前尚无明确淘汰赛槽位。");
+  const champion=paths.base.final[0][3];
+  document.querySelector("#championHeadline").textContent=currentLang==="en"?`${teamName(champion)} leads the title race`:`${champion}是当前主预测冠军`;
+  document.querySelector("#championPath").textContent=championRouteText(champion);
   updateLiveCopy();
   renderBracket();
 }
