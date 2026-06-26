@@ -224,11 +224,15 @@
     .team.official.advances{background:var(--mint);border:0;color:var(--ink)}
     .team.official.advances .name{font-weight:950}
     .team.official.advances .status{color:#174e3a}
+    .team.official.loses{background:rgba(96,237,181,.56);color:rgba(7,19,15,.78);font-weight:780}
+    .team.official.loses .status{color:rgba(23,78,58,.72)}.team.official.loses .flag-emoji{opacity:.78}
     .official-pick{display:inline-block;margin-left:5px;padding:2px 5px;border-radius:4px;background:var(--lime);
       color:var(--ink);font-size:7px;font-style:normal;font-weight:900;vertical-align:1px}
     .team.predicted,.team.predicted-opponent{outline:1px dashed rgba(255,154,85,.82);outline-offset:-2px}
     .team.predicted{color:#d8e0dc}
     .team.predicted .status{color:var(--orange)}
+    .team.predicted.loses{color:rgba(216,224,220,.68)}.team.predicted.loses .status{color:rgba(255,154,85,.68)}
+    .team.predicted-opponent.loses{color:rgba(255,154,85,.7)}
     .team.advances{background:rgba(217,255,99,.12);color:var(--text);font-weight:850}
     .team.advances::before,.team.official.advances::before{content:"";position:absolute;left:0;top:3px;bottom:3px;width:3px;border-radius:999px;background:var(--lime)}
     .team.advances .status{color:var(--lime)}
@@ -995,7 +999,8 @@ async function enrichWeather(){
 }
 
 function teamRow(name,winner,type="",matchNo="",prob=null){
-  const cls=type==="official"?`official${name===winner?" advances":""}`:type==="opponent"?"predicted-opponent":name===winner?"predicted advances":"predicted";
+  const result=name===winner?"advances":"loses";
+  const cls=type==="official"?`official ${result}`:type==="opponent"?`predicted-opponent ${result}`:`predicted ${result}`;
   const status=Number.isFinite(prob)?`${prob}%`:(name===winner?(currentLang==="en"?"Adv.":"晋级"):"—");
   return `<div class="team ${cls}">${flagIcon(name)}<span class="name">${teamName(name)}</span><span class="status">${status}</span></div>`;
 }
