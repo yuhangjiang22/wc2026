@@ -226,8 +226,8 @@
     .team.official.advances{background:var(--mint);border:0;color:var(--ink)}
     .team.official.advances .name{font-weight:950}
     .team.official.advances .status{color:#174e3a}
-    .team.official.loses{background:rgba(96,237,181,.72);color:rgba(7,19,15,.88);font-weight:820}
-    .team.official.loses .status{color:rgba(23,78,58,.82)}.team.official.loses .flag-emoji{opacity:.9}
+    .team.official.loses{background:rgba(96,237,181,.84);color:#0b2a20;font-weight:820}
+    .team.official.loses .status{color:#245f4b}.team.official.loses .flag-emoji{opacity:1}
     .official-pick{display:inline-block;margin-left:5px;padding:2px 5px;border-radius:4px;background:var(--lime);
       color:var(--ink);font-size:7px;font-style:normal;font-weight:900;vertical-align:1px}
     .team.predicted,.team.predicted-opponent{outline:1px dashed rgba(255,154,85,.82);outline-offset:-2px}
@@ -1345,7 +1345,7 @@ function runMonteCarlo(iterations=30000,seed=20260623){
   simulationCount=iterations;
 }
 const winnerMatch={A:79,B:85,C:76,D:81,E:74,F:75,G:82,H:84,I:77,J:86,K:87,L:80};
-const runnerSlots={73:["A","B"],76:["C","F"],75:["F","C"],78:["E","I"],84:["H","J"],83:["K","L"],88:["D","G"],86:["J","H"]};
+const runnerMatch={A:73,B:73,C:75,F:76,E:78,I:78,H:86,J:84,K:83,L:83,D:88,G:88};
 const thirdWinnerOrder=["A","B","D","E","G","I","K","L"];
 const thirdRanges={74:"A/B/C/D/F",77:"C/D/F/G/H",79:"C/E/F/H/I",80:"E/H/I/J/K",82:"A/E/H/I/J",81:"B/E/F/I/J",85:"E/F/G/I/J",87:"D/E/I/J/L"};
 const bracketOrder=[74,77,73,75,83,84,81,82,76,78,79,80,86,88,85,87];
@@ -1563,8 +1563,10 @@ function rebuildKnockout(koDoc,official=parseOfficial(koDoc)){
   for(const [g,pos] of Object.entries(lockedOfficial)){
     if(pos.winner)lockTeamSlot(pos.winner,winnerMatch[g],g,pos.source?.winner);
   }
-  for(const [no,gs] of Object.entries(runnerSlots)){
-    for(const g of gs){const pos=lockedOfficial[g],team=pos?.runner;if(team&&isGroupComplete(groups.find(x=>x[0]===g)?.[1],g))lockTeamSlot(team,no,g,pos.source?.runner)}
+  for(const [g,no] of Object.entries(runnerMatch)){
+    const pos=lockedOfficial[g],team=pos?.runner;
+    const officiallyLocked=pos?.source?.runner==="official";
+    if(team&&(officiallyLocked||isGroupComplete(groups.find(x=>x[0]===g)?.[1],g)))lockTeamSlot(team,no,g,pos.source?.runner);
   }
   const thirdCandidates=Object.entries(projected).map(([g,ts])=>({g,t:ts[2],score:ts[2][5]?-999:(qualifyProb[ts[2][0]]??0)*1000+ts[2][3]*12+ts[2][4]*2+teamElo(ts[2][0])/40}))
     .filter(x=>!x.t[5])
