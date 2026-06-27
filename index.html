@@ -1403,6 +1403,20 @@ function parseOfficial(koDoc){
   }
   return result;
 }
+function parseOfficialMatchSlots(koDoc){
+  const slots={};
+  const knownTeams=new Set(groups.flatMap(([,teams])=>teams.map(t=>t[0])));
+  for(const box of koDoc.querySelectorAll(".footballbox")){
+    const no=Number((box.querySelector(".fscore")?.textContent||"").match(/Match\s+(\d+)/i)?.[1]);
+    if(no<73||no>88)continue;
+    for(const selector of [".fhome",".faway"]){
+      const raw=cleanTeamName(box.querySelector(selector)?.textContent||"");
+      const team=teamZh[raw]||raw;
+      if(knownTeams.has(team))slots[team]=no;
+    }
+  }
+  return slots;
+}
 function parseCombo(koDoc,qualifiedGroups){
   const wrap=Array.from(koDoc.querySelectorAll(".sticky-table-scroll")).find(x=>x.querySelectorAll("tr").length===496);
   if(!wrap)return null;
@@ -1558,13 +1572,16 @@ function rebuildKnockout(koDoc,official=parseOfficial(koDoc)){
   applyOfficialStatus(lockedOfficial);
   const projected=projectedGroups(lockedOfficial);
   officialTeamMatches={};slotLockSource={};lockedSlotGroups={};locked={};
+  for(const [team,no] of Object.entries(parseOfficialMatchSlots(koDoc))){
+    lockTeamSlot(team,no,"","official");
+  }
   for(const [g,pos] of Object.entries(lockedOfficial)){
-    if(pos.winner)lockTeamSlot(pos.winner,winnerMatch[g],g,pos.source?.winner);
+    if(pos.winner&&!officialTeamMatches[pos.winner])lockTeamSlot(pos.winner,winnerMatch[g],g,pos.source?.winner);
   }
   for(const [g,no] of Object.entries(runnerMatch)){
     const pos=lockedOfficial[g],team=pos?.runner;
     const officiallyLocked=pos?.source?.runner==="official";
-    if(team&&(officiallyLocked||isGroupComplete(groups.find(x=>x[0]===g)?.[1],g)))lockTeamSlot(team,no,g,pos.source?.runner);
+    if(team&&!officialTeamMatches[team]&&(officiallyLocked||isGroupComplete(groups.find(x=>x[0]===g)?.[1],g)))lockTeamSlot(team,no,g,pos.source?.runner);
   }
   const thirdCandidates=Object.entries(projected).map(([g,ts])=>({g,t:ts[2],score:ts[2][5]?-999:(qualifyProb[ts[2][0]]??0)*1000+ts[2][3]*12+ts[2][4]*2+teamElo(ts[2][0])/40}))
     .filter(x=>!x.t[5])
