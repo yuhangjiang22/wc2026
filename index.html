@@ -622,7 +622,7 @@ function updateLiveCopy(){
   if(champ&&champ!=="—"){
     const pct=Math.max(.1,(primaryScenario?.titleOdds?.[champ]||0)*100).toFixed(1).replace(/\.0$/,'');
     document.querySelector("#championHeadline").textContent=currentLang==="en"?`${teamName(champ)} leads the title race at ${pct}%`:`${champ}以 ${pct}% 领跑夺冠概率`;
-    document.querySelector("#championPath").textContent=currentLang==="en"?`Based on ${primaryScenario?.knockoutSimulations?.toLocaleString()||"—"} full knockout simulations in the most likely draw.`:`基于最可能对阵下 ${primaryScenario?.knockoutSimulations?.toLocaleString()||"—"} 次完整淘汰赛模拟。`;
+    document.querySelector("#championPath").textContent=currentLang==="en"?`Based on ${primaryScenario?.knockoutSimulations?.toLocaleString()||"—"} integrated simulations of the remaining group stage and full knockout tournament.`:`基于 ${primaryScenario?.knockoutSimulations?.toLocaleString()||"—"} 次剩余小组赛与完整淘汰赛一体化模拟。`;
   }
 }
 let locked={};
@@ -1071,7 +1071,7 @@ function finalCol(m,champ,titleProbability=0,jointPathProbability=0){
   return `<div class="round center"><div class="round-name">${currentLang==="en"?"Final":"Final · 决赛"}</div><div class="final-stage">
     <div class="match-wrap">${bracketMeta(no)}<article class="match" data-match="${no}"><div class="match-top quiet"><span><b class="forecast-label">${currentLang==="en"?"Projected":"预测决赛"}</b></span><span class="match-code">M${no}</span></div>
       ${teamRow(a,winner,"",no,probA)+teamRow(b,winner,"",no,probB)}</article></div>
-    <div class="champion"><img class="cup" src="assets/world-cup-2026-emblem.png" alt="2026 FIFA World Cup emblem"><b>${teamWithFlag(champ)}</b><small>${currentLang==="en"?`Full path ${formatModelPct(jointPathProbability)}<br>Title chance in this draw ${formatModelPct(titleProbability)}`:`完整路径 ${formatModelPct(jointPathProbability)}<br>此签表夺冠 ${formatModelPct(titleProbability)}`}</small></div>
+    <div class="champion"><img class="cup" src="assets/world-cup-2026-emblem.png" alt="2026 FIFA World Cup emblem"><b>${teamWithFlag(champ)}</b><small>${currentLang==="en"?`Overall title chance ${formatModelPct(titleProbability)}<br>Exact full path ${formatModelPct(jointPathProbability)}`:`综合夺冠 ${formatModelPct(titleProbability)}<br>完整路径 ${formatModelPct(jointPathProbability)}`}</small></div>
   </div></div>`;
 }
 const routeMap=[
@@ -1119,17 +1119,17 @@ function renderScenarioTabs(){
     tabs.innerHTML="";note.textContent="";return;
   }
   tabs.innerHTML=bracketScenarios.map((s,i)=>{
-    const pct=formatModelPct(s.probability||0);
-    return `<button class="scenario-tab ${i===activeScenarioIndex?"active":""}" type="button" data-scenario="${i}" aria-pressed="${i===activeScenarioIndex?"true":"false"}">${s.label}<small>· ${pct}</small></button>`;
+    const pct=formatModelPct(s.overallTitleProbability||0);
+    return `<button class="scenario-tab ${i===activeScenarioIndex?"active":""}" type="button" data-scenario="${i}" aria-pressed="${i===activeScenarioIndex?"true":"false"}"><span>${s.rank||i+1}. ${teamWithFlag(s.champion||s.titleFavorite)}</span><small>· ${pct}</small></button>`;
   }).join("");
   const active=bracketScenarios[activeScenarioIndex]||bracketScenarios[0];
-  const pct=formatModelPct(active.probability||0);
-  const favorite=active.titleFavorite||active.paths?.final?.[0]?.[3]||"";
-  const titlePct=formatModelPct(active.titleOdds?.[favorite]||0);
+  const drawPct=formatModelPct(active.probability||0);
+  const champion=active.champion||active.paths?.final?.[0]?.[3]||"";
+  const titlePct=formatModelPct(active.overallTitleProbability||active.titleOdds?.[champion]||0);
   const pathPct=formatModelPct(active.jointPathProbability||0);
   note.textContent=currentLang==="en"
-    ?`${active.label}: this complete Round of 32 draw appears in ${pct} of simulations. ${teamName(favorite)} has the highest conditional title chance at ${titlePct}; the exact displayed draw-and-results path is ${pathPct}.`
-    :`${active.label}：这套完整 32 强签表出现概率为 ${pct}；给定此签表，${favorite} 的夺冠概率最高（${titlePct}）；图中签表与全部赛果同时发生的概率为 ${pathPct}。`;
+    ?`Path ${active.rank||activeScenarioIndex+1}: ${teamName(champion)} has a ${titlePct} overall title chance. This representative Round of 32 draw appears in ${drawPct}; the exact draw-and-results path is ${pathPct}.`
+    :`路径 ${active.rank||activeScenarioIndex+1}：${champion}当前综合夺冠概率为 ${titlePct}；代表性 32 强签表概率为 ${drawPct}，图中签表与全部赛果同时发生的概率为 ${pathPct}。`;
   tabs.querySelectorAll(".scenario-tab").forEach(btn=>btn.onclick=()=>{
     activeScenarioIndex=Number(btn.dataset.scenario)||0;
     renderBracket();
@@ -1558,33 +1558,48 @@ function firstRoundFromProjection(projected,thirdCandidates,koDoc,lockedOfficial
   return {first,locked:scenarioLocked};
 }
 function scenarioSignature(first){return first.map(m=>`${m[0]}:${m[1]}|${m[2]}`).join(";")}
+function completePathSignature(rounds){
+  return [...rounds.r32,...rounds.r16,...rounds.qf,...rounds.sf,...rounds.final].map(m=>`${m[0]}:${m[3]}`).join("|");
+}
+function pathConditionalProbability(rounds){
+  return [...rounds.r32,...rounds.r16,...rounds.qf,...rounds.sf,...rounds.final]
+    .reduce((p,[,a,b,winner])=>p*(winner===a?matchWinProbability(a,b):1-matchWinProbability(a,b)),1);
+}
 function makeScenario(first,locked={},probability=0,label="Top 1"){
   return {label,probability,r32:first,paths:buildRounds(first),locked};
 }
 function generateBracketScenarios(koDoc,lockedOfficial,baseFirst,baseLocked){
   if(!koDoc||!groups.length)return [enrichKnockoutScenario(makeScenario(baseFirst,baseLocked,1,"Top 1"),0)];
-  const iterations=Math.min(3000,Math.max(1200,Math.floor((simulationCount||30000)/12)));
+  const iterations=6000;
   const seedText=groups.map(([g,ts])=>g+ts.map(t=>`${t[0]}:${t[2]}:${t[3]}:${t[4]}:${t[5]?1:0}`).join("|")).join(";");
   const seed=[...seedText].reduce((n,ch)=>(n*31+ch.charCodeAt(0))>>>0,20260625);
   const rng=seededRandom(seed);
-  const draws=new Map();
+  const drawCounts=new Map(),champions=new Map();let valid=0;
   for(let i=0;i<iterations;i++){
     const projection=simulatedGroupProjection(rng,lockedOfficial);
     const built=firstRoundFromProjection(projection.projected,projection.thirdCandidates,koDoc,lockedOfficial);
     if(!built.first.every(m=>m&&m[1]&&m[2]))continue;
+    valid++;
     const thirdSig=projection.thirdCandidates.map(x=>x.g).sort().join("");
-    const fullSig=scenarioSignature(built.first);
-    const draw=draws.get(fullSig)||{count:0,first:built.first,locked:built.locked,thirdSig};
-    draw.count++;draws.set(fullSig,draw);
+    const drawSig=scenarioSignature(built.first);
+    drawCounts.set(drawSig,(drawCounts.get(drawSig)||0)+1);
+    const rounds=simulateKnockoutRounds(built.first,rng),champion=rounds.final[0][3],pathSig=drawSig+"#"+completePathSignature(rounds);
+    const row=champions.get(champion)||{count:0,paths:new Map()};row.count++;
+    const variant=row.paths.get(pathSig)||{count:0,drawSig,thirdSig,locked:built.locked,rounds,conditional:pathConditionalProbability(rounds)};
+    variant.count++;row.paths.set(pathSig,variant);champions.set(champion,row);
   }
-  const top=[...draws.values()].sort((a,b)=>b.count-a.count).slice(0,3)
-    .map((x,i)=>{
-      const scenario=makeScenario(x.first,x.locked,x.count/iterations,`Top ${i+1}`);
-      scenario.thirdGroups=x.thirdSig.split("");
-      return scenario;
-    });
-  if(!top.length)return [enrichKnockoutScenario(makeScenario(baseFirst,baseLocked,1,"Top 1"),0)];
-  return top.map((scenario,i)=>enrichKnockoutScenario(scenario,i));
+  if(!valid||!champions.size)return [enrichKnockoutScenario(makeScenario(baseFirst,baseLocked,1,"Top 1"),0)];
+  const titleOdds=Object.fromEntries([...champions].map(([team,row])=>[team,row.count/valid]));
+  return [...champions.entries()].sort((a,b)=>b[1].count-a[1].count||teamElo(b[0])-teamElo(a[0])).slice(0,8).map(([champion,row],i)=>{
+    const variant=[...row.paths.values()].sort((a,b)=>b.count-a.count||b.conditional-a.conditional)[0];
+    const drawProbability=(drawCounts.get(variant.drawSig)||0)/valid;
+    return {
+      label:`Top ${i+1}`,rank:i+1,champion,titleFavorite:champion,titleOdds,overallTitleProbability:titleOdds[champion],
+      probability:drawProbability,conditionalPathProbability:variant.conditional,jointPathProbability:drawProbability*variant.conditional,
+      r32:variant.rounds.r32,paths:{r16:variant.rounds.r16,qf:variant.rounds.qf,sf:variant.rounds.sf,final:variant.rounds.final},
+      locked:variant.locked,thirdGroups:variant.thirdSig.split(""),knockoutSimulations:valid
+    };
+  });
 }
 function applyOfficialStatus(official){
   confirmedGroupWinners.clear();
@@ -1675,7 +1690,7 @@ function rebuildKnockout(koDoc,official=parseOfficial(koDoc)){
   const primaryScenario=bracketScenarios[0],champion=primaryScenario?.titleFavorite||paths.base.final[0][3];
   const championPct=Math.max(.1,(primaryScenario?.titleOdds?.[champion]||0)*100).toFixed(1).replace(/\.0$/,'');
   document.querySelector("#championHeadline").textContent=currentLang==="en"?`${teamName(champion)} leads the title race at ${championPct}%`:`${champion}以 ${championPct}% 领跑夺冠概率`;
-  document.querySelector("#championPath").textContent=currentLang==="en"?`Based on ${primaryScenario?.knockoutSimulations?.toLocaleString()||"—"} full knockout simulations in the most likely draw. Select another scenario to see how the bracket changes the odds.`:`基于最可能对阵下 ${primaryScenario?.knockoutSimulations?.toLocaleString()||"—"} 次完整淘汰赛模拟；切换 Top 场景可查看不同签表如何改变夺冠概率。`;
+  document.querySelector("#championPath").textContent=currentLang==="en"?`Based on ${primaryScenario?.knockoutSimulations?.toLocaleString()||"—"} integrated simulations of the remaining group stage and full knockout tournament.`:`基于 ${primaryScenario?.knockoutSimulations?.toLocaleString()||"—"} 次剩余小组赛与完整淘汰赛一体化模拟。`;
   updateLiveCopy();
   renderBracket();
 }
@@ -1812,7 +1827,7 @@ async function applyDataBundle({data,koData,espnPages=null,eloText=null,polymark
     latestKoDoc=koDoc;latestOfficial=official;
     applyOfficialStatus(official);
     applyLiveMatchesToGroups(matchCards);
-    runMonteCarlo(30000,Number(data.parse.revid)||20260623);
+    runMonteCarlo(6000,Number(data.parse.revid)||20260623);
     rebuildKnockout(koDoc,official);renderGroups();recalcThirds();renderLeaderboards();
     const now=new Intl.DateTimeFormat(currentLang==="en"?"en-US":"zh-CN",{hour:"2-digit",minute:"2-digit"}).format(new Date());
     lastSyncLabel=currentLang==="en"?`${now} synced`:`${now} 已同步`;
@@ -1849,7 +1864,7 @@ async function refreshMatchCenterLive(){
     matchCards=fresh;
     renderMatchCenter();
     if(applyLiveMatchesToGroups(fresh)){
-      runMonteCarlo(12000,Date.now()%100000000);
+      runMonteCarlo(6000,Date.now()%100000000);
       rebuildKnockout(latestKoDoc,latestOfficial);
       recalcThirds();
       renderGroups();
