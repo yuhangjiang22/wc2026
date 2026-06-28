@@ -124,6 +124,8 @@
     .live-panel{padding:14px;background:linear-gradient(135deg,rgba(96,237,181,.08),rgba(10,30,23,.88))}
     .live-panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;color:var(--muted);font-size:11px;font-weight:850;letter-spacing:.06em;text-transform:uppercase}
     .live-panel-head b{color:var(--text);font-size:15px;letter-spacing:0;text-transform:none}.live-count{color:var(--lime);text-transform:none}
+    .kickoff-countdown{display:inline-flex;align-items:center;gap:5px;font-variant-numeric:tabular-nums;font-feature-settings:"tnum";letter-spacing:.04em;white-space:nowrap}
+    .kickoff-countdown::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px rgba(217,255,99,.5)}
     .live-grid{display:grid;grid-template-columns:1fr;gap:10px}.live-panel.multi .live-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     .live-match{display:grid;gap:13px;padding:16px;border:1px solid rgba(255,255,255,.065);border-radius:15px;background:
       radial-gradient(circle at 50% 0,rgba(217,255,99,.1),transparent 58%),
@@ -982,6 +984,22 @@ function recentDayKeys(now=new Date()){
   const today=localDayKey(now),yesterday=new Date(now);yesterday.setDate(now.getDate()-1);
   return new Set([today,localDayKey(yesterday)]);
 }
+function countdownText(kickoff,now=Date.now()){
+  const seconds=Math.max(0,Math.floor((Number(kickoff)-now)/1000));
+  const days=Math.floor(seconds/86400),hours=Math.floor(seconds%86400/3600),minutes=Math.floor(seconds%3600/60),secs=seconds%60;
+  const clock=[hours,minutes,secs].map(x=>String(x).padStart(2,"0")).join(":");
+  if(currentLang==="en")return days?`Kickoff in ${days}d ${clock}`:`Kickoff in ${clock}`;
+  return days?`距开球 ${days}天 ${clock}`:`距开球 ${clock}`;
+}
+function updateKickoffCountdowns(){
+  let expired=false;
+  document.querySelectorAll("[data-kickoff-countdown]").forEach(el=>{
+    const kickoff=Number(el.dataset.kickoffCountdown),remaining=kickoff-Date.now();
+    el.textContent=countdownText(kickoff);
+    if(remaining<=0&&!el.dataset.expired){el.dataset.expired="1";expired=true}
+  });
+  if(expired)renderMatchCenter();
+}
 function matchCard(m){
   const statusLabel=(currentLang==="en"?{live:"Live",final:"Final",upcoming:"Scheduled"}:{live:"进行中",final:"已完赛",upcoming:"未开赛"})[m.status]||(currentLang==="en"?"Syncing":"待同步");
   return `<article class="live-match ${m.status}">
@@ -1013,7 +1031,7 @@ function renderMatchCenter(){
   const panel=document.querySelector("#liveMatchCard");
   panel.className=`live-panel ${displayed.length>1?"multi":""}`;
   const panelTitle=liveMatches.length?(currentLang==="en"?`${liveMatches.length} live`:`${liveMatches.length} 场正在进行`):nextBatch.length>1?(currentLang==="en"?`${nextBatch.length} simultaneous kickoffs`:`${nextBatch.length} 场同时开赛`):nextBatch.length?(currentLang==="en"?"Next match":"下一场比赛"):(currentLang==="en"?"Recent result":"最近赛果");
-  const panelHint=liveMatches.length>2?(currentLang==="en"?`${liveMatches.length-2} more live`:`另有 ${liveMatches.length-2} 场进行中`):(liveMatches.length?(currentLang==="en"?"Live score":"实时比分"):(currentLang==="en"?"No matches live":"当前无 live"));
+  const panelHint=liveMatches.length>2?(currentLang==="en"?`${liveMatches.length-2} more live`:`另有 ${liveMatches.length-2} 场进行中`):(liveMatches.length?(currentLang==="en"?"Live score":"实时比分"):(nextKickoff?`<span class="kickoff-countdown" data-kickoff-countdown="${nextKickoff}">${countdownText(nextKickoff)}</span>`:(currentLang==="en"?"No matches live":"当前无 live")));
   panel.innerHTML=displayed.length?`
     <div class="live-panel-head"><b>${panelTitle}</b><span class="live-count">${panelHint}</span></div>
     <div class="live-grid">${displayed.map(matchCard).join("")}</div>`:`<div class="empty-state">${currentLang==="en"?"No match card loaded yet.":"暂时没有读取到比赛卡。"}</div>`;
@@ -1031,6 +1049,7 @@ function renderMatchCenter(){
       <div class="fixture-main"><b>${teamWithFlag(m.home,m.homeFlag)} vs ${teamWithFlag(m.away,m.awayFlag)}</b><small>${displayPlace(m.stadium)} · ${displayPlace(m.city)}${m.statusDetail?` · ${m.statusDetail}`:""}</small><span class="goal-list">${formatGoals(m)}</span></div>
       <div class="fixture-score">${scoreDisplay(m)}</div>
     </div>`).join(""):`<div class="empty-state">${currentLang==="en"?"No finals from today or yesterday.":"今天/昨天暂无已结束比赛。"}</div>`;
+  updateKickoffCountdowns();
 }
 const hostCityCoords={
   "Mexico City":[19.4326,-99.1332],"Zapopan":[20.7214,-103.3918],"Guadalajara":[20.6597,-103.3496],"Monterrey":[25.6866,-100.3161],
@@ -2050,6 +2069,7 @@ try{const cached=JSON.parse(localStorage.getItem("wc2026-elo"));if(cached?.ratin
 syncLatest();
 setInterval(refreshMatchCenterLive,30000);
 setInterval(()=>{if(!document.hidden)syncLatest()},120000);
+setInterval(updateKickoffCountdowns,1000);
 </script>
 </body>
 </html>
