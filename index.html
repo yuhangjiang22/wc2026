@@ -80,16 +80,24 @@
     .notice{display:flex;gap:12px;align-items:flex-start;padding:15px 18px;margin-bottom:18px;border:1px solid #315849;
       border-radius:14px;background:rgba(96,237,181,.06);font-size:13px;line-height:1.6;color:var(--muted)}
     .notice b{color:var(--mint);white-space:nowrap}
-    body.lang-en{font-family:"Avenir Next",Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:-.015em}
-    body.lang-en .brand b{font-size:15px;letter-spacing:-.025em}body.lang-en .brand small{font-size:9px;letter-spacing:.24em}
-    body.lang-en h1{font-size:clamp(54px,6vw,86px);line-height:.9;letter-spacing:-.07em;max-width:740px}
-    body.lang-en .lead{max-width:780px;font-size:15px;line-height:1.62;color:#a8bbb2}
-    body.lang-en .section-head h2{font-size:32px;letter-spacing:-.05em}body.lang-en .section-head p{font-size:13px;max-width:780px;line-height:1.55}
-    body.lang-en .tab{font-size:13px;font-weight:800;padding-inline:16px}body.lang-en .readout small{font-size:9px;letter-spacing:.02em;text-transform:uppercase}
-    body.lang-en .insight h3{font-size:23px;line-height:1.08;letter-spacing:-.04em}body.lang-en .insight small,body.lang-en .board-head span,body.lang-en .round-name{letter-spacing:.12em}
-    body.lang-en .insight p{font-size:12px;line-height:1.6}
+    body.lang-en{font-family:Inter,"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;font-weight:400;letter-spacing:0}
+    body.lang-en .brand b{font-size:15px;font-weight:600;letter-spacing:-.015em}body.lang-en .brand small{font-size:9px;font-weight:500;letter-spacing:.2em}
+    body.lang-en h1{max-width:760px;font-size:clamp(52px,5.8vw,84px);font-weight:700;line-height:.94;letter-spacing:-.055em}
+    body.lang-en .lead{max-width:760px;font-size:15px;font-weight:400;line-height:1.65;letter-spacing:-.005em;color:#a8bbb2}
+    body.lang-en .section-head h2{font-size:31px;font-weight:700;line-height:1.08;letter-spacing:-.035em}body.lang-en .section-head p{max-width:760px;font-size:13px;font-weight:400;line-height:1.58}
+    body.lang-en .tab{padding-inline:16px;font-size:13px;font-weight:600}body.lang-en .tab.active{font-weight:700}body.lang-en .readout small{font-size:9px;font-weight:500;letter-spacing:.04em;text-transform:uppercase}
+    body.lang-en .insight h3{font-size:22px;font-weight:600;line-height:1.15;letter-spacing:-.03em}body.lang-en .insight small,body.lang-en .board-head span,body.lang-en .round-name{font-weight:500;letter-spacing:.1em}
+    body.lang-en .insight p{font-size:12px;font-weight:400;line-height:1.62}
     body.lang-en .team .name,.board-name,.fixture-main b{letter-spacing:-.025em}
-    body.lang-en .group-title span{letter-spacing:.22em}body.lang-en .match-top{font-size:7.5px;letter-spacing:.04em;text-transform:uppercase}
+    body.lang-en .group-title span{font-weight:600;letter-spacing:.18em}body.lang-en .match-top{font-size:7.5px;font-weight:500;letter-spacing:.04em;text-transform:uppercase}
+    body.lang-en .eyebrow,body.lang-en .tournament-lockup small{font-weight:600;letter-spacing:.14em}
+    body.lang-en .tournament-lockup b,body.lang-en .status-copy b,body.lang-en .notice b,body.lang-en .board-head b,body.lang-en .live-panel-head b,body.lang-en .score-team b,body.lang-en .fixture-main b,body.lang-en .group-insight b,body.lang-en .team-name strong,body.lang-en .champion b{font-weight:600}
+    body.lang-en .readout b,body.lang-en .score,body.lang-en .board-value,body.lang-en .fixture-score,body.lang-en .prob-cell b,body.lang-en .third-card .pct,body.lang-en .qualify b,body.lang-en .team-row .pts{font-weight:600}
+    body.lang-en .scenario-tab{font-weight:600;letter-spacing:0}body.lang-en .scenario-tab.active{font-weight:700}
+    body.lang-en .match-top b,body.lang-en .match-code,body.lang-en .match-score,body.lang-en .bracket-match-meta .meta-time{font-weight:600}
+    body.lang-en .team,body.lang-en .team.official,body.lang-en .team.official.loses,body.lang-en .team.advances{font-weight:500}
+    body.lang-en .team .status,body.lang-en .team.official .status,body.lang-en .team.official.advances .name{font-weight:600}
+    body.lang-en .group-head small,body.lang-en .team-name small,body.lang-en .group-insight p,body.lang-en .third-card small,body.lang-en .fixture-main small,body.lang-en .match-meta{font-weight:400}
 
     .insights{display:grid;grid-template-columns:1.1fr .9fr .9fr;gap:12px}
     .insight{min-height:200px;padding:24px;border:1px solid var(--line);border-radius:20px;background:var(--surface);cursor:default}
@@ -394,7 +402,7 @@ const copy={
     langBtn:"ZH",brand:"Knockout Radar",tagline:"WORLD CUP FORECAST",refresh:"Refresh",refreshing:"Refreshing…",refreshFail:"Refresh failed",source:"Sources",
     heroTitle:"World Cup<br><span>Knockout Forecast</span>",lead:"The group stage is complete. Follow the official bracket, live results and fixtures, with advancement and title odds powered by markets, World Football Elo and Monte Carlo simulation.",
     dataStatus:"Live model status",summaryLoading:"Loading scores, tables and model inputs…",confirmedSlots:"Clinched slots",modelPredictions:"Projected slots",confirmedMatchups:"Set matchups",
-    tabOverview:"Knockout overview",tabGroups:"Group-stage results",tabBracket:"Knockout Stage",mobileGuide:"Interactive: Refresh, view tabs, language toggle and source links. Match cards and tables are read-only.",
+    tabOverview:"Overview",tabGroups:"Groups",tabBracket:"Knockout Stage",mobileGuide:"Interactive: Refresh, view tabs, language toggle and source links. Match cards and tables are read-only.",
     overviewTitle:"Knockout overview",overviewDesc:"The official bracket, live scores, upcoming fixtures and title odds in one view.",officialStatus:"Official knockout bracket",officialLoading:"Loading the confirmed Round of 32 draw.",
     matchCenter:"Match center",matchCenterNote:"Live scores, recent results and upcoming fixtures. Kickoff times are shown in your local timezone.",waitSync:"Waiting for sync",
     upcoming:"Upcoming fixtures",localVenueWeather:"Local time / city / weather",completed:"Finals · today/yesterday",score:"Score",
