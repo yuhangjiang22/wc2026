@@ -310,14 +310,14 @@
 
     <nav class="nav">
       <div class="tabs">
-        <button class="tab active" data-view="overview" aria-pressed="true">形势速览</button>
+        <button class="tab active" data-view="bracketView" aria-pressed="true">Knockout Stage</button>
+        <button class="tab" data-view="overview" aria-pressed="false">淘汰赛速览</button>
         <button class="tab" data-view="groupsView" aria-pressed="false">小组赛结果</button>
-        <button class="tab" data-view="bracketView" aria-pressed="false">淘汰赛树</button>
       </div>
     </nav>
     <p class="mobile-guide">可点击：刷新数据、上方页签、数据来源链接；比赛卡和榜单为只读信息</p>
 
-    <section id="overview" class="view active">
+    <section id="overview" class="view">
       <div class="section-head"><div><h2>淘汰赛速览</h2><p>官方签表、实时赛果、接下来赛程和夺冠概率集中展示。</p></div></div>
       <div class="notice"><b>官方确定状态</b><span id="officialSummary">同步后自动读取已确定的晋级球队与淘汰赛槽位。</span></div>
       <section class="match-center">
@@ -352,7 +352,7 @@
       <div class="groups" id="groups"></div>
     </section>
 
-    <section id="bracketView" class="view">
+    <section id="bracketView" class="view active">
       <div class="section-head"><div><h2>官方淘汰赛签表与预测路径</h2><p>32 强首轮对阵固定；后续轮次和冠军路径由市场价格、Elo 与蒙特卡洛模拟实时更新。</p></div>
         <div class="legend"><span class="key official">薄荷绿：官方对阵</span><span class="key projected">橙虚线：模型预测</span><span class="key advance">黄左线：预测晋级</span><span class="key route">连线：晋级路径</span></div>
       </div>
@@ -373,7 +373,7 @@ const copy={
     langBtn:"EN",brand:"淘汰赛雷达",tagline:"WORLD CUP FORECAST",refresh:"刷新数据",refreshing:"正在刷新…",refreshFail:"刷新失败 · 重试",source:"数据来源",
     heroTitle:"淘汰赛<br><span>形势推演</span>",lead:"小组赛已经结束。实时追踪官方淘汰赛签表、比赛结果与赛程，并结合市场价格、World Football Elo 和蒙特卡洛模拟更新晋级与夺冠概率。",
     dataStatus:"实时数据状态",summaryLoading:"正在读取赛况、积分和 Elo 模型…",confirmedSlots:"确定槽位",modelPredictions:"模型预测",confirmedMatchups:"确定对阵",
-    tabOverview:"淘汰赛速览",tabGroups:"小组赛结果",tabBracket:"淘汰赛树",mobileGuide:"可点击：刷新数据、上方页签、数据来源链接；比赛卡和榜单为只读信息",
+    tabOverview:"淘汰赛速览",tabGroups:"小组赛结果",tabBracket:"Knockout Stage",mobileGuide:"可点击：刷新数据、上方页签、数据来源链接；比赛卡和榜单为只读信息",
     overviewTitle:"淘汰赛速览",overviewDesc:"官方签表、实时赛果、接下来赛程和夺冠概率集中展示。",officialStatus:"官方淘汰赛签表",officialLoading:"同步后自动读取 32 强对阵。",
     matchCenter:"比赛中心",matchCenterNote:"正在同步实时比分、近期赛果和接下来赛程；开球时间按你的本地时区显示。",waitSync:"等待同步",
     upcoming:"接下来赛程",localVenueWeather:"Time / Venue / Weather",completed:"已结束 · 今天/昨天",score:"Score",
@@ -392,7 +392,7 @@ const copy={
     langBtn:"ZH",brand:"Knockout Radar",tagline:"WORLD CUP FORECAST",refresh:"Refresh",refreshing:"Refreshing…",refreshFail:"Refresh failed",source:"Sources",
     heroTitle:"World Cup<br><span>Knockout Forecast</span>",lead:"The group stage is complete. Follow the official bracket, live results and fixtures, with advancement and title odds powered by markets, World Football Elo and Monte Carlo simulation.",
     dataStatus:"Live model status",summaryLoading:"Loading scores, tables and model inputs…",confirmedSlots:"Clinched slots",modelPredictions:"Projected slots",confirmedMatchups:"Set matchups",
-    tabOverview:"Knockout overview",tabGroups:"Group-stage results",tabBracket:"Bracket",mobileGuide:"Interactive: Refresh, view tabs, language toggle and source links. Match cards and tables are read-only.",
+    tabOverview:"Knockout overview",tabGroups:"Group-stage results",tabBracket:"Knockout Stage",mobileGuide:"Interactive: Refresh, view tabs, language toggle and source links. Match cards and tables are read-only.",
     overviewTitle:"Knockout overview",overviewDesc:"The official bracket, live scores, upcoming fixtures and title odds in one view.",officialStatus:"Official knockout bracket",officialLoading:"Loading the confirmed Round of 32 draw.",
     matchCenter:"Match center",matchCenterNote:"Live scores, recent results and upcoming fixtures. Kickoff times are shown in your local timezone.",waitSync:"Waiting for sync",
     upcoming:"Upcoming fixtures",localVenueWeather:"Local time / city / weather",completed:"Finals · today/yesterday",score:"Score",
@@ -421,7 +421,8 @@ function applyLanguage(){
   document.querySelectorAll(".readout small")[0].textContent=t("confirmedSlots");
   document.querySelectorAll(".readout small")[1].textContent=t("modelPredictions");
   document.querySelectorAll(".readout small")[2].textContent=t("confirmedMatchups");
-  const tabs=document.querySelectorAll(".tab");tabs[0].textContent=t("tabOverview");tabs[1].textContent=t("tabGroups");tabs[2].textContent=t("tabBracket");
+  const tabs=document.querySelectorAll(".tab");
+  tabs.forEach(tab=>{if(tab.dataset.view==="overview")tab.textContent=t("tabOverview");else if(tab.dataset.view==="groupsView")tab.textContent=t("tabGroups");else if(tab.dataset.view==="bracketView")tab.textContent=t("tabBracket")});
   setText(".mobile-guide","mobileGuide");setText("#overview .section-head h2","overviewTitle");setText("#overview .section-head p","overviewDesc");
   setText("#overview .notice b","officialStatus");if(!liveDataReady)setText("#officialSummary","officialLoading");
   setText(".match-center-head h2","matchCenter");setText("#matchCenterNote","matchCenterNote");if(!liveDataReady)setText("#matchUpdated","waitSync");
@@ -1183,7 +1184,6 @@ function renderBracket(){
 function renderScenarioTabs(){
   const tabs=document.querySelector("#scenarioTabs"),note=document.querySelector("#scenarioNote");
   if(!tabs||!note)return;
-  if(knockoutStageReady){tabs.innerHTML="";note.textContent="";tabs.hidden=true;note.hidden=true;return}
   tabs.hidden=false;note.hidden=false;
   if(!bracketScenarios.length){
     tabs.innerHTML="";note.textContent="";return;
@@ -1197,9 +1197,9 @@ function renderScenarioTabs(){
   const champion=active.champion||active.paths?.final?.[0]?.[3]||"";
   const titlePct=formatModelPct(active.overallTitleProbability||active.titleOdds?.[champion]||0);
   const pathPct=formatModelPct(active.jointPathProbability||0);
-  note.textContent=currentLang==="en"
-    ?`Path ${active.rank||activeScenarioIndex+1}: ${teamName(champion)} has a ${titlePct} overall title chance. This representative Round of 32 draw appears in ${drawPct}; the exact draw-and-results path is ${pathPct}.`
-    :`路径 ${active.rank||activeScenarioIndex+1}：${champion}当前综合夺冠概率为 ${titlePct}；代表性 32 强签表概率为 ${drawPct}，图中签表与全部赛果同时发生的概率为 ${pathPct}。`;
+  note.textContent=knockoutStageReady
+    ?(currentLang==="en"?`Top ${active.rank||activeScenarioIndex+1}: ${teamName(champion)} has a ${titlePct} overall title chance. The official draw is fixed; this tab shows its most likely complete route to the trophy. Exact results path: ${pathPct}.`:`Top ${active.rank||activeScenarioIndex+1}：${champion}综合夺冠概率为 ${titlePct}。官方 32 强签表已经固定；本图展示该队最可能的完整夺冠路径，图中全部赛果同时发生的概率为 ${pathPct}。`)
+    :(currentLang==="en"?`Path ${active.rank||activeScenarioIndex+1}: ${teamName(champion)} has a ${titlePct} overall title chance. This representative Round of 32 draw appears in ${drawPct}; the exact draw-and-results path is ${pathPct}.`:`路径 ${active.rank||activeScenarioIndex+1}：${champion}当前综合夺冠概率为 ${titlePct}；代表性 32 强签表概率为 ${drawPct}，图中签表与全部赛果同时发生的概率为 ${pathPct}。`);
   tabs.querySelectorAll(".scenario-tab").forEach(btn=>btn.onclick=()=>{
     activeScenarioIndex=Number(btn.dataset.scenario)||0;
     renderBracket();
@@ -1670,7 +1670,7 @@ function completePathSignature(rounds){
 }
 function pathConditionalProbability(rounds){
   return [...rounds.r32,...rounds.r16,...rounds.qf,...rounds.sf,...rounds.final]
-    .reduce((p,[,a,b,winner])=>p*(winner===a?matchWinProbability(a,b):1-matchWinProbability(a,b)),1);
+    .reduce((p,[no,a,b,winner])=>resolvedKnockoutWinners[no]?p:p*(winner===a?matchWinProbability(a,b):1-matchWinProbability(a,b)),1);
 }
 function makeScenario(first,locked={},probability=0,label="Top 1"){
   return {label,probability,r32:first,paths:buildRounds(first),locked};
@@ -1708,6 +1708,21 @@ function generateBracketScenarios(koDoc,lockedOfficial,baseFirst,baseLocked){
     };
   });
 }
+function generateFixedBracketScenarios(first,iterations=10000){
+  const rng=seededRandom(20260628+Object.keys(resolvedKnockoutWinners).length*97),champions=new Map();
+  for(let i=0;i<iterations;i++){
+    const rounds=simulateKnockoutRounds(first,rng),champion=rounds.final[0][3],conditional=pathConditionalProbability(rounds);
+    const row=champions.get(champion)||{count:0,best:null};row.count++;
+    if(!row.best||conditional>row.best.conditional)row.best={rounds,conditional};
+    champions.set(champion,row);
+  }
+  const titleOdds=Object.fromEntries([...champions].map(([team,row])=>[team,row.count/iterations]));
+  return [...champions.entries()].sort((a,b)=>b[1].count-a[1].count||teamElo(b[0])-teamElo(a[0])).slice(0,8).map(([champion,row],i)=>({
+    label:`Top ${i+1}`,rank:i+1,champion,titleFavorite:champion,titleOdds,overallTitleProbability:titleOdds[champion],probability:1,
+    conditionalPathProbability:row.best.conditional,jointPathProbability:row.best.conditional,r32:row.best.rounds.r32,
+    paths:{r16:row.best.rounds.r16,qf:row.best.rounds.qf,sf:row.best.rounds.sf,final:row.best.rounds.final},locked:{},knockoutSimulations:iterations
+  }));
+}
 function applyOfficialStatus(official){
   confirmedGroupWinners.clear();
   confirmedQualified.clear();
@@ -1744,14 +1759,7 @@ function rebuildKnockout(koDoc,official=parseOfficial(koDoc)){
     officialTeamMatches={};slotLockSource={};lockedSlotGroups={};locked={};
     fixedFirst.forEach(([no,a,b])=>{lockTeamSlot(a,no,"","official");lockTeamSlot(b,no,"","official")});
     r32=fixedFirst;paths={base:buildRounds(fixedFirst)};
-    const fixedScenario=makeScenario(fixedFirst,{},1,"Official bracket");
-    Object.assign(fixedScenario,evaluateKnockoutScenario(fixedFirst,10000,Number(latestKoDoc?.body?.textContent?.length)||20260628));
-    fixedScenario.champion=fixedScenario.titleFavorite;
-    fixedScenario.overallTitleProbability=fixedScenario.titleOdds[fixedScenario.titleFavorite]||0;
-    fixedScenario.paths=buildRounds(fixedFirst);
-    fixedScenario.conditionalPathProbability=pathConditionalProbability({r32:fixedFirst,...fixedScenario.paths});
-    fixedScenario.jointPathProbability=fixedScenario.conditionalPathProbability;
-    bracketScenarios=[fixedScenario];activeScenarioIndex=0;
+    bracketScenarios=generateFixedBracketScenarios(fixedFirst,10000);activeScenarioIndex=Math.min(activeScenarioIndex,Math.max(0,bracketScenarios.length-1));
     lastOfficialSlotCount=32;lastCompleteMatchCount=16;
     document.querySelector("#confirmedMetric").textContent=32;
     document.querySelector("#predictedMetric").textContent=0;
@@ -1761,7 +1769,7 @@ function rebuildKnockout(koDoc,official=parseOfficial(koDoc)){
     metricLabels[1].textContent=currentLang==="en"?"Unsettled slots":"未定槽位";
     metricLabels[2].textContent=currentLang==="en"?"Official matchups":"官方对阵";
     document.querySelector("#officialSummary").textContent=currentLang==="en"?"All 32 teams and 16 opening-round matchups are confirmed.":"32 支球队和 16 场首轮对阵已全部确定。";
-    const champ=fixedScenario.titleFavorite,pct=formatModelPct(fixedScenario.titleOdds[champ]||0);
+    const fixedScenario=bracketScenarios[0],champ=fixedScenario.titleFavorite,pct=formatModelPct(fixedScenario.titleOdds[champ]||0);
     document.querySelector("#championHeadline").textContent=currentLang==="en"?`${teamName(champ)} leads the title race at ${pct}`:`${champ}以 ${pct} 领跑夺冠概率`;
     document.querySelector("#championPath").textContent=currentLang==="en"?"Based on 10,000 simulations of the fixed official bracket.":"基于固定官方签表完成 10,000 次淘汰赛模拟。";
     renderTitleContenders();updateLiveCopy();renderBracket();
