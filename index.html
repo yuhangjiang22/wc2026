@@ -215,6 +215,8 @@
     .match-top b{display:inline-flex;align-items:center;gap:4px;padding:2px 5px;border-radius:999px;background:rgba(255,255,255,.035);font-weight:900}
     .match-code{margin-left:auto;color:rgba(168,187,178,.88);font-size:9px;font-weight:850;letter-spacing:.02em}
     .match-top .official-label{color:var(--mint);background:rgba(96,237,181,.1)}.match-top .forecast-label{color:var(--orange);background:rgba(255,154,85,.08)}
+    .match-top .live-label{color:#06271e;background:var(--mint)}.match-top .final-label{color:var(--text);background:rgba(168,187,178,.16)}
+    .match-score{margin-left:auto;color:var(--lime);font-size:10px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:.04em}
     .team{position:relative;box-sizing:border-box;display:grid;grid-template-columns:16px minmax(0,1fr) auto;align-items:center;gap:4px;min-height:20px;
       padding:1px 5px;border-radius:6px;font-size:10px;overflow:hidden}.team+.team{margin-top:1px}.team .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .flag-emoji{display:inline-block;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
@@ -1078,11 +1080,18 @@ async function enrichWeather(){
   renderMatchCenter();
 }
 
-function teamRow(name,winner,type="",matchNo="",prob=null){
+function teamRow(name,winner,type="",matchNo="",prob=null,statusOverride=null){
   const result=name===winner?"advances":"loses";
   const cls=type==="official"?`official ${result}`:type==="opponent"?`predicted-opponent ${result}`:`predicted ${result}`;
-  const status=Number.isFinite(prob)?`${prob}%`:(name===winner?(currentLang==="en"?"Adv.":"晋级"):"—");
+  const status=statusOverride??(Number.isFinite(prob)?`${prob}%`:(name===winner?(currentLang==="en"?"Adv.":"晋级"):"—"));
   return `<div class="team ${cls}">${flagIcon(name)}<span class="name">${teamName(name)}</span><span class="status">${status}</span></div>`;
+}
+function bracketMatchState(a,b){
+  const live=matchCards.find(m=>samePair([m.home,m.away],a,b)&&["live","final"].includes(m.status));
+  if(!live)return null;
+  const raw=scoreParts(live);if(!raw)return null;
+  const score=live.home===a?raw:[raw[1],raw[0]];
+  return {match:live,score,label:live.status==="final"?"FT":`${matchMinute(live)}'`,status:live.status};
 }
 function bracketTime(d){
   if(!d)return "";
@@ -1103,12 +1112,15 @@ function card(m,round,index){
   const typeB=officialTeamMatches[b]===no?"official":activeLock&&b===activeLock.opponent?"opponent":"";
   const officialCount=[typeA,typeB].filter(x=>x==="official").length;
   const [probA,probB]=matchWinPerc(a,b);
+  const matchState=bracketMatchState(a,b),scoreText=matchState?`${matchState.score[0]}–${matchState.score[1]}`:"";
   const span={r32:1,r16:2,qf:4,sf:8}[round],row=2+index*span;
   const forecastLabel=currentLang==="en"?"Projected":"预测对阵";
-  const header=officialCount?`<span><b class="official-label">${officialCount===2?(currentLang==="en"?"Locked matchup":"对阵已锁定"):(currentLang==="en"?"Locked slot":"锁定席位")}</b></span><span class="match-code">M${no}</span>`:`<span><b class="forecast-label">${forecastLabel}</b></span><span class="match-code">M${no}</span>`;
+  const header=matchState
+    ?`<span><b class="${matchState.status==="live"?"live-label":"final-label"}">${matchState.label}</b></span><span class="match-score">${scoreText}</span>`
+    :officialCount?`<span><b class="official-label">${officialCount===2?(currentLang==="en"?"Locked matchup":"对阵已锁定"):(currentLang==="en"?"Locked slot":"锁定席位")}</b></span><span class="match-code">M${no}</span>`:`<span><b class="forecast-label">${forecastLabel}</b></span><span class="match-code">M${no}</span>`;
   return `<div class="match-wrap" style="grid-row:${row}/span ${span}">${bracketMeta(no)}<article class="match ${officialCount?"locked":""}" data-match="${no}">
     <div class="match-top ${officialCount?"":"quiet"}">${header}</div>
-    ${teamRow(a,winner,typeA,no,probA)+teamRow(b,winner,typeB,no,probB)}
+    ${teamRow(a,winner,typeA,no,probA,matchState?String(matchState.score[0]):null)+teamRow(b,winner,typeB,no,probB,matchState?String(matchState.score[1]):null)}
   </article></div>`;
 }
 function roundCol(title,key,data,side="left"){return `<div class="round ${side}"><div class="round-name">${title}</div>${data.map((m,i)=>card(m,key,i)).join("")}</div>`}
@@ -1123,9 +1135,10 @@ function formatModelPct(probability){
 function finalCol(m,champ,titleProbability=0,jointPathProbability=0){
   const [no,a,b,winner]=m;
   const [probA,probB]=matchWinPerc(a,b);
+  const matchState=bracketMatchState(a,b),scoreText=matchState?`${matchState.score[0]}–${matchState.score[1]}`:"";
   return `<div class="round center"><div class="round-name">${currentLang==="en"?"Final":"Final · 决赛"}</div><div class="final-stage">
-    <div class="match-wrap">${bracketMeta(no)}<article class="match" data-match="${no}"><div class="match-top quiet"><span><b class="forecast-label">${currentLang==="en"?"Projected":"预测决赛"}</b></span><span class="match-code">M${no}</span></div>
-      ${teamRow(a,winner,"",no,probA)+teamRow(b,winner,"",no,probB)}</article></div>
+    <div class="match-wrap">${bracketMeta(no)}<article class="match" data-match="${no}"><div class="match-top quiet">${matchState?`<span><b class="${matchState.status==="live"?"live-label":"final-label"}">${matchState.label}</b></span><span class="match-score">${scoreText}</span>`:`<span><b class="forecast-label">${currentLang==="en"?"Projected":"预测决赛"}</b></span><span class="match-code">M${no}</span>`}</div>
+      ${teamRow(a,winner,"",no,probA,matchState?String(matchState.score[0]):null)+teamRow(b,winner,"",no,probB,matchState?String(matchState.score[1]):null)}</article></div>
     <div class="champion"><img class="cup" src="assets/world-cup-2026-emblem.png" alt="2026 FIFA World Cup emblem"><b>${teamWithFlag(champ)}</b><small>${currentLang==="en"?`Overall title chance ${formatModelPct(titleProbability)}<br>Exact full path ${formatModelPct(jointPathProbability)}`:`综合夺冠 ${formatModelPct(titleProbability)}<br>完整路径 ${formatModelPct(jointPathProbability)}`}</small></div>
   </div></div>`;
 }
@@ -1991,7 +2004,11 @@ async function refreshMatchCenterLive(){
     if(!fresh.length)return;
     matchCards=fresh;
     renderMatchCenter();
-    if(applyLiveMatchesToGroups(fresh)){
+    if(knockoutStageReady&&latestKoDoc){
+      const before=JSON.stringify(resolvedKnockoutWinners),after=parseResolvedKnockoutWinners(latestKoDoc);
+      if(JSON.stringify(after)!==before)rebuildKnockout(latestKoDoc,latestOfficial);
+      else renderBracket();
+    }else if(applyLiveMatchesToGroups(fresh)){
       runMonteCarlo(6000,Date.now()%100000000);
       rebuildKnockout(latestKoDoc,latestOfficial);
       recalcThirds();
