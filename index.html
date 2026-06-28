@@ -288,7 +288,7 @@
     <section class="hero">
       <div><div class="eyebrow" id="heroEyebrow">2026 FIFA WORLD CUP · 正在同步</div>
         <h1>淘汰赛<br><span>形势推演</span></h1>
-        <p class="lead">实时追踪小组赛形势与官方晋级结果，并结合最新积分、World Football Elo 和蒙特卡洛模拟，推演最可能的淘汰赛对阵与冠军路径。</p>
+        <p class="lead">小组赛已经结束。实时追踪官方淘汰赛签表、比赛结果与赛程，并结合市场价格、World Football Elo 和蒙特卡洛模拟更新晋级与夺冠概率。</p>
       </div>
       <div class="hero-side">
         <a class="tournament-lockup" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026" target="_blank" rel="noreferrer" aria-label="查看2026世界杯官方网站">
@@ -309,14 +309,14 @@
     <nav class="nav">
       <div class="tabs">
         <button class="tab active" data-view="overview" aria-pressed="true">形势速览</button>
-        <button class="tab" data-view="groupsView" aria-pressed="false">小组积分</button>
+        <button class="tab" data-view="groupsView" aria-pressed="false">小组赛结果</button>
         <button class="tab" data-view="bracketView" aria-pressed="false">淘汰赛树</button>
       </div>
     </nav>
     <p class="mobile-guide">可点击：刷新数据、上方页签、数据来源链接；比赛卡和榜单为只读信息</p>
 
     <section id="overview" class="view active">
-      <div class="section-head"><div><h2>赛况速览</h2><p>实时赛果、已确定槽位和模型预测集中展示。</p></div></div>
+      <div class="section-head"><div><h2>淘汰赛速览</h2><p>官方签表、实时赛果、接下来赛程和夺冠概率集中展示。</p></div></div>
       <div class="notice"><b>官方确定状态</b><span id="officialSummary">同步后自动读取已确定的晋级球队与淘汰赛槽位。</span></div>
       <section class="match-center">
         <div class="match-center-head"><div><h2>比赛中心</h2><p id="matchCenterNote">正在同步实时比分、近期赛果和接下来赛程；开球时间按你的本地时区显示。</p></div><small id="matchUpdated">等待同步</small></div>
@@ -331,7 +331,7 @@
       <div class="insights">
         <article class="insight"><small>官方事实</small><h3 id="officialFactTitle">等待同步官方槽位</h3><p id="officialFactBody">同步后自动读取淘汰赛页面里已经确定的球队槽位。</p></article>
         <article class="insight"><small>Elo 模型判断</small><h3 id="championHeadline">正在计算冠军主路径</h3><p id="championPath">根据实时 Elo 和最新淘汰赛组合自动更新。</p></article>
-        <article class="insight"><small>最大变量</small><h3 id="variableTitle">等待计算最佳第三名</h3><p id="variableBody">同步积分并完成模拟后，自动更新最可能进入 32 强的第三名球队。</p></article>
+        <article class="insight"><small>签表观察</small><h3 id="variableTitle">正在读取淘汰赛签表</h3><p id="variableBody">同步后分析首轮焦点对阵和潜在强强对话。</p></article>
       </div>
       <div class="third-grid" id="thirdGrid"></div>
       <section class="stats-section">
@@ -345,14 +345,14 @@
     </section>
 
     <section id="groupsView" class="view">
-      <div class="section-head"><div><h2>小组赛数据中心</h2><p>跨组比较只聚焦最佳第三名线；每组内部排名仍按小组规则单独计算。</p></div></div>
+      <div class="section-head"><div><h2>小组赛最终排名</h2><p>12 个小组的最终积分、净胜球和晋级结果，仅作为赛事档案展示。</p></div></div>
       <div class="group-insights" id="groupInsights"></div>
       <div class="groups" id="groups"></div>
     </section>
 
     <section id="bracketView" class="view">
-      <div class="section-head"><div><h2>最可能的淘汰赛路径</h2><p>每次同步后自动重算小组名次、最佳第三名组合、32 强配对及后续晋级路径。</p></div>
-        <div class="legend"><span class="key official">薄荷绿：唯一确定</span><span class="key projected">橙虚线：所有预测球队</span><span class="key advance">黄左线：预测晋级</span><span class="key route">连线：预测路径</span></div>
+      <div class="section-head"><div><h2>官方淘汰赛签表与预测路径</h2><p>32 强首轮对阵固定；后续轮次和冠军路径由市场价格、Elo 与蒙特卡洛模拟实时更新。</p></div>
+        <div class="legend"><span class="key official">薄荷绿：官方对阵</span><span class="key projected">橙虚线：模型预测</span><span class="key advance">黄左线：预测晋级</span><span class="key route">连线：晋级路径</span></div>
       </div>
       <div class="notice"><b>实时模型</b><span id="bracketModelNote">等待同步后自动生成 32 强对阵、第三名映射和后续晋级路径。</span></div>
       <div class="scenario-tabs" id="scenarioTabs" aria-label="淘汰赛场景切换"></div>
@@ -369,39 +369,39 @@ const copy={
   zh:{
     title:"World Cup Knockout Forecast",description:"实时同步赛况、Elo 与蒙特卡洛模型的 2026 世界杯淘汰赛预测",
     langBtn:"EN",brand:"淘汰赛雷达",tagline:"WORLD CUP FORECAST",refresh:"刷新数据",refreshing:"正在刷新…",refreshFail:"刷新失败 · 重试",source:"数据来源",
-    heroTitle:"淘汰赛<br><span>形势推演</span>",lead:"实时追踪小组赛形势与官方晋级结果，并结合最新积分、World Football Elo 和蒙特卡洛模拟，推演最可能的淘汰赛对阵与冠军路径。",
+    heroTitle:"淘汰赛<br><span>形势推演</span>",lead:"小组赛已经结束。实时追踪官方淘汰赛签表、比赛结果与赛程，并结合市场价格、World Football Elo 和蒙特卡洛模拟更新晋级与夺冠概率。",
     dataStatus:"实时数据状态",summaryLoading:"正在读取赛况、积分和 Elo 模型…",confirmedSlots:"确定槽位",modelPredictions:"模型预测",confirmedMatchups:"确定对阵",
-    tabOverview:"形势速览",tabGroups:"小组积分",tabBracket:"淘汰赛树",mobileGuide:"可点击：刷新数据、上方页签、数据来源链接；比赛卡和榜单为只读信息",
-    overviewTitle:"赛况速览",overviewDesc:"实时赛果、已确定槽位和模型预测集中展示。",officialStatus:"官方确定状态",officialLoading:"同步后自动读取已确定的晋级球队与淘汰赛槽位。",
+    tabOverview:"淘汰赛速览",tabGroups:"小组赛结果",tabBracket:"淘汰赛树",mobileGuide:"可点击：刷新数据、上方页签、数据来源链接；比赛卡和榜单为只读信息",
+    overviewTitle:"淘汰赛速览",overviewDesc:"官方签表、实时赛果、接下来赛程和夺冠概率集中展示。",officialStatus:"官方淘汰赛签表",officialLoading:"同步后自动读取 32 强对阵。",
     matchCenter:"比赛中心",matchCenterNote:"正在同步实时比分、近期赛果和接下来赛程；开球时间按你的本地时区显示。",waitSync:"等待同步",
     upcoming:"接下来赛程",localVenueWeather:"Time / Venue / Weather",completed:"已结束 · 今天/昨天",score:"Score",
     officialFact:"官方事实",officialFactTitle:"等待同步官方槽位",officialFactBody:"同步后自动读取淘汰赛页面里已经确定的球队槽位。",
     eloCall:"Elo 模型判断",champCalc:"正在计算冠军主路径",champPath:"根据实时 Elo 和最新淘汰赛组合自动更新。",
-    biggestVariable:"最大变量",thirdTitle:"等待计算最佳第三名",thirdBody:"同步积分并完成模拟后，自动更新最可能进入 32 强的第三名球队。",
+    biggestVariable:"签表观察",thirdTitle:"正在读取淘汰赛签表",thirdBody:"同步后分析首轮焦点对阵和潜在强强对话。",
     statsTitle:"赛事榜单",statsDesc:"射手、球队火力和防守表现随比赛结果自动更新。",scorers:"射手榜",goals:"G",attack:"球队进球榜",defence:"最佳防守",ga:"GA",
-    groupsTitle:"小组赛数据中心",groupsDesc:"跨组比较只聚焦最佳第三名线；每组内部排名仍按小组规则单独计算。",
-    bracketTitle:"最可能的淘汰赛路径",bracketDesc:"每次同步后自动重算小组名次、最佳第三名组合、32 强配对及后续晋级路径。",
-    legendOfficial:"薄荷绿：唯一确定",legendProjected:"橙虚线：所有预测球队",legendAdvance:"黄左线：预测晋级",legendRoute:"连线：预测路径",liveModel:"实时模型",
-    bracketWait:"等待同步后自动生成 32 强对阵、第三名映射和后续晋级路径。",bracketHelp:"横向滑动查看后续轮次 →",
+    groupsTitle:"小组赛最终排名",groupsDesc:"12 个小组的最终积分、净胜球和晋级结果，仅作为赛事档案展示。",
+    bracketTitle:"官方淘汰赛签表与预测路径",bracketDesc:"32 强首轮对阵固定；后续轮次和冠军路径由市场价格、Elo 与蒙特卡洛模拟实时更新。",
+    legendOfficial:"薄荷绿：官方对阵",legendProjected:"橙虚线：模型预测",legendAdvance:"黄左线：预测晋级",legendRoute:"连线：晋级路径",liveModel:"淘汰赛模型",
+    bracketWait:"等待同步官方 32 强签表并计算后续晋级概率。",bracketHelp:"横向滑动查看后续轮次 →",
     footer:"预测依据：等待同步最新积分、净胜球、剩余赛程、球队实力与路径难度。本页面不是 FIFA 官方对阵表。"
   },
   en:{
     title:"World Cup Knockout Forecast",description:"Live 2026 World Cup bracket forecasts using scores, market prices, Elo ratings and Monte Carlo simulation.",
     langBtn:"ZH",brand:"Knockout Radar",tagline:"WORLD CUP FORECAST",refresh:"Refresh",refreshing:"Refreshing…",refreshFail:"Refresh failed",source:"Sources",
-    heroTitle:"World Cup<br><span>Knockout Forecast</span>",lead:"Track the live group-stage picture, confirmed knockout slots, Elo simulations and the paths most likely to shape the 2026 World Cup bracket.",
+    heroTitle:"World Cup<br><span>Knockout Forecast</span>",lead:"The group stage is complete. Follow the official bracket, live results and fixtures, with advancement and title odds powered by markets, World Football Elo and Monte Carlo simulation.",
     dataStatus:"Live model status",summaryLoading:"Loading scores, tables and model inputs…",confirmedSlots:"Clinched slots",modelPredictions:"Projected slots",confirmedMatchups:"Set matchups",
-    tabOverview:"Overview",tabGroups:"Group tables",tabBracket:"Bracket",mobileGuide:"Interactive: Refresh, view tabs, language toggle and source links. Match cards and tables are read-only.",
-    overviewTitle:"Tournament outlook",overviewDesc:"Confirmed slots, live scores and model projections in one view.",officialStatus:"Clinched bracket slots",officialLoading:"Clinched teams will appear here after the first sync.",
+    tabOverview:"Knockout overview",tabGroups:"Group-stage results",tabBracket:"Bracket",mobileGuide:"Interactive: Refresh, view tabs, language toggle and source links. Match cards and tables are read-only.",
+    overviewTitle:"Knockout overview",overviewDesc:"The official bracket, live scores, upcoming fixtures and title odds in one view.",officialStatus:"Official knockout bracket",officialLoading:"Loading the confirmed Round of 32 draw.",
     matchCenter:"Match center",matchCenterNote:"Live scores, recent results and upcoming fixtures. Kickoff times are shown in your local timezone.",waitSync:"Waiting for sync",
     upcoming:"Upcoming fixtures",localVenueWeather:"Local time / city / weather",completed:"Finals · today/yesterday",score:"Score",
     officialFact:"Clinched",officialFactTitle:"Waiting for clinched slots",officialFactBody:"Teams are added automatically once their knockout slot is settled.",
     eloCall:"Model read",champCalc:"Finding the title favorite",champPath:"The route updates as standings, markets and Elo inputs move.",
-    biggestVariable:"Bracket swing",thirdTitle:"Third-place race",thirdBody:"The eight best third-place teams can reshape the Round of 32.",
+    biggestVariable:"Bracket watch",thirdTitle:"Loading the knockout draw",thirdBody:"The model will flag the biggest opening-round matchup and possible heavyweight clashes.",
     statsTitle:"Tournament leaders",statsDesc:"Top scorers, team goals and defensive records update as results come in.",scorers:"Top scorers",goals:"Goals",attack:"Team goals",defence:"Fewest goals allowed",ga:"GA",
-    groupsTitle:"Group-stage dashboard",groupsDesc:"Each group is ranked independently; cross-group comparisons focus only on the best third-place race.",
-    bracketTitle:"Most likely knockout paths",bracketDesc:"Each sync rebuilds the Round of 32 draw, best-third mapping and projected winners.",
-    legendOfficial:"Mint: clinched",legendProjected:"Dashed: projected",legendAdvance:"Lime rail: favored",legendRoute:"Line: path",liveModel:"Live bracket model",
-    bracketWait:"Sync to build the Round of 32 draw, best-third mapping and projected route.",bracketHelp:"Scroll sideways for later rounds →",
+    groupsTitle:"Final group-stage tables",groupsDesc:"Final points, goal difference and qualification status for all 12 groups.",
+    bracketTitle:"Official bracket and projected path",bracketDesc:"The Round of 32 is set. Later rounds update from market prices, Elo ratings and Monte Carlo simulation.",
+    legendOfficial:"Mint: official matchup",legendProjected:"Dashed: projected",legendAdvance:"Lime rail: favored",legendRoute:"Line: route",liveModel:"Knockout model",
+    bracketWait:"Loading the official Round of 32 bracket and advancement probabilities.",bracketHelp:"Scroll sideways for later rounds →",
     footer:"Model inputs: synced tables, goal difference, remaining fixtures, market prices, World Football Elo and path difficulty. This is not an official FIFA bracket."
   }
 };
@@ -455,8 +455,9 @@ let groups=[
 ["L",[["英格兰","🏴",1,3,2],["加纳","🇬🇭",1,3,1],["巴拿马","🇵🇦",1,0,-1],["克罗地亚","🇭🇷",1,0,-2]]]
 ];
 let third=[];
-let remainingFixtures={},completedResults={},qualifyProb={},simulationCount=0,eloSourceTime="实时榜单",scorerLeaders=[],matchCards=[],polymarketOdds=[];
-let baseGroups=[],monteCarloGroups=[],baseRemainingFixtures={},baseCompletedResults={},latestKoDoc=null,latestOfficial={},koMatchMeta={},liveMatchStates={};
+let remainingFixtures={},completedResults={},qualifyProb={},simulationCount=0,eloSourceTime="实时榜单",scorerLeaders=[],matchCards=[],polymarketOdds=[],knockoutStageReady=false;
+const knockoutProbabilityCache=new Map();
+let baseGroups=[],monteCarloGroups=[],baseRemainingFixtures={},baseCompletedResults={},latestKoDoc=null,latestOfficial={},koMatchMeta={},liveMatchStates={},resolvedKnockoutWinners={};
 let lastSyncLabel="等待同步",lastSourceStamp="",lastOfficialSlotCount=0,lastCompleteMatchCount=0,liveDataReady=false;
 let bracketScenarios=[],activeScenarioIndex=0;
 const cloneGroups=x=>x.map(([g,ts])=>[g,ts.map(t=>[...t])]);
@@ -549,6 +550,7 @@ function isGroupComplete(teams,g=""){
 }
 function groupHeadNote(g,ts){
   if(groupHasLive(g))return currentLang==="en"?"Live table · Elo MC":"进行中 · 实时积分榜";
+  if(knockoutStageReady&&isGroupComplete(ts,g))return currentLang==="en"?"Final table":"最终排名";
   return currentLang==="en"?`${ts[0][2]}/3 played · Elo MC`:`${ts[0][2]} 轮后 · Elo MC`;
 }
 function teamSituation(t,pos,groupTeams,g=""){
@@ -576,6 +578,16 @@ function renderGroupInsights(){
   const bubble=rankedThirds.slice(5,10);
   const lineText=cutoff?`${cutoff.t[3]} ${currentLang==="en"?"pts":"分"} / ${cutoff.t[4]>=0?"+":""}${cutoff.t[4]} GD`:(currentLang==="en"?"Waiting for sync":"等待同步");
   const thirdMeta=x=>`${currentLang==="en"?"Group ":""}${x.g}${currentLang==="en"?"":"组"} · ${x.t[3]} ${currentLang==="en"?"pts":"分"} · ${x.t[4]>=0?"+":""}${x.t[4]} GD`;
+  if(knockoutStageReady){
+    const qualified=all.filter(x=>confirmedQualified.has(x.t[0])||x.pos<2||(!x.t[5]&&x.pos===2)).map(x=>x.t[0]);
+    const thirdQualified=groups.map(([g,ts])=>({g,t:ts[2]})).filter(x=>confirmedQualified.has(x.t[0])||(!x.t[5]&&officialTeamMatches[x.t[0]]));
+    document.querySelector("#groupInsights").innerHTML=`
+      <article class="group-insight primary"><small>${currentLang==="en"?"Group stage":"小组赛"}</small><b>72 / 72 ${currentLang==="en"?"matches complete":"场已结束"}</b><p>${currentLang==="en"?"All group standings are final. The knockout draw is now fixed.":"12 个小组排名全部确定，淘汰赛签表不再随积分变化。"}</p></article>
+      <article class="group-insight"><small>${currentLang==="en"?"Qualified":"晋级球队"}</small><b>32 ${currentLang==="en"?"teams":"支"}</b><p>${currentLang==="en"?"The top two in each group plus the eight best third-place teams advanced.":"每组前二名与 8 支成绩最好的第三名进入淘汰赛。"}</p></article>
+      <article class="group-insight"><small>${currentLang==="en"?"Best third-place teams":"最佳第三名"}</small><div class="mini-list">${thirdQualified.slice(0,4).map((x,i)=>`<span><em>${i+1}. ${teamWithFlag(x.t[0],x.t[1])} (${x.g})</em><b>${x.t[3]} ${currentLang==="en"?"pts":"分"}</b></span>`).join("")}</div></article>
+      <article class="group-insight"><small>${currentLang==="en"?"Best third-place teams":"最佳第三名"}</small><div class="mini-list">${thirdQualified.slice(4,8).map((x,i)=>`<span><em>${i+5}. ${teamWithFlag(x.t[0],x.t[1])} (${x.g})</em><b>${x.t[3]} ${currentLang==="en"?"pts":"分"}</b></span>`).join("")}</div></article>`;
+    return;
+  }
   document.querySelector("#groupInsights").innerHTML=`
     <article class="group-insight primary"><small>${currentLang==="en"?"Progress":"赛事进度"}</small><b>${played} / 72 ${currentLang==="en"?"played":"场"}</b><p>${currentLang==="en"?`${Math.round(played/72*100)}% of group-stage matches are complete. Model run: ${simulationCount?simulationCount.toLocaleString():"—"} Elo simulations.`:`小组赛完成 ${Math.round(played/72*100)}%。基于 World Football Elo（${eloSourceTime}）完成 ${simulationCount?simulationCount.toLocaleString():"—"} 次模拟。`}</p></article>
     <article class="group-insight"><small>${currentLang==="en"?"Best-third cut line":"最佳第三晋级线"}</small><b>${lineText}</b><p>${cutoff?(currentLang==="en"?`Current No. 8: ${teamWithFlag(cutoff.t[0],cutoff.t[1])} · Group ${cutoff.g}.`:`当前第 8 名：${teamWithFlag(cutoff.t[0],cutoff.t[1])}（${cutoff.g}组），末轮后仍会变化。`):(currentLang==="en"?"Calculated after the next sync.":"同步后自动计算第 8 名第三名。")}</p></article>
@@ -611,9 +623,30 @@ function updateLiveCopy(){
   document.querySelector("#heroEyebrow").textContent=`2026 FIFA WORLD CUP · ${displaySyncLabel()}`;
   if(liveDataReady)document.querySelector("#statsUpdated").textContent=currentLang==="en"?`Updated ${lastSyncLabel.replace(" synced","")} · match data`:`截至 ${lastSyncLabel.replace(" 已同步","")} · 已赛数据`;
   const summaryStatus=document.querySelector("#summaryStatus");
-  if(summaryStatus)summaryStatus.textContent=currentLang==="en"?"Auto-syncs every 2 minutes. Green numbers are clinched; everything else is model-driven.":"每 2 分钟自动同步；绿色数字是锁定槽位，其余随赛果和模型重算。";
+  if(summaryStatus)summaryStatus.textContent=knockoutStageReady
+    ?(currentLang==="en"?"The official bracket is fixed. Results and probabilities refresh every 2 minutes.":"官方签表已经固定；赛果与晋级概率每 2 分钟自动更新。")
+    :(currentLang==="en"?"Auto-syncs every 2 minutes. Green numbers are clinched; everything else is model-driven.":"每 2 分钟自动同步；绿色数字是锁定槽位，其余随赛果和模型重算。");
   const matchNote=document.querySelector("#matchCenterNote");
   if(matchNote)matchNote.textContent=currentLang==="en"?`Live scores, recent results and upcoming fixtures. Times shown in ${localTimeZoneLabel()}.`:`正在同步实时比分、近期赛果和接下来赛程；开球时间按你的本地时区显示：${localTimeZoneLabel()}。`;
+  if(knockoutStageReady){
+    const titleOdds=primaryScenario?.titleOdds||{},ranking=Object.entries(titleOdds).sort((a,b)=>b[1]-a[1]),top=ranking.slice(0,3);
+    const metricLabels=document.querySelectorAll(".readout small");
+    metricLabels[0].textContent=currentLang==="en"?"Teams in bracket":"签表球队";
+    metricLabels[1].textContent=currentLang==="en"?"Unsettled slots":"未定槽位";
+    metricLabels[2].textContent=currentLang==="en"?"Official matchups":"官方对阵";
+    document.querySelector("#officialSummary").textContent=currentLang==="en"?"The Round of 32 is set: all 32 teams and 16 opening-round matchups are confirmed.":"32 强签表已经确定：32 支球队与 16 场首轮对阵均为官方对阵。";
+    document.querySelector("#officialFactTitle").innerHTML=currentLang==="en"?"The Round of 32<br>is fully set":"32 强签表<br>已经全部确定";
+    document.querySelector("#officialFactBody").textContent=currentLang==="en"?"The bracket no longer depends on group-stage projections. Only match outcomes and later rounds are simulated.":"签表不再依赖小组赛预测；模型现在只模拟每场赛果、后续轮次和最终冠军。";
+    document.querySelector("#variableTitle").textContent=currentLang==="en"?`${teamName(top[0]?.[0]||"—")}, ${teamName(top[1]?.[0]||"—")} and ${teamName(top[2]?.[0]||"—")} lead the model`:`${top.map(x=>x[0]).join("、")}暂列夺冠概率前三`;
+    document.querySelector("#variableBody").textContent=currentLang==="en"?"Opening-round market prices are blended with Elo when available; later rounds fall back to Elo and path simulation.":"有市场价格的首轮比赛采用市场与 Elo 混合概率；尚无市场的后续轮次使用 Elo 与路径模拟。";
+    document.querySelector("#bracketModelNote").textContent=currentLang==="en"?`Official Round of 32 draw · 10,000 fixed-bracket simulations · market/Elo blend where prices are available · ${displaySyncLabel()}.`:`官方 32 强签表 · 10,000 次固定签表模拟 · 有市场价格时与 Elo 混合 · ${lastSyncLabel}。`;
+    document.querySelector("#footerNote").textContent=currentLang==="en"?`Official bracket synced from Wikipedia revision data. Forecasts blend available market prices with World Football Elo (${displaySourceLabel(eloSourceTime)}) and 10,000 Monte Carlo tournament runs. Not an official FIFA forecast.`:`官方签表来自 Wikipedia 最新修订；预测综合可用市场价格、World Football Elo（${eloSourceTime}）及 10,000 次淘汰赛蒙特卡洛模拟。本页面并非 FIFA 官方预测。`;
+    if(champ&&champ!=="—"){
+      document.querySelector("#championHeadline").textContent=currentLang==="en"?`${teamName(champ)} leads the title race at ${formatModelPct(titleOdds[champ]||0)}`:`${champ}以 ${formatModelPct(titleOdds[champ]||0)} 领跑夺冠概率`;
+      document.querySelector("#championPath").textContent=currentLang==="en"?"Calculated across the complete, fixed knockout bracket.":"基于已经固定的完整淘汰赛签表计算。";
+    }
+    return;
+  }
   document.querySelector("#officialSummary").textContent=officialEntries.length?(currentLang==="en"?`Clinched slots: ${formatSlotList(officialEntries)}. Remaining slots are projected.`:`${officialNames.join("；")}。其余槽位由实时模型预测。`):(currentLang==="en"?"No Round of 32 slots have clinched yet.":"当前尚无明确淘汰赛槽位。");
   const clinchedTitle=currentLang==="en"
     ?`${officialEntries.length} ${officialEntries.length===1?"team":"teams"}<br>clinched ${officialEntries.length===1?"a Round of 32 slot":"Round of 32 slots"}`
@@ -660,7 +693,12 @@ function renderGroups(){
 }
 renderGroups();
 function renderThirds(){
+  if(knockoutStageReady){renderTitleContenders();return}
   document.querySelector("#thirdGrid").innerHTML=third.map((t,i)=>`<article class="third-card"><div class="top"><b>${i+1}. ${teamWithFlag(t[0],t[1])}</b><span class="pct">${t[2]}%</span></div><small>${currentLang==="en"?"Best-third qualification chance":"预测以小组第三晋级"}</small><div class="prob"><i style="width:${t[2]}%"></i></div></article>`).join("");
+}
+function renderTitleContenders(){
+  const odds=bracketScenarios[0]?.titleOdds||{},rows=Object.entries(odds).sort((a,b)=>b[1]-a[1]||teamElo(b[0])-teamElo(a[0])).slice(0,8);
+  document.querySelector("#thirdGrid").innerHTML=rows.map(([team,p],i)=>`<article class="third-card"><div class="top"><b>${i+1}. ${teamWithFlag(team)}</b><span class="pct">${formatModelPct(p)}</span></div><small>${currentLang==="en"?"Overall title probability":"综合夺冠概率"}</small><div class="prob"><i style="width:${Math.max(1,p*100)}%"></i></div></article>`).join("");
 }
 renderThirds();
 function boardRows(items,valueLabel){
@@ -746,10 +784,16 @@ function parseMatchCards(doc){
     };
   }).filter(x=>x.home!=="待定"&&x.away!=="待定").map(x=>({...x,status:matchStatus(x)})).sort((a,b)=>(a.kickoff||0)-(b.kickoff||0));
 }
+function matchNumberForBox(box){
+  const direct=Number((box.querySelector(".fscore")?.textContent||"").match(/Match\s+(\d+)/i)?.[1]);
+  if(direct)return direct;
+  const report=Number((box.querySelector(".fgoals")?.textContent||"").match(/Report\s+(\d+)/i)?.[1]);
+  return report?report+72:0;
+}
 function parseKoMatchMeta(koDoc){
   const out={};
   for(const box of koDoc.querySelectorAll(".footballbox")){
-    const no=Number((box.querySelector(".fscore")?.textContent||"").match(/Match\s+(\d+)/i)?.[1]);
+    const no=matchNumberForBox(box);
     if(!no)continue;
     const dateText=box.querySelector(".fdate")?.textContent||"";
     const timeText=box.querySelector(".ftime")?.textContent||"";
@@ -800,7 +844,7 @@ async function fetchEspnMatches(cachedPages=null){
         homeFlag:flag[homeName]||"🌐",awayFlag:flag[awayName]||"🌐",
         scoreText,kickoff,localHour:kickoff.getUTCHours(),stadium:venue.fullName||(currentLang==="en"?"Venue TBD":"待定球场"),city:city||(currentLang==="en"?"City TBD":"待定城市"),
         status:state==="in"?"live":state==="post"?"final":"upcoming",
-        statusDetail:statusType.shortDetail||statusType.detail||statusType.description||"",
+        statusDetail:statusType.shortDetail||statusType.detail||statusType.description||"",winnerTeam:home.winner?homeName:away.winner?awayName:"",
         minute:Number.isFinite(minute)?minute:null,weather:currentLang==="en"?"Loading weather":"天气加载中",goals
       });
     }
@@ -860,6 +904,12 @@ function polymarketForMatch(m){
     }
   }
   return null;
+}
+function knockoutMarketProbability(a,b){
+  const market=polymarketForMatch({home:a,away:b});
+  if(!market)return null;
+  const elo=eloWinProbability(a,b);
+  return (market.home+market.draw*elo)/100;
 }
 function matchOutcomeProb(m){
   const homeBoost=t=>t==="美国"||t==="墨西哥"||t==="加拿大"?35:0;
@@ -1120,6 +1170,8 @@ function renderBracket(){
 function renderScenarioTabs(){
   const tabs=document.querySelector("#scenarioTabs"),note=document.querySelector("#scenarioNote");
   if(!tabs||!note)return;
+  if(knockoutStageReady){tabs.innerHTML="";note.textContent="";tabs.hidden=true;note.hidden=true;return}
+  tabs.hidden=false;note.hidden=false;
   if(!bracketScenarios.length){
     tabs.innerHTML="";note.textContent="";return;
   }
@@ -1424,7 +1476,7 @@ function parseOfficialMatchSlots(koDoc){
   const slots={};
   const knownTeams=new Set(groups.flatMap(([,teams])=>teams.map(t=>t[0])));
   for(const box of koDoc.querySelectorAll(".footballbox")){
-    const no=Number((box.querySelector(".fscore")?.textContent||"").match(/Match\s+(\d+)/i)?.[1]);
+    const no=matchNumberForBox(box);
     if(no<73||no>88)continue;
     for(const selector of [".fhome",".faway"]){
       const raw=cleanTeamName(box.querySelector(selector)?.textContent||"");
@@ -1433,6 +1485,35 @@ function parseOfficialMatchSlots(koDoc){
     }
   }
   return slots;
+}
+function parseOfficialFirstRound(koDoc){
+  const knownTeams=new Set(groups.flatMap(([,teams])=>teams.map(t=>t[0]))),matches={};
+  for(const box of koDoc.querySelectorAll(".footballbox")){
+    const no=matchNumberForBox(box);
+    if(no<73||no>88)continue;
+    const read=selector=>{const raw=cleanTeamName(box.querySelector(selector)?.textContent||"");return teamZh[raw]||raw};
+    const a=read(".fhome"),b=read(".faway");
+    if(knownTeams.has(a)&&knownTeams.has(b)){
+      const finished=matchCards.find(m=>m.status==="final"&&samePair([m.home,m.away],a,b));
+      matches[no]=[no,a,b,finished?.winnerTeam||pickWinner(a,b)];
+    }
+  }
+  return bracketOrder.map(no=>matches[no]).filter(Boolean);
+}
+function parseResolvedKnockoutWinners(koDoc){
+  const out={},knownTeams=new Set(groups.flatMap(([,teams])=>teams.map(t=>t[0])));
+  for(const box of koDoc.querySelectorAll(".footballbox")){
+    const no=matchNumberForBox(box);if(no<73||no>104||no===103)continue;
+    const read=selector=>{const raw=cleanTeamName(box.querySelector(selector)?.textContent||"");return teamZh[raw]||raw};
+    const a=read(".fhome"),b=read(".faway");if(!knownTeams.has(a)||!knownTeams.has(b))continue;
+    const finished=matchCards.find(m=>m.status==="final"&&samePair([m.home,m.away],a,b));
+    if(finished?.winnerTeam)out[no]=finished.winnerTeam;
+    else{
+      const score=(box.querySelector(".fscore")?.textContent||"").replace(/\s+/g,"").match(/(\d+)[–-](\d+)/);
+      if(score&&Number(score[1])!==Number(score[2]))out[no]=Number(score[1])>Number(score[2])?a:b;
+    }
+  }
+  return out;
 }
 function parseCombo(koDoc,qualifiedGroups){
   const wrap=Array.from(koDoc.querySelectorAll(".sticky-table-scroll")).find(x=>x.querySelectorAll("tr").length===496);
@@ -1454,10 +1535,18 @@ function pickWinner(a,b){
   const chanceA=1/(1+Math.pow(10,(eb-ea)/400));
   return chanceA>=.5?a:b;
 }
-function matchWinProbability(a,b){
+function eloWinProbability(a,b){
   const homeBoost=t=>t==="美国"||t==="墨西哥"||t==="加拿大"?35:0;
   const ea=teamElo(a)+homeBoost(a),eb=teamElo(b)+homeBoost(b);
   return 1/(1+Math.pow(10,(eb-ea)/400));
+}
+function matchWinProbability(a,b){
+  const key=`${a}||${b}`;
+  if(knockoutProbabilityCache.has(key))return knockoutProbabilityCache.get(key);
+  const elo=eloWinProbability(a,b),market=knockoutMarketProbability(a,b);
+  const value=market==null?elo:market*.65+elo*.35;
+  knockoutProbabilityCache.set(key,value);knockoutProbabilityCache.set(`${b}||${a}`,1-value);
+  return value;
 }
 function matchWinPerc(a,b){
   const pctA=Math.round(matchWinProbability(a,b)*100);
@@ -1468,8 +1557,8 @@ function knockoutWinner(a,b,rng){
 }
 function simulateKnockoutRounds(first,rng){
   const byNo={};
-  const r32=first.map(([no,a,b])=>{const m=[no,a,b,knockoutWinner(a,b,rng)];byNo[no]=m;return m});
-  const make=no=>{const [x,y]=routePairs[no],a=byNo[x][3],b=byNo[y][3],m=[no,a,b,knockoutWinner(a,b,rng)];byNo[no]=m;return m};
+  const r32=first.map(([no,a,b])=>{const m=[no,a,b,resolvedKnockoutWinners[no]||knockoutWinner(a,b,rng)];byNo[no]=m;return m});
+  const make=no=>{const [x,y]=routePairs[no],a=byNo[x][3],b=byNo[y][3],m=[no,a,b,resolvedKnockoutWinners[no]||knockoutWinner(a,b,rng)];byNo[no]=m;return m};
   const r16=[89,90,93,94,91,92,95,96].map(make),qf=[97,98,99,100].map(make),sf=[101,102].map(make),final=[104].map(make);
   return {r32,r16,qf,sf,final};
 }
@@ -1500,7 +1589,7 @@ function enrichKnockoutScenario(scenario,index=0){
 }
 function buildRounds(first){
   const byNo=Object.fromEntries(first.map(m=>[m[0],m]));
-  const make=no=>{const [x,y]=routePairs[no],a=byNo[x][3],b=byNo[y][3],m=[no,a,b,pickWinner(a,b)];byNo[no]=m;return m};
+  const make=no=>{const [x,y]=routePairs[no],a=byNo[x][3],b=byNo[y][3],m=[no,a,b,resolvedKnockoutWinners[no]||pickWinner(a,b)];byNo[no]=m;return m};
   const r16=[89,90,93,94,91,92,95,96].map(make),qf=[97,98,99,100].map(make),sf=[101,102].map(make),final=[104].map(make);
   return {r16,qf,sf,final};
 }
@@ -1634,6 +1723,38 @@ function lockTeamSlot(team,no,group,source){
   lockedSlotGroups[team]=group||"";
 }
 function rebuildKnockout(koDoc,official=parseOfficial(koDoc)){
+  const fixedFirst=parseOfficialFirstRound(koDoc);
+  if(fixedFirst.length===16){
+    knockoutStageReady=true;
+    resolvedKnockoutWinners=parseResolvedKnockoutWinners(koDoc);
+    fixedFirst.forEach(m=>{if(resolvedKnockoutWinners[m[0]])m[3]=resolvedKnockoutWinners[m[0]]});
+    officialTeamMatches={};slotLockSource={};lockedSlotGroups={};locked={};
+    fixedFirst.forEach(([no,a,b])=>{lockTeamSlot(a,no,"","official");lockTeamSlot(b,no,"","official")});
+    r32=fixedFirst;paths={base:buildRounds(fixedFirst)};
+    const fixedScenario=makeScenario(fixedFirst,{},1,"Official bracket");
+    Object.assign(fixedScenario,evaluateKnockoutScenario(fixedFirst,10000,Number(latestKoDoc?.body?.textContent?.length)||20260628));
+    fixedScenario.champion=fixedScenario.titleFavorite;
+    fixedScenario.overallTitleProbability=fixedScenario.titleOdds[fixedScenario.titleFavorite]||0;
+    fixedScenario.paths=buildRounds(fixedFirst);
+    fixedScenario.conditionalPathProbability=pathConditionalProbability({r32:fixedFirst,...fixedScenario.paths});
+    fixedScenario.jointPathProbability=fixedScenario.conditionalPathProbability;
+    bracketScenarios=[fixedScenario];activeScenarioIndex=0;
+    lastOfficialSlotCount=32;lastCompleteMatchCount=16;
+    document.querySelector("#confirmedMetric").textContent=32;
+    document.querySelector("#predictedMetric").textContent=0;
+    document.querySelector("#completeMetric").textContent=16;
+    const metricLabels=document.querySelectorAll(".readout small");
+    metricLabels[0].textContent=currentLang==="en"?"Teams in bracket":"签表球队";
+    metricLabels[1].textContent=currentLang==="en"?"Unsettled slots":"未定槽位";
+    metricLabels[2].textContent=currentLang==="en"?"Official matchups":"官方对阵";
+    document.querySelector("#officialSummary").textContent=currentLang==="en"?"All 32 teams and 16 opening-round matchups are confirmed.":"32 支球队和 16 场首轮对阵已全部确定。";
+    const champ=fixedScenario.titleFavorite,pct=formatModelPct(fixedScenario.titleOdds[champ]||0);
+    document.querySelector("#championHeadline").textContent=currentLang==="en"?`${teamName(champ)} leads the title race at ${pct}`:`${champ}以 ${pct} 领跑夺冠概率`;
+    document.querySelector("#championPath").textContent=currentLang==="en"?"Based on 10,000 simulations of the fixed official bracket.":"基于固定官方签表完成 10,000 次淘汰赛模拟。";
+    renderTitleContenders();updateLiveCopy();renderBracket();
+    return;
+  }
+  knockoutStageReady=false;
   const lockedOfficial=mergeLockedSlots(official);
   applyOfficialStatus(lockedOfficial);
   const projected=projectedGroups(lockedOfficial);
@@ -1700,6 +1821,7 @@ function rebuildKnockout(koDoc,official=parseOfficial(koDoc)){
   renderBracket();
 }
 function recalcThirds(){
+  if(knockoutStageReady){renderTitleContenders();return}
   third=groups.map(([g,ts])=>({g,t:ts[2],chance:qualifyProb[ts[2][0]]??0})).filter(x=>!x.t[5]).sort((a,b)=>b.chance-a.chance||b.t[3]-a.t[3]||b.t[4]-a.t[4])
     .slice(0,8).map(({t},i)=>{
       const chance=Math.round((qualifyProb[t[0]]??0)*100);
@@ -1727,7 +1849,7 @@ async function syncElo(cachedText=null){
     }
     if(Object.keys(fresh).length<40)throw new Error("Elo 数据不完整");
     const published=text.match(/Published Time:\s*([^\n]+)/)?.[1];
-    eloRatings={...eloRatings,...fresh};eloSourceTime=published?new Intl.DateTimeFormat(currentLang==="en"?"en-US":"zh-CN",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}).format(new Date(published)):new Intl.DateTimeFormat(currentLang==="en"?"en-US":"zh-CN",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}).format(new Date());
+    eloRatings={...eloRatings,...fresh};knockoutProbabilityCache.clear();eloSourceTime=published?new Intl.DateTimeFormat(currentLang==="en"?"en-US":"zh-CN",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}).format(new Date(published)):new Intl.DateTimeFormat(currentLang==="en"?"en-US":"zh-CN",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}).format(new Date());
     localStorage.setItem("wc2026-elo",JSON.stringify({ratings:eloRatings,time:eloSourceTime}));
     return true;
   }catch(error){return false}
@@ -1779,6 +1901,7 @@ async function fetchExternalBundle(){
 async function applyDataBundle({data,koData,espnPages=null,eloText=null,polymarket=null,sourceLabel="数据源"}){
     await syncElo(eloText);
     polymarketOdds=Array.isArray(polymarket?.matches)?polymarket.matches:[];
+    knockoutProbabilityCache.clear();
     const doc=new DOMParser().parseFromString(data.parse.text["*"],"text/html");
     const koDoc=new DOMParser().parseFromString(koData.parse.text["*"],"text/html");
     koMatchMeta=parseKoMatchMeta(koDoc);
