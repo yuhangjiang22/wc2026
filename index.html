@@ -536,6 +536,7 @@ function flagIcon(name,fallback=flag[name]||"🌐"){
 const confirmedGroupWinners=new Set();
 const confirmedQualified=new Set();
 function qualifyChance(t,pos){
+  if(knockoutStageReady)return officialTeamMatches[t[0]]?100:0;
   if(t[5])return 0;
   if(confirmedGroupWinners.has(t[0])||confirmedQualified.has(t[0]))return 100;
   if(Number.isFinite(qualifyProb[t[0]]))return Math.round(qualifyProb[t[0]]*100);
@@ -544,6 +545,7 @@ function qualifyChance(t,pos){
 }
 function displayedQualifyChance(t,pos){
   const q=qualifyChance(t,pos);
+  if(knockoutStageReady)return q;
   if(t[5]||confirmedGroupWinners.has(t[0])||confirmedQualified.has(t[0]))return q;
   return Math.max(1,Math.min(99,q));
 }
@@ -559,6 +561,12 @@ function groupHeadNote(g,ts){
   return currentLang==="en"?`${ts[0][2]}/3 played · Elo MC`:`${ts[0][2]} 轮后 · Elo MC`;
 }
 function teamSituation(t,pos,groupTeams,g=""){
+  if(knockoutStageReady){
+    if(!officialTeamMatches[t[0]])return currentLang==="en"?"Eliminated":"已出局";
+    if(pos===0)return currentLang==="en"?"Group winner":"小组头名";
+    if(pos===1)return currentLang==="en"?"Group runner-up":"小组次名";
+    return currentLang==="en"?"Qualified as best third":"最佳第三名晋级";
+  }
   if(t[5])return currentLang==="en"?"Eliminated":"已出局";
   if(isGroupComplete(groupTeams,g)){
     if(pos===0)return currentLang==="en"?"Group winner":"锁定头名";
@@ -692,7 +700,7 @@ function renderGroups(){
   document.querySelector("#groups").innerHTML=groups.map(([g,ts])=>`<article class="group">
     <div class="group-head"><div class="group-title"><b>${g}</b><span>GROUP ${g}</span></div><small>${groupHeadNote(g,ts)}</small></div>
     <div class="group-body"><div class="group-table-head"><span>#</span><span>${currentLang==="en"?"Team / status":"球队 / 形势"}</span><span>${currentLang==="en"?"P":"赛"}</span><span>${currentLang==="en"?"Pts":"分"}</span><span>${currentLang==="en"?"GD":"净胜"}</span><span>${currentLang==="en"?"Qual.":"晋级率"}</span></div>
-    ${ts.map((t,i)=>{const q=displayedQualifyChance(t,i);return `<div class="team-row ${t[5]?"eliminated":i<2?"direct":i===2?"third":""}">
+    ${ts.map((t,i)=>{const q=displayedQualifyChance(t,i),rowClass=knockoutStageReady?(officialTeamMatches[t[0]]?(i<2?"direct":"third"):"eliminated"):(t[5]?"eliminated":i<2?"direct":i===2?"third":"");return `<div class="team-row ${rowClass}">
       <span class="pos">${i+1}</span><span class="team-name"><strong>${teamWithFlag(t[0],t[1])}</strong><small>${teamSituation(t,i,ts,g)}</small></span>
       <span>${t[2]}</span><span class="pts">${t[3]}</span><span class="gd">${t[4]>0?"+":""}${t[4]}</span>
       <span class="qualify"><b>${q}%</b><i style="--q:${q}%"></i></span>
