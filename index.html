@@ -31,7 +31,7 @@
     .brand b{display:block}.brand small{color:var(--muted);font-size:10px;letter-spacing:.18em}
     .source-tools{display:flex;align-items:center;gap:8px}.source,.sync-btn,.lang-toggle{display:inline-flex;align-items:center;color:var(--text);font-size:12px;font-weight:850;text-decoration:none;
       border:1px solid #4d806d;padding:9px 13px;border-radius:999px;background:#123328;cursor:pointer;transition:.16s ease;box-shadow:0 0 0 1px rgba(96,237,181,.04)}
-    .lang-toggle{min-width:48px;background:#0f2b22}
+    .lang-toggle{width:48px;min-width:48px;justify-content:center;padding-inline:0;background:#0f2b22;text-align:center;line-height:1}
     .source:after{content:" ↗";color:var(--lime)}.sync-btn:after{content:"";display:inline-block;width:6px;height:6px;margin-left:8px;border-top:2px solid currentColor;border-right:2px solid currentColor;transform:rotate(45deg);opacity:.85}
     .source:hover,.sync-btn:hover,.lang-toggle:hover{color:var(--lime);border-color:var(--lime);transform:translateY(-1px);background:#173d30}
     .source:active,.sync-btn:active,.lang-toggle:active,.tab:active,.tournament-lockup:active{transform:scale(.97)}
@@ -257,7 +257,12 @@
       .nav{align-items:stretch;flex-direction:column;gap:8px}.tabs .tab{flex:1;min-height:44px;padding:9px 4px}
       .mobile-guide{display:block}
       .view{padding-top:30px}.section-head{align-items:flex-start;flex-direction:column}.legend{flex-wrap:wrap}
-      .scenario-tabs{gap:6px}.scenario-tab{flex:1;min-width:96px;padding:9px 8px}
+      .lang-toggle{width:48px;min-width:48px;padding:0;justify-content:center;text-align:center}
+      .scenario-tabs{gap:6px;flex-wrap:nowrap;overflow-x:auto;padding:0 0 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}.scenario-tabs::-webkit-scrollbar{display:none}.scenario-tab{flex:0 0 auto;min-width:0;padding:9px 11px;white-space:nowrap}
+      .bracket{min-width:1404px;grid-template-columns:repeat(9,minmax(140px,1fr));gap:18px}.match{padding-inline:7px}.team{font-size:11px}.bracket-match-meta{font-size:9px}
+      .source-tools button,.tab,.scenario-tab,.eyebrow,.tournament-lockup small,.insight small,.third-card .pct,.label-mark,.board-value,.board-row.top .board-rank,.live-panel-head,.match-kicker,.prob-cell b,.fixture-time,.fixture-score,.group-title span,.team-row.direct .pos,.team-row .pts,.qualify b,.group-insight small,.match-top b,.match-code,.team .status,.team.official,.team.official .status,.team.official.loses,.team.advances,.bracket-match-meta .meta-time{font-weight:600}
+      h1,h2,h3,.brand b,.status-copy b,.readout b,.tab.active,.scenario-tab.active,.score,.team.official.advances .name{font-weight:700}
+      body.lang-en .tab,body.lang-en .scenario-tab{font-weight:600}body.lang-en .tab.active,body.lang-en .scenario-tab.active{font-weight:700}
       .insights,.groups,.third-grid,.group-insights,.leaderboards,.match-strip,.upcoming-panel{grid-template-columns:1fr}.group-insight{border-right:0;border-bottom:1px solid #244638}
       .live-panel{padding:12px}.live-panel.multi .live-grid{grid-template-columns:1fr}.scoreline{gap:8px}.score-team{padding:11px 9px}.score-team b{font-size:17px}.score{min-width:72px;font-size:32px}
       .match-meta{display:grid;font-size:11px}.bracket-match-meta{font-size:9px}.list-section+.list-section{border-left:0;border-top:1px solid rgba(255,255,255,.07);padding-left:0;padding-top:13px;margin-top:2px}.fixture{grid-template-columns:66px minmax(0,1fr)}.fixture-weather,.fixture-score{grid-column:2;justify-self:start;text-align:left}
