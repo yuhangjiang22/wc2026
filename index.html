@@ -585,12 +585,15 @@ function renderGroupInsights(){
   const thirdMeta=x=>`${currentLang==="en"?"Group ":""}${x.g}${currentLang==="en"?"":"组"} · ${x.t[3]} ${currentLang==="en"?"pts":"分"} · ${x.t[4]>=0?"+":""}${x.t[4]} GD`;
   if(knockoutStageReady){
     const qualified=all.filter(x=>confirmedQualified.has(x.t[0])||x.pos<2||(!x.t[5]&&x.pos===2)).map(x=>x.t[0]);
-    const thirdQualified=groups.map(([g,ts])=>({g,t:ts[2]})).filter(x=>confirmedQualified.has(x.t[0])||(!x.t[5]&&officialTeamMatches[x.t[0]]));
+    const thirdQualified=groups.map(([g,ts])=>({g,t:ts[2]}))
+      .filter(x=>confirmedQualified.has(x.t[0])||(!x.t[5]&&officialTeamMatches[x.t[0]]))
+      .sort((a,b)=>b.t[3]-a.t[3]||b.t[4]-a.t[4]||(b.t[6]||0)-(a.t[6]||0)||teamElo(b.t[0])-teamElo(a.t[0]));
+    const thirdRecord=x=>`${x.t[3]} ${currentLang==="en"?"pts":"分"} · ${x.t[4]>=0?"+":""}${x.t[4]} GD`;
     document.querySelector("#groupInsights").innerHTML=`
       <article class="group-insight primary"><small>${currentLang==="en"?"Group stage":"小组赛"}</small><b>72 / 72 ${currentLang==="en"?"matches complete":"场已结束"}</b><p>${currentLang==="en"?"All group standings are final. The knockout draw is now fixed.":"12 个小组排名全部确定，淘汰赛签表不再随积分变化。"}</p></article>
       <article class="group-insight"><small>${currentLang==="en"?"Qualified":"晋级球队"}</small><b>32 ${currentLang==="en"?"teams":"支"}</b><p>${currentLang==="en"?"The top two in each group plus the eight best third-place teams advanced.":"每组前二名与 8 支成绩最好的第三名进入淘汰赛。"}</p></article>
-      <article class="group-insight"><small>${currentLang==="en"?"Best third-place teams":"最佳第三名"}</small><div class="mini-list">${thirdQualified.slice(0,4).map((x,i)=>`<span><em>${i+1}. ${teamWithFlag(x.t[0],x.t[1])} (${x.g})</em><b>${x.t[3]} ${currentLang==="en"?"pts":"分"}</b></span>`).join("")}</div></article>
-      <article class="group-insight"><small>${currentLang==="en"?"Best third-place teams":"最佳第三名"}</small><div class="mini-list">${thirdQualified.slice(4,8).map((x,i)=>`<span><em>${i+5}. ${teamWithFlag(x.t[0],x.t[1])} (${x.g})</em><b>${x.t[3]} ${currentLang==="en"?"pts":"分"}</b></span>`).join("")}</div></article>`;
+      <article class="group-insight"><small>${currentLang==="en"?"Best third-place teams":"最佳第三名"}</small><div class="mini-list">${thirdQualified.slice(0,4).map((x,i)=>`<span><em>${i+1}. ${teamWithFlag(x.t[0],x.t[1])} (${x.g})</em><b>${thirdRecord(x)}</b></span>`).join("")}</div></article>
+      <article class="group-insight"><small>${currentLang==="en"?"Best third-place teams":"最佳第三名"}</small><div class="mini-list">${thirdQualified.slice(4,8).map((x,i)=>`<span><em>${i+5}. ${teamWithFlag(x.t[0],x.t[1])} (${x.g})</em><b>${thirdRecord(x)}</b></span>`).join("")}</div></article>`;
     return;
   }
   document.querySelector("#groupInsights").innerHTML=`
