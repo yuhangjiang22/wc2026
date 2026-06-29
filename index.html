@@ -1160,7 +1160,21 @@ function bracketMatchState(a,b){
   if(!live)return null;
   const raw=scoreParts(live);if(!raw)return null;
   const score=live.home===a?raw:[raw[1],raw[0]];
-  return {match:live,score,label:live.status==="final"?"FT":`${matchMinute(live)}'`,status:live.status};
+  const penaltyPhase=hasPenaltyPhase(live);
+  const label=penaltyPhase&&live.status==="live"?"PENS":live.status==="final"?"FT":`${matchMinute(live)}'`;
+  return {match:live,score,label,status:live.status,penaltyPhase};
+}
+function bracketActualStatus(name,state,fallbackScore){
+  if(!state)return null;
+  const tied=state.score[0]===state.score[1];
+  if(!state.penaltyPhase||!tied)return String(fallbackScore);
+  const adv=knockoutAdvanceProb(state.match);
+  if(state.status==="final"&&state.match.winnerTeam){
+    return state.match.winnerTeam===name?(currentLang==="en"?"ADV":"晋级"):(currentLang==="en"?"OUT":"出局");
+  }
+  if(!adv)return String(fallbackScore);
+  const pct=state.match.home===name?adv.home:adv.away;
+  return `${pct}%`;
 }
 function bracketTime(d){
   if(!d)return "";
@@ -1190,7 +1204,7 @@ function card(m,round,index){
     :officialCount?`<span><b class="official-label">${officialCount===2?(currentLang==="en"?"Locked matchup":"对阵已锁定"):(currentLang==="en"?"Locked slot":"锁定席位")}</b></span><span class="match-code">M${no}</span>`:`<span><b class="forecast-label">${forecastLabel}</b></span><span class="match-code">M${no}</span>`;
   return `<div class="match-wrap" style="grid-row:${row}/span ${span}">${bracketMeta(no)}<article class="match ${officialCount?"locked":""}" data-match="${no}">
     <div class="match-top ${officialCount?"":"quiet"}">${header}</div>
-    ${teamRow(a,winner,displayTypeA,no,probA,matchState?String(matchState.score[0]):null)+teamRow(b,winner,displayTypeB,no,probB,matchState?String(matchState.score[1]):null)}
+    ${teamRow(a,winner,displayTypeA,no,probA,bracketActualStatus(a,matchState,matchState?.score[0]))+teamRow(b,winner,displayTypeB,no,probB,bracketActualStatus(b,matchState,matchState?.score[1]))}
   </article></div>`;
 }
 function roundCol(title,key,data,side="left"){return `<div class="round ${side}"><div class="round-name">${title}</div>${data.map((m,i)=>card(m,key,i)).join("")}</div>`}
@@ -1209,7 +1223,7 @@ function finalCol(m,champ,titleProbability=0,jointPathProbability=0){
   const displayType=matchState?"actual":"";
   return `<div class="round center"><div class="round-name">${currentLang==="en"?"Final":"Final · 决赛"}</div><div class="final-stage">
     <div class="match-wrap">${bracketMeta(no)}<article class="match" data-match="${no}"><div class="match-top quiet">${matchState?`<span><b class="${matchState.status==="live"?"live-label":"final-label"}">${matchState.label}</b></span><span class="match-score">${scoreText}</span><span class="match-code">M${no}</span>`:`<span><b class="forecast-label">${currentLang==="en"?"Projected":"预测决赛"}</b></span><span class="match-code">M${no}</span>`}</div>
-      ${teamRow(a,winner,displayType,no,probA,matchState?String(matchState.score[0]):null)+teamRow(b,winner,displayType,no,probB,matchState?String(matchState.score[1]):null)}</article></div>
+      ${teamRow(a,winner,displayType,no,probA,bracketActualStatus(a,matchState,matchState?.score[0]))+teamRow(b,winner,displayType,no,probB,bracketActualStatus(b,matchState,matchState?.score[1]))}</article></div>
     <div class="champion"><img class="cup" src="assets/world-cup-2026-emblem.png" alt="2026 FIFA World Cup emblem"><b>${teamWithFlag(champ)}</b><small>${currentLang==="en"?`Overall title chance ${formatModelPct(titleProbability)}<br>Exact full path ${formatModelPct(jointPathProbability)}`:`综合夺冠 ${formatModelPct(titleProbability)}<br>完整路径 ${formatModelPct(jointPathProbability)}`}</small></div>
   </div></div>`;
 }
