@@ -226,7 +226,7 @@
     .match-code{margin-left:auto;color:rgba(168,187,178,.88);font-size:9px;font-weight:850;letter-spacing:.02em}
     .match-top .official-label{color:var(--mint);background:rgba(96,237,181,.1)}.match-top .forecast-label{color:var(--orange);background:rgba(255,154,85,.08)}
     .match-top .live-label{color:#06271e;background:var(--mint)}.match-top .final-label{color:var(--text);background:rgba(168,187,178,.16)}
-    .match-score{margin-left:auto;color:var(--lime);font-size:10px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:.04em}
+    .match-score{margin-left:auto;color:var(--lime);font-size:10px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:.04em}.match-score+.match-code{margin-left:6px}
     .team{position:relative;box-sizing:border-box;display:grid;grid-template-columns:16px minmax(0,1fr) auto;align-items:center;gap:4px;min-height:20px;
       padding:1px 5px;border-radius:6px;font-size:10px;overflow:hidden}.team+.team{margin-top:1px}.team .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .flag-emoji{display:inline-block;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
@@ -245,6 +245,11 @@
     .team.predicted .status{color:var(--orange)}
     .team.predicted.loses{color:rgba(216,224,220,.78)}.team.predicted.loses .status{color:rgba(255,154,85,.78)}
     .team.predicted-opponent.loses{color:rgba(255,154,85,.82)}
+    .team.actual{background:rgba(255,255,255,.035);color:var(--text);outline:0}
+    .team.actual.advances{background:rgba(96,237,181,.18);color:var(--text)}
+    .team.actual.advances .status{color:var(--lime)}
+    .team.actual.loses{background:rgba(255,255,255,.02);color:rgba(216,224,220,.9)}
+    .team.actual.loses .status{color:rgba(255,154,85,.95)}
     .team.advances{background:rgba(217,255,99,.12);color:var(--text);font-weight:850}
     .team.advances::before,.team.official.advances::before{content:"";position:absolute;left:0;top:3px;bottom:3px;width:3px;border-radius:999px;background:var(--lime)}
     .team.advances .status{color:var(--lime)}
@@ -1121,7 +1126,7 @@ async function enrichWeather(){
 
 function teamRow(name,winner,type="",matchNo="",prob=null,statusOverride=null){
   const result=name===winner?"advances":"loses";
-  const cls=type==="official"?`official ${result}`:type==="opponent"?`predicted-opponent ${result}`:`predicted ${result}`;
+  const cls=type==="actual"?`actual ${result}`:type==="official"?`official ${result}`:type==="opponent"?`predicted-opponent ${result}`:`predicted ${result}`;
   const status=statusOverride??(Number.isFinite(prob)?`${prob}%`:(name===winner?(currentLang==="en"?"Adv.":"晋级"):"—"));
   return `<div class="team ${cls}">${flagIcon(name)}<span class="name">${teamName(name)}</span><span class="status">${status}</span></div>`;
 }
@@ -1154,12 +1159,13 @@ function card(m,round,index){
   const matchState=bracketMatchState(a,b),scoreText=matchState?`${matchState.score[0]}–${matchState.score[1]}`:"";
   const span={r32:1,r16:2,qf:4,sf:8}[round],row=2+index*span;
   const forecastLabel=currentLang==="en"?"Projected":"预测对阵";
+  const displayTypeA=matchState?"actual":typeA,displayTypeB=matchState?"actual":typeB;
   const header=matchState
-    ?`<span><b class="${matchState.status==="live"?"live-label":"final-label"}">${matchState.label}</b></span><span class="match-score">${scoreText}</span>`
+    ?`<span><b class="${matchState.status==="live"?"live-label":"final-label"}">${matchState.label}</b></span><span class="match-score">${scoreText}</span><span class="match-code">M${no}</span>`
     :officialCount?`<span><b class="official-label">${officialCount===2?(currentLang==="en"?"Locked matchup":"对阵已锁定"):(currentLang==="en"?"Locked slot":"锁定席位")}</b></span><span class="match-code">M${no}</span>`:`<span><b class="forecast-label">${forecastLabel}</b></span><span class="match-code">M${no}</span>`;
   return `<div class="match-wrap" style="grid-row:${row}/span ${span}">${bracketMeta(no)}<article class="match ${officialCount?"locked":""}" data-match="${no}">
     <div class="match-top ${officialCount?"":"quiet"}">${header}</div>
-    ${teamRow(a,winner,typeA,no,probA,matchState?String(matchState.score[0]):null)+teamRow(b,winner,typeB,no,probB,matchState?String(matchState.score[1]):null)}
+    ${teamRow(a,winner,displayTypeA,no,probA,matchState?String(matchState.score[0]):null)+teamRow(b,winner,displayTypeB,no,probB,matchState?String(matchState.score[1]):null)}
   </article></div>`;
 }
 function roundCol(title,key,data,side="left"){return `<div class="round ${side}"><div class="round-name">${title}</div>${data.map((m,i)=>card(m,key,i)).join("")}</div>`}
@@ -1175,9 +1181,10 @@ function finalCol(m,champ,titleProbability=0,jointPathProbability=0){
   const [no,a,b,winner]=m;
   const [probA,probB]=matchWinPerc(a,b);
   const matchState=bracketMatchState(a,b),scoreText=matchState?`${matchState.score[0]}–${matchState.score[1]}`:"";
+  const displayType=matchState?"actual":"";
   return `<div class="round center"><div class="round-name">${currentLang==="en"?"Final":"Final · 决赛"}</div><div class="final-stage">
-    <div class="match-wrap">${bracketMeta(no)}<article class="match" data-match="${no}"><div class="match-top quiet">${matchState?`<span><b class="${matchState.status==="live"?"live-label":"final-label"}">${matchState.label}</b></span><span class="match-score">${scoreText}</span>`:`<span><b class="forecast-label">${currentLang==="en"?"Projected":"预测决赛"}</b></span><span class="match-code">M${no}</span>`}</div>
-      ${teamRow(a,winner,"",no,probA,matchState?String(matchState.score[0]):null)+teamRow(b,winner,"",no,probB,matchState?String(matchState.score[1]):null)}</article></div>
+    <div class="match-wrap">${bracketMeta(no)}<article class="match" data-match="${no}"><div class="match-top quiet">${matchState?`<span><b class="${matchState.status==="live"?"live-label":"final-label"}">${matchState.label}</b></span><span class="match-score">${scoreText}</span><span class="match-code">M${no}</span>`:`<span><b class="forecast-label">${currentLang==="en"?"Projected":"预测决赛"}</b></span><span class="match-code">M${no}</span>`}</div>
+      ${teamRow(a,winner,displayType,no,probA,matchState?String(matchState.score[0]):null)+teamRow(b,winner,displayType,no,probB,matchState?String(matchState.score[1]):null)}</article></div>
     <div class="champion"><img class="cup" src="assets/world-cup-2026-emblem.png" alt="2026 FIFA World Cup emblem"><b>${teamWithFlag(champ)}</b><small>${currentLang==="en"?`Overall title chance ${formatModelPct(titleProbability)}<br>Exact full path ${formatModelPct(jointPathProbability)}`:`综合夺冠 ${formatModelPct(titleProbability)}<br>完整路径 ${formatModelPct(jointPathProbability)}`}</small></div>
   </div></div>`;
 }
