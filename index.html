@@ -146,7 +146,7 @@
     .score-team{min-width:0}.score-team b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:21px;line-height:1.15}.score-team.away{text-align:right}
     .score-team small{display:block;margin-top:6px;color:var(--muted);font-size:11px}.score{min-width:88px;text-align:center;font-size:38px;font-weight:950;letter-spacing:-.06em;color:var(--lime);line-height:1}
     .live-panel.multi .scoreline{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px}.live-panel.multi .score{min-width:72px;font-size:34px}
-    .win-prob{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:end;margin-top:-3px}
+    .win-prob{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:end;margin-top:-3px}.win-prob.two-way{grid-template-columns:repeat(2,minmax(0,1fr))}
     .prob-cell{min-width:0}.prob-cell.draw{text-align:center}.prob-cell.away{text-align:right}
     .prob-cell b{display:block;color:var(--lime);font-size:13px;font-weight:950;font-variant-numeric:tabular-nums}
     .prob-cell span{display:block;margin-top:2px;color:var(--muted);font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -940,6 +940,24 @@ function knockoutMarketProbability(a,b){
   const elo=eloWinProbability(a,b);
   return (market.home+market.draw*elo)/100;
 }
+function hasPenaltyPhase(m){
+  return /\b(pens?|penalties|shootout|aet)\b/i.test(m.statusDetail||"");
+}
+function knockoutAdvanceProb(m){
+  const score=scoreParts(m);
+  const penaltyPhase=hasPenaltyPhase(m);
+  if(score&&m.status==="final"&&m.winnerTeam){
+    if(m.winnerTeam===m.home)return {home:100,away:0,label:currentLang==="en"?"Advanced":"晋级结果"};
+    if(m.winnerTeam===m.away)return {home:0,away:100,label:currentLang==="en"?"Advanced":"晋级结果"};
+  }
+  if(!score||!penaltyPhase)return null;
+  const prior=matchWinProbability(m.home,m.away);
+  if(score[0]>score[1])return {home:100,away:0,label:currentLang==="en"?"Advancing odds":"晋级概率"};
+  if(score[1]>score[0])return {home:0,away:100,label:currentLang==="en"?"Advancing odds":"晋级概率"};
+  const penaltyLean=Math.max(.42,Math.min(.58,.5+(prior-.5)*.35));
+  const p=normalizePct(penaltyLean,0,1-penaltyLean);
+  return {...p,label:currentLang==="en"?"Penalty shootout odds":"点球晋级概率"};
+}
 function matchOutcomeProb(m){
   const homeBoost=t=>t==="美国"||t==="墨西哥"||t==="加拿大"?35:0;
   const ea=teamElo(m.home)+homeBoost(m.home),eb=teamElo(m.away)+homeBoost(m.away),diff=ea-eb;
@@ -977,6 +995,13 @@ function matchOutcomeProb(m){
   return {home:h,draw:d,away:a,label:m.status==="live"?(currentLang==="en"?"Live win odds":"实时胜率"):(currentLang==="en"?"Pre-match odds":"赛前胜率")};
 }
 function winProbMarkup(m){
+  const advance=knockoutAdvanceProb(m);
+  if(advance){
+    return `<div class="win-prob two-way" aria-label="${advance.label}">
+      <div class="prob-cell home" style="--p:${advance.home}%"><b>${advance.home}%</b><span>${currentLang==="en"?`${teamName(m.home)} advances`:`${m.home}晋级`}</span><i></i></div>
+      <div class="prob-cell away" style="--p:${advance.away}%"><b>${advance.away}%</b><span>${currentLang==="en"?`${teamName(m.away)} advances`:`${m.away}晋级`}</span><i></i></div>
+    </div>`;
+  }
   const p=matchOutcomeProb(m);
   return `<div class="win-prob" aria-label="${p.label}">
     <div class="prob-cell home" style="--p:${p.home}%"><b>${p.home}%</b><span>${currentLang==="en"?`${teamName(m.home)} wins`:`${m.home}胜`}</span><i></i></div>
