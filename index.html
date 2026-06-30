@@ -145,6 +145,7 @@
     .scoreline{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:14px}
     .score-team{min-width:0}.score-team b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:21px;line-height:1.15}.score-team.away{text-align:right}
     .score-team small{display:block;margin-top:6px;color:var(--muted);font-size:11px}.score{min-width:88px;text-align:center;font-size:38px;font-weight:950;letter-spacing:-.06em;color:var(--lime);line-height:1}
+    .score-stack{display:inline-flex;flex-direction:column;align-items:center;gap:4px;letter-spacing:0;line-height:1}.score-main{letter-spacing:-.06em}.score-pen{display:inline-flex;align-items:center;justify-content:center;width:max-content;padding:3px 7px;border-radius:999px;background:rgba(96,237,181,.12);color:var(--mint);font-size:10px;font-weight:900;letter-spacing:.08em;line-height:1}
     .live-panel.multi .scoreline{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px}.live-panel.multi .score{min-width:72px;font-size:34px}
     .win-prob{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:end;margin-top:-3px}.win-prob.two-way{grid-template-columns:repeat(2,minmax(0,1fr))}
     .prob-cell{min-width:0}.prob-cell.draw{text-align:center}.prob-cell.away{text-align:right}
@@ -162,7 +163,7 @@
     .fixture-time{color:var(--lime);font-size:12px;font-weight:900}.fixture-main{min-width:0}.fixture-main b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
     .fixture-main small{display:block;margin-top:4px;color:var(--muted);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .fixture-main .goal-list{display:block;margin-top:5px;color:#cfe4d9;font-size:10px;line-height:1.45;white-space:normal;overflow:visible;text-overflow:clip}
-    .fixture-weather{justify-self:end;color:var(--muted);font-size:11px;text-align:right}.fixture.final .fixture-time{color:var(--muted)}.fixture-score{justify-self:end;color:var(--lime);font-size:18px;font-weight:950;letter-spacing:-.04em}.empty-state{padding:22px;color:var(--muted);font-size:12px;line-height:1.6}
+    .fixture-weather{justify-self:end;color:var(--muted);font-size:11px;text-align:right}.fixture.final .fixture-time{color:var(--muted)}.fixture-score{justify-self:end;color:var(--lime);font-size:18px;font-weight:950;letter-spacing:-.04em}.fixture-score .score-stack{align-items:flex-end;gap:3px}.fixture-score .score-pen{font-size:8px;padding:2px 5px}.empty-state{padding:22px;color:var(--muted);font-size:12px;line-height:1.6}
 
     .groups{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.group{overflow:hidden;border:1px solid #23483a;
       border-radius:12px;background:rgba(10,30,23,.72);box-shadow:0 8px 28px rgba(0,0,0,.12)}
@@ -226,7 +227,7 @@
     .match-code{margin-left:auto;color:rgba(168,187,178,.88);font-size:9px;font-weight:850;letter-spacing:.02em}
     .match-top .official-label{color:var(--mint);background:rgba(96,237,181,.1)}.match-top .forecast-label{color:var(--orange);background:rgba(255,154,85,.08)}
     .match-top .live-label{color:#06271e;background:var(--mint)}.match-top .final-label{color:var(--text);background:rgba(168,187,178,.16)}
-    .match-score{margin-left:auto;color:var(--lime);font-size:10px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:.04em}.match-score+.match-code{margin-left:6px}
+    .match-score{margin-left:auto;color:var(--lime);font-size:10px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:.04em}.match-score+.match-code{margin-left:6px}.match-score .score-stack{flex-direction:row;gap:4px}.match-score .score-main{letter-spacing:.02em}.match-score .score-pen{padding:1px 4px;font-size:6.5px;background:rgba(96,237,181,.1)}
     .team{position:relative;box-sizing:border-box;display:grid;grid-template-columns:16px minmax(0,1fr) auto;align-items:center;gap:4px;min-height:20px;
       padding:1px 5px;border-radius:6px;font-size:10px;overflow:hidden}.team+.team{margin-top:1px}.team .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .flag-emoji{display:inline-block;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
@@ -897,7 +898,7 @@ function scoreDisplay(m){
   const base=/^\d+[–-]\d+$/.test(m.scoreText)?m.scoreText.replace("-", "–"):"vs";
   const pens=penaltyScoreParts(m);
   if(!pens)return base;
-  return currentLang==="en"?`${base} (${pens[0]}–${pens[1]} pens)`:`${base}（点球 ${pens[0]}–${pens[1]}）`;
+  return scoreWithPensMarkup(base,pens);
 }
 function scoreParts(m){
   const match=(m.scoreText||"").match(/^(\d+)[–-](\d+)$/);
@@ -912,6 +913,9 @@ function penaltyScoreParts(m){
   if(!goals.length)return null;
   const home=goals.filter(g=>g.side==="home").length,away=goals.filter(g=>g.side==="away").length;
   return home+away?[home,away]:null;
+}
+function scoreWithPensMarkup(base,pens){
+  return `<span class="score-stack"><span class="score-main">${base}</span><span class="score-pen">PEN ${pens[0]}–${pens[1]}</span></span>`;
 }
 function matchMinute(m){
   if(Number.isFinite(m.minute))return Math.max(0,Math.min(120,m.minute));
@@ -1183,7 +1187,7 @@ function bracketMatchState(a,b){
 function bracketScoreText(state){
   if(!state)return "";
   const base=`${state.score[0]}–${state.score[1]}`;
-  return state.penaltyScore?`${base} (${state.penaltyScore[0]}–${state.penaltyScore[1]}p)`:base;
+  return state.penaltyScore?scoreWithPensMarkup(base,state.penaltyScore):base;
 }
 function bracketActualStatus(name,state,fallbackScore){
   if(!state)return null;
