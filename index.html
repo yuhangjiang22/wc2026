@@ -221,13 +221,13 @@
     .match-wrap .bracket-match-meta:empty{display:none}
     .match{position:relative;width:100%;height:68px;padding:7px 5px;border:1px solid rgba(145,215,185,.22);border-radius:11px;background:rgba(13,33,26,.92);box-shadow:0 4px 12px rgba(0,0,0,.14)}
     .match.locked{border-color:var(--mint);box-shadow:inset 3px 0 var(--mint),0 5px 14px rgba(0,0,0,.16)}
-    .match-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;color:var(--muted);font-size:7.5px;line-height:1}
+    .match-top{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:4px;margin-bottom:4px;color:var(--muted);font-size:7.5px;line-height:1}
     .match-top.quiet{margin-bottom:4px}
     .match-top b{display:inline-flex;align-items:center;gap:4px;padding:2px 5px;border-radius:999px;background:rgba(255,255,255,.035);font-weight:900}
     .match-code{margin-left:auto;color:rgba(168,187,178,.88);font-size:9px;font-weight:850;letter-spacing:.02em}
     .match-top .official-label{color:var(--mint);background:rgba(96,237,181,.1)}.match-top .forecast-label{color:var(--orange);background:rgba(255,154,85,.08)}
     .match-top .live-label{color:#06271e;background:var(--mint)}.match-top .final-label{color:var(--text);background:rgba(168,187,178,.16)}
-    .match-score{margin-left:auto;color:var(--lime);font-size:10px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:.04em}.match-score+.match-code{margin-left:6px}.match-score .score-stack{flex-direction:row;gap:4px}.match-score .score-main{letter-spacing:.02em}.match-score .score-pen{padding:1px 4px;font-size:6.5px;background:rgba(96,237,181,.1)}
+    .match-score{min-width:0;color:var(--lime);font-size:10px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:.02em;text-align:center;white-space:nowrap;overflow:hidden}.match-score+.match-code{margin-left:0}.bracket-scoreline{display:inline-flex;align-items:center;justify-content:center;gap:3px;max-width:100%}.shootout-score{padding:2px 4px;border-radius:999px;background:rgba(96,237,181,.12);color:var(--mint);font-size:6.5px;font-weight:900;letter-spacing:.02em;line-height:1}
     .team{position:relative;box-sizing:border-box;display:grid;grid-template-columns:16px minmax(0,1fr) auto;align-items:center;gap:4px;min-height:20px;
       padding:1px 5px;border-radius:6px;font-size:10px;overflow:hidden}.team+.team{margin-top:1px}.team .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .flag-emoji{display:inline-block;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
@@ -1299,7 +1299,8 @@ function bracketMatchState(a,b){
 function bracketScoreText(state){
   if(!state)return "";
   const base=`${state.score[0]}–${state.score[1]}`;
-  return state.penaltyScore?scoreWithPensMarkup(base,state.penaltyScore):base;
+  if(!state.penaltyScore)return `<span class="bracket-scoreline">${base}</span>`;
+  return `<span class="bracket-scoreline"><span>${base}</span><span class="shootout-score">PEN ${state.penaltyScore[0]}–${state.penaltyScore[1]}</span></span>`;
 }
 function bracketActualStatus(name,state,fallbackScore){
   if(!state)return null;
