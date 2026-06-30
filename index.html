@@ -232,13 +232,13 @@
       padding:1px 5px;border-radius:6px;font-size:10px;overflow:hidden}.team+.team{margin-top:1px}.team .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .flag-emoji{display:inline-block;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
       font-size:13px;line-height:1;vertical-align:-1px}
-    .team .status{overflow:hidden;font-size:9px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--muted);text-overflow:ellipsis;white-space:nowrap}.team.official{background:rgba(96,237,181,.9);color:var(--ink);font-weight:850}
-    .team.official .status{color:#174e3a;font-weight:900}.team.predicted-opponent{color:var(--orange)}
-    .team.official.advances{background:var(--mint);border:0;color:var(--ink)}
+    .team .status{overflow:hidden;font-size:9px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--muted);text-overflow:ellipsis;white-space:nowrap}.team.official{background:rgba(96,237,181,.1);color:var(--text);font-weight:850}
+    .team.official .status{color:var(--lime);font-weight:900}.team.predicted-opponent{color:var(--orange)}
+    .team.official.advances{background:rgba(217,255,99,.12);border:0;color:var(--text)}
     .team.official.advances .name{font-weight:950}
-    .team.official.advances .status{color:#174e3a}
-    .team.official.loses{background:rgba(96,237,181,.84);color:#0b2a20;font-weight:820}
-    .team.official.loses .status{color:#245f4b}.team.official.loses .flag-emoji{opacity:1}
+    .team.official.advances .status{color:var(--lime)}
+    .team.official.loses{background:rgba(255,255,255,.025);color:rgba(216,224,220,.85);font-weight:820}
+    .team.official.loses .status{color:rgba(216,224,220,.62)}.team.official.loses .flag-emoji{opacity:1}
     .official-pick{display:inline-block;margin-left:5px;padding:2px 5px;border-radius:4px;background:var(--lime);
       color:var(--ink);font-size:7px;font-style:normal;font-weight:900;vertical-align:1px}
     .team.predicted,.team.predicted-opponent{outline:1px dashed rgba(255,154,85,.82);outline-offset:-2px}
@@ -1235,6 +1235,8 @@ function card(m,round,index){
   const officialCount=[typeA,typeB].filter(x=>x==="official").length;
   const [probA,probB]=matchWinPerc(a,b);
   const matchState=bracketMatchState(a,b),scoreText=bracketScoreText(matchState);
+  const actualWinner=matchState?.status==="final"?matchResolvedWinner(matchState.match):"";
+  const rowWinner=actualWinner||winner;
   const span={r32:1,r16:2,qf:4,sf:8}[round],row=2+index*span;
   const forecastLabel=currentLang==="en"?"Projected":"预测对阵";
   const displayTypeA=matchState?"actual":typeA,displayTypeB=matchState?"actual":typeB;
@@ -1243,7 +1245,7 @@ function card(m,round,index){
     :officialCount?`<span><b class="official-label">${officialCount===2?(currentLang==="en"?"Locked matchup":"对阵已锁定"):(currentLang==="en"?"Locked slot":"锁定席位")}</b></span><span class="match-code">M${no}</span>`:`<span><b class="forecast-label">${forecastLabel}</b></span><span class="match-code">M${no}</span>`;
   return `<div class="match-wrap" style="grid-row:${row}/span ${span}">${bracketMeta(no)}<article class="match ${officialCount?"locked":""}" data-match="${no}">
     <div class="match-top ${officialCount?"":"quiet"}">${header}</div>
-    ${teamRow(a,winner,displayTypeA,no,probA,bracketActualStatus(a,matchState,matchState?.score[0]))+teamRow(b,winner,displayTypeB,no,probB,bracketActualStatus(b,matchState,matchState?.score[1]))}
+    ${teamRow(a,rowWinner,displayTypeA,no,probA,bracketActualStatus(a,matchState,matchState?.score[0]))+teamRow(b,rowWinner,displayTypeB,no,probB,bracketActualStatus(b,matchState,matchState?.score[1]))}
   </article></div>`;
 }
 function roundCol(title,key,data,side="left"){return `<div class="round ${side}"><div class="round-name">${title}</div>${data.map((m,i)=>card(m,key,i)).join("")}</div>`}
@@ -1259,11 +1261,13 @@ function finalCol(m,champ,titleProbability=0,jointPathProbability=0){
   const [no,a,b,winner]=m;
   const [probA,probB]=matchWinPerc(a,b);
   const matchState=bracketMatchState(a,b),scoreText=bracketScoreText(matchState);
+  const actualWinner=matchState?.status==="final"?matchResolvedWinner(matchState.match):"";
+  const rowWinner=actualWinner||winner;
   const typeA=resolvedParticipantInMatch(no,a)?"official":"",typeB=resolvedParticipantInMatch(no,b)?"official":"";
   const displayTypeA=matchState?"actual":typeA,displayTypeB=matchState?"actual":typeB;
   return `<div class="round center"><div class="round-name">${currentLang==="en"?"Final":"Final · 决赛"}</div><div class="final-stage">
     <div class="match-wrap">${bracketMeta(no)}<article class="match" data-match="${no}"><div class="match-top quiet">${matchState?`<span><b class="${matchState.status==="live"?"live-label":"final-label"}">${matchState.label}</b></span><span class="match-score">${scoreText}</span><span class="match-code">M${no}</span>`:`<span><b class="forecast-label">${currentLang==="en"?"Projected":"预测决赛"}</b></span><span class="match-code">M${no}</span>`}</div>
-      ${teamRow(a,winner,displayTypeA,no,probA,bracketActualStatus(a,matchState,matchState?.score[0]))+teamRow(b,winner,displayTypeB,no,probB,bracketActualStatus(b,matchState,matchState?.score[1]))}</article></div>
+      ${teamRow(a,rowWinner,displayTypeA,no,probA,bracketActualStatus(a,matchState,matchState?.score[0]))+teamRow(b,rowWinner,displayTypeB,no,probB,bracketActualStatus(b,matchState,matchState?.score[1]))}</article></div>
     <div class="champion"><img class="cup" src="assets/world-cup-2026-emblem.png" alt="2026 FIFA World Cup emblem"><b>${teamWithFlag(champ)}</b><small>${currentLang==="en"?`Overall title chance ${formatModelPct(titleProbability)}<br>Exact full path ${formatModelPct(jointPathProbability)}`:`综合夺冠 ${formatModelPct(titleProbability)}<br>完整路径 ${formatModelPct(jointPathProbability)}`}</small></div>
   </div></div>`;
 }
@@ -1292,7 +1296,7 @@ function drawRoutes(){
   bracket.insertAdjacentHTML("afterbegin",`<svg class="routes" width="${bracket.scrollWidth}" height="${bracket.offsetHeight}" viewBox="0 0 ${bracket.scrollWidth} ${bracket.offsetHeight}" aria-hidden="true">${paths.join("")}</svg>`);
 }
 function renderBracket(){
-  const scenario=bracketScenarios[activeScenarioIndex]||makeScenario(r32,locked,1,"Top 1");
+  const scenario=materializeScenario(bracketScenarios[activeScenarioIndex]||makeScenario(r32,locked,1,"Top 1"));
   const p=scenario.paths,champ=p.final[0][3];
   const firstRound=scenario.r32;
   const left32=firstRound.slice(0,8),right32=firstRound.slice(8);
@@ -1730,6 +1734,22 @@ function buildRounds(first){
   const make=no=>{const [x,y]=routePairs[no],a=byNo[x][3],b=byNo[y][3],m=[no,a,b,resolvedKnockoutWinners[no]||pickWinner(a,b)];byNo[no]=m;return m};
   const r16=[89,90,93,94,91,92,95,96].map(make),qf=[97,98,99,100].map(make),sf=[101,102].map(make),final=[104].map(make);
   return {r16,qf,sf,final};
+}
+function scenarioMatchMap(scenario){
+  return Object.fromEntries([...(scenario.r32||[]),...(scenario.paths?.r16||[]),...(scenario.paths?.qf||[]),...(scenario.paths?.sf||[]),...(scenario.paths?.final||[])].map(m=>[m[0],m]));
+}
+function materializeScenario(scenario){
+  const old=scenarioMatchMap(scenario),byNo={};
+  const choose=(no,a,b)=>{
+    if(resolvedKnockoutWinners[no])return resolvedKnockoutWinners[no];
+    const prior=old[no];
+    if(prior&&prior[1]===a&&prior[2]===b)return prior[3];
+    return pickWinner(a,b);
+  };
+  const first=(scenario.r32||[]).map(([no,a,b,w])=>{const m=[no,a,b,resolvedKnockoutWinners[no]||w];byNo[no]=m;return m});
+  const make=no=>{const [x,y]=routePairs[no],a=byNo[x]?.[3],b=byNo[y]?.[3],m=[no,a,b,choose(no,a,b)];byNo[no]=m;return m};
+  const paths={r16:[89,90,93,94,91,92,95,96].map(make),qf:[97,98,99,100].map(make),sf:[101,102].map(make),final:[104].map(make)};
+  return {...scenario,r32:first,paths};
 }
 function simulatedGroupProjection(rng,official={}){
   const sourceGroups=monteCarloGroups.length?monteCarloGroups:groups;
