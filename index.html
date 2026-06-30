@@ -550,17 +550,19 @@ function flagIcon(name,fallback=flag[name]||"🌐"){
 }
 const confirmedGroupWinners=new Set();
 const confirmedQualified=new Set();
-function qualifyChance(t,pos){
+function qualifyChance(t,pos,groupTeams=null,g=""){
   if(knockoutStageReady)return officialTeamMatches[t[0]]?100:0;
   if(t[5])return 0;
+  if(allGroupTablesFinal())return finalTableQualified(t[0],pos)?100:0;
+  if(groupTeams&&isGroupComplete(groupTeams,g)&&pos!==2)return pos<2?100:0;
   if(confirmedGroupWinners.has(t[0])||confirmedQualified.has(t[0]))return 100;
   if(Number.isFinite(qualifyProb[t[0]]))return Math.round(qualifyProb[t[0]]*100);
   const remaining=Math.max(0,3-t[2]),score=t[3]*13+t[4]*3+remaining*7+(pos<2?19:pos===2?6:-12);
   return Math.max(3,Math.min(99,Math.round(score)));
 }
-function displayedQualifyChance(t,pos){
-  const q=qualifyChance(t,pos);
-  if(knockoutStageReady)return q;
+function displayedQualifyChance(t,pos,groupTeams=null,g=""){
+  const q=qualifyChance(t,pos,groupTeams,g);
+  if(knockoutStageReady||allGroupTablesFinal()||(groupTeams&&isGroupComplete(groupTeams,g)&&pos!==2))return q;
   if(t[5]||confirmedGroupWinners.has(t[0])||confirmedQualified.has(t[0]))return q;
   return Math.max(1,Math.min(99,q));
 }
@@ -569,6 +571,21 @@ function setsEqual(a,b){return a.size===b.size&&[...a].every(x=>b.has(x))}
 function groupHasLive(g){return liveGroupKeys.has(g)}
 function isGroupComplete(teams,g=""){
   return !groupHasLive(g)&&teams?.length>=4&&teams.every(t=>Number(t[2])>=3);
+}
+function allGroupTablesFinal(){
+  return groups.length===12&&groups.every(([g,ts])=>isGroupComplete(ts,g));
+}
+function rankedThirdPlaces(){
+  return groups.map(([g,ts])=>({g,t:ts[2]})).filter(x=>x.t)
+    .sort((a,b)=>b.t[3]-a.t[3]||b.t[4]-a.t[4]||(b.t[6]||0)-(a.t[6]||0)||teamElo(b.t[0])-teamElo(a.t[0])||a.g.localeCompare(b.g));
+}
+function finalBestThirdSet(){
+  return new Set(rankedThirdPlaces().slice(0,8).map(x=>x.t[0]));
+}
+function finalTableQualified(team,pos){
+  if(pos<2)return true;
+  if(pos>2)return false;
+  return finalBestThirdSet().has(team);
 }
 function groupHeadNote(g,ts){
   if(groupHasLive(g))return currentLang==="en"?"Live table · Elo MC":"进行中 · 实时积分榜";
@@ -583,10 +600,16 @@ function teamSituation(t,pos,groupTeams,g=""){
     return currentLang==="en"?"Qualified as best third":"最佳第三名晋级";
   }
   if(t[5])return currentLang==="en"?"Eliminated":"已出局";
+  if(allGroupTablesFinal()){
+    if(pos===0)return currentLang==="en"?"Group winner":"锁定头名";
+    if(pos===1)return currentLang==="en"?"Group runner-up":"锁定次名";
+    if(pos===2)return finalTableQualified(t[0],pos)?(currentLang==="en"?"Qualified as best third":"最佳第三名晋级"):(currentLang==="en"?"Eliminated":"已出局");
+    return currentLang==="en"?"Eliminated":"已出局";
+  }
   if(isGroupComplete(groupTeams,g)){
     if(pos===0)return currentLang==="en"?"Group winner":"锁定头名";
     if(pos===1)return currentLang==="en"?"Group runner-up":"锁定次名";
-    if(pos===2)return qualifyChance(t,pos)>=100?(currentLang==="en"?"Qualified as third":"第三名晋级"):(currentLang==="en"?"Third-place bubble":"第三名待定");
+    if(pos===2)return qualifyChance(t,pos,groupTeams,g)>=100?(currentLang==="en"?"Qualified as third":"第三名晋级"):(currentLang==="en"?"Third-place bubble":"第三名待定");
     return currentLang==="en"?"Eliminated":"已出局";
   }
   if(confirmedGroupWinners.has(t[0]))return currentLang==="en"?"Group winner":"锁定头名";
@@ -711,17 +734,70 @@ qf:[[97,"法国","荷兰","法国"],[98,"西班牙","美国","西班牙"],[99,"�
 sf:[[101,"法国","西班牙","法国"],[102,"巴西","阿根廷","阿根廷"]],final:[[104,"法国","阿根廷","阿根廷"]]}
 };
 let officialTeamMatches={},slotLockSource={},lockedSlotGroups={};
+let lastValidationSignature="";
+function groupRowClass(team,pos){
+  if(knockoutStageReady)return officialTeamMatches[team[0]]?(pos<2?"direct":"third"):"eliminated";
+  if(team[5])return "eliminated";
+  if(allGroupTablesFinal())return finalTableQualified(team[0],pos)?(pos<2?"direct":"third"):"eliminated";
+  return pos<2?"direct":pos===2?"third":"";
+}
 function renderGroups(){
   document.querySelector("#groups").innerHTML=groups.map(([g,ts])=>`<article class="group">
     <div class="group-head"><div class="group-title"><b>${g}</b><span>GROUP ${g}</span></div><small>${groupHeadNote(g,ts)}</small></div>
     <div class="group-body"><div class="group-table-head"><span>#</span><span>${currentLang==="en"?"Team / status":"球队 / 形势"}</span><span>${currentLang==="en"?"P":"赛"}</span><span>${currentLang==="en"?"Pts":"分"}</span><span>${currentLang==="en"?"GD":"净胜"}</span><span>${currentLang==="en"?"Qual.":"晋级率"}</span></div>
-    ${ts.map((t,i)=>{const q=displayedQualifyChance(t,i),rowClass=knockoutStageReady?(officialTeamMatches[t[0]]?(i<2?"direct":"third"):"eliminated"):(t[5]?"eliminated":i<2?"direct":i===2?"third":"");return `<div class="team-row ${rowClass}">
+    ${ts.map((t,i)=>{const q=displayedQualifyChance(t,i,ts,g),rowClass=groupRowClass(t,i);return `<div class="team-row ${rowClass}">
       <span class="pos">${i+1}</span><span class="team-name"><strong>${teamWithFlag(t[0],t[1])}</strong><small>${teamSituation(t,i,ts,g)}</small></span>
       <span>${t[2]}</span><span class="pts">${t[3]}</span><span class="gd">${t[4]>0?"+":""}${t[4]}</span>
       <span class="qualify"><b>${q}%</b><i style="--q:${q}%"></i></span>
     </div>`}).join("")}</div></article>`).join("");
   renderGroupInsights();
+  validateTournamentState();
 }
+function validateTournamentState(){
+  const issues=[];
+  if(allGroupTablesFinal()){
+    const bestThird=finalBestThirdSet();
+    let qualified=0;
+    for(const [g,ts] of groups){
+      ts.forEach((team,pos)=>{
+        const expected=pos<2||(pos===2&&bestThird.has(team[0]));
+        const q=qualifyChance(team,pos,ts,g);
+        if(expected)qualified++;
+        if((expected&&q!==100)||(!expected&&q!==0)){
+          issues.push({type:"group-qualification-probability",group:g,team:team[0],position:pos+1,expected:expected?100:0,actual:q});
+        }
+        if(pos===2&&!expected&&teamSituation(team,pos,ts,g).includes("待定")){
+          issues.push({type:"stale-third-place-status",group:g,team:team[0]});
+        }
+      });
+    }
+    if(qualified!==32)issues.push({type:"qualified-count",expected:32,actual:qualified});
+  }
+  if(r32?.length===16&&Array.isArray(routeMap)&&routeMap.length){
+    const resolved=resolveKnockoutWinnersFromMatchCards(r32,resolvedKnockoutWinners||{});
+    for(const [no,winner] of Object.entries(resolved)){
+      if(!resolvedKnockoutWinners[no])issues.push({type:"resolved-winner-not-stored",match:Number(no),winner});
+    }
+    const scenario=bracketScenarios?.[activeScenarioIndex]&&materializeScenario(bracketScenarios[activeScenarioIndex]);
+    const renderedMatches=scenario?[...(scenario.r32||[]),...(scenario.paths?.r16||[]),...(scenario.paths?.qf||[]),...(scenario.paths?.sf||[]),...(scenario.paths?.final||[])]:[];
+    for(const [from,to] of routeMap){
+      const actual=resolved[from];
+      if(!actual)continue;
+      const next=renderedMatches.find(m=>m[0]===to);
+      if(next&&next[1]&&next[2]&&!next.slice(1,3).includes(actual)){
+        issues.push({type:"winner-not-propagated",from,to,winner:actual,nextTeams:next.slice(1,3)});
+      }
+    }
+  }
+  const sig=JSON.stringify(issues);
+  if(sig!==lastValidationSignature){
+    lastValidationSignature=sig;
+    if(issues.length)console.warn("[WC2026 validation]",issues);
+    else console.info("[WC2026 validation] OK");
+  }
+  return issues;
+}
+window.__wcValidate=validateTournamentState;
 renderGroups();
 function renderThirds(){
   if(knockoutStageReady){renderTitleContenders();return}
@@ -1271,7 +1347,7 @@ function finalCol(m,champ,titleProbability=0,jointPathProbability=0){
     <div class="champion"><img class="cup" src="assets/world-cup-2026-emblem.png" alt="2026 FIFA World Cup emblem"><b>${teamWithFlag(champ)}</b><small>${currentLang==="en"?`Overall title chance ${formatModelPct(titleProbability)}<br>Exact full path ${formatModelPct(jointPathProbability)}`:`综合夺冠 ${formatModelPct(titleProbability)}<br>完整路径 ${formatModelPct(jointPathProbability)}`}</small></div>
   </div></div>`;
 }
-const routeMap=[
+var routeMap=[
   [74,89],[77,89],[73,90],[75,90],[83,93],[84,93],[81,94],[82,94],
   [76,91],[78,91],[79,92],[80,92],[86,95],[88,95],[85,96],[87,96],
   [89,97],[90,97],[93,98],[94,98],[91,99],[92,99],[95,100],[96,100],
