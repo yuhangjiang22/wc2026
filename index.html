@@ -248,7 +248,8 @@
     .team.predicted-opponent.loses{color:rgba(255,154,85,.82)}
     .team.actual{background:rgba(255,255,255,.035);color:var(--text);outline:0}
     .team.actual.advances{background:rgba(96,237,181,.18);color:var(--text)}
-    .team.actual.advances .status{color:var(--lime)}
+    .team.actual.advances::before{background:var(--mint)}
+    .team.actual.advances .status{color:var(--mint)}
     .team.actual.loses{background:rgba(255,255,255,.02);color:rgba(216,224,220,.9)}
     .team.actual.loses .status{color:rgba(255,154,85,.95)}
     .team.advances{background:rgba(217,255,99,.12);color:var(--text);font-weight:850}
@@ -1204,12 +1205,12 @@ function bracketScoreText(state){
 function bracketActualStatus(name,state,fallbackScore){
   if(!state)return null;
   const tied=state.score[0]===state.score[1];
-  if(!state.penaltyPhase||!tied)return String(fallbackScore);
-  const adv=knockoutAdvanceProb(state.match);
   const resolved=state.status==="final"?matchResolvedWinner(state.match):"";
   if(resolved){
     return resolved===name?(currentLang==="en"?"ADV":"晋级"):(currentLang==="en"?"OUT":"出局");
   }
+  if(!state.penaltyPhase||!tied)return String(fallbackScore);
+  const adv=knockoutAdvanceProb(state.match);
   if(!adv)return String(fallbackScore);
   const pct=state.match.home===name?adv.home:adv.away;
   return `${pct}%`;
