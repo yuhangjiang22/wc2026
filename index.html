@@ -755,6 +755,15 @@ function renderGroups(){
 }
 function validateTournamentState(){
   const issues=[];
+  if(knockoutStageReady&&latestKoDoc){
+    const openingNumbers=Array.from(latestKoDoc.querySelectorAll(".footballbox"))
+      .map(matchNumberForBox).filter(no=>no>=73&&no<=88);
+    const unique=[...new Set(openingNumbers)].sort((a,b)=>a-b);
+    const expected=Array.from({length:16},(_,i)=>73+i);
+    if(unique.length!==16||unique.some((no,i)=>no!==expected[i])){
+      issues.push({type:"opening-match-number-map",expected,actual:unique});
+    }
+  }
   if(allGroupTablesFinal()){
     const bestThird=finalBestThirdSet();
     let qualified=0;
@@ -894,9 +903,23 @@ function parseMatchCards(doc){
 function matchNumberForBox(box){
   const direct=Number((box.querySelector(".fscore")?.textContent||"").match(/Match\s+(\d+)/i)?.[1]);
   if(direct)return direct;
-  const report=Number((box.querySelector(".fgoals")?.textContent||"").match(/Report\s+(\d+)/i)?.[1]);
-  return report?report+72:0;
+  const dateText=(box.querySelector(".fdate")?.textContent||"").replace(/\s+/g," ").trim();
+  const city=normalizeCity(parseVenue(box.querySelector(".fright")?.textContent||"").city||"");
+  const md=dateText.match(/(?:June|July)\s+(\d{1,2})/i);
+  if(!md||!city)return 0;
+  const month=/June/i.test(dateText)?6:7,key=`${month}/${Number(md[1])}|${city}`;
+  return knockoutScheduleNumbers[key]||0;
 }
+const knockoutScheduleNumbers={
+  "6/28|Los Angeles":73,"6/29|Boston":74,"6/29|Guadalupe":75,"6/29|Houston":76,
+  "6/30|New York City":77,"6/30|Dallas":78,"6/30|Mexico City":79,"7/1|Atlanta":80,
+  "7/1|San Francisco":81,"7/1|Seattle":82,"7/2|Toronto":83,"7/2|Los Angeles":84,
+  "7/2|Vancouver":85,"7/3|Miami":86,"7/3|Kansas City":87,"7/3|Dallas":88,
+  "7/4|Philadelphia":89,"7/4|Houston":90,"7/5|New York City":91,"7/5|Mexico City":92,
+  "7/6|Dallas":93,"7/6|Seattle":94,"7/7|Atlanta":95,"7/7|Vancouver":96,
+  "7/9|Boston":97,"7/10|Los Angeles":98,"7/11|Miami":99,"7/11|Kansas City":100,
+  "7/14|Dallas":101,"7/15|Atlanta":102,"7/19|New York City":104
+};
 function parseKoMatchMeta(koDoc){
   const out={};
   for(const box of koDoc.querySelectorAll(".footballbox")){
