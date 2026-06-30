@@ -1657,6 +1657,31 @@ function parseResolvedKnockoutWinners(koDoc){
   }
   return out;
 }
+function resolveKnockoutWinnersFromMatchCards(first,seed={}){
+  const out={...seed};
+  const scan=(no,a,b)=>{
+    if(!a||!b||out[no])return false;
+    const finished=matchCards.find(m=>m.status==="final"&&samePair([m.home,m.away],a,b));
+    const resolved=matchResolvedWinner(finished);
+    if(resolved){out[no]=resolved;return true}
+    return false;
+  };
+  for(let pass=0;pass<4;pass++){
+    let changed=false;
+    const byNo={};
+    for(const [no,a,b,w] of first){
+      changed=scan(no,a,b)||changed;
+      byNo[no]=[no,a,b,out[no]||w||pickWinner(a,b)];
+    }
+    for(const no of [89,90,93,94,91,92,95,96,97,98,99,100,101,102,104]){
+      const [x,y]=routePairs[no]||[],a=byNo[x]?.[3],b=byNo[y]?.[3];
+      changed=scan(no,a,b)||changed;
+      byNo[no]=[no,a,b,a&&b?(out[no]||pickWinner(a,b)):""];
+    }
+    if(!changed)break;
+  }
+  return out;
+}
 function parseCombo(koDoc,qualifiedGroups){
   const wrap=Array.from(koDoc.querySelectorAll(".sticky-table-scroll")).find(x=>x.querySelectorAll("tr").length===496);
   if(!wrap)return null;
@@ -1899,7 +1924,7 @@ function rebuildKnockout(koDoc,official=parseOfficial(koDoc)){
   const fixedFirst=parseOfficialFirstRound(koDoc);
   if(fixedFirst.length===16){
     knockoutStageReady=true;
-    resolvedKnockoutWinners=parseResolvedKnockoutWinners(koDoc);
+    resolvedKnockoutWinners=resolveKnockoutWinnersFromMatchCards(fixedFirst,parseResolvedKnockoutWinners(koDoc));
     fixedFirst.forEach(m=>{if(resolvedKnockoutWinners[m[0]])m[3]=resolvedKnockoutWinners[m[0]]});
     officialTeamMatches={};slotLockSource={};lockedSlotGroups={};locked={};
     fixedFirst.forEach(([no,a,b])=>{lockTeamSlot(a,no,"","official");lockTeamSlot(b,no,"","official")});
@@ -2158,7 +2183,7 @@ async function refreshMatchCenterLive(){
     matchCards=fresh;
     renderMatchCenter();
     if(knockoutStageReady&&latestKoDoc){
-      const before=JSON.stringify(resolvedKnockoutWinners),after=parseResolvedKnockoutWinners(latestKoDoc);
+      const before=JSON.stringify(resolvedKnockoutWinners),after=resolveKnockoutWinnersFromMatchCards(r32,parseResolvedKnockoutWinners(latestKoDoc));
       if(JSON.stringify(after)!==before)rebuildKnockout(latestKoDoc,latestOfficial);
       else renderBracket();
     }else if(applyLiveMatchesToGroups(fresh)){
