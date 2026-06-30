@@ -914,6 +914,15 @@ function penaltyScoreParts(m){
   const home=goals.filter(g=>g.side==="home").length,away=goals.filter(g=>g.side==="away").length;
   return home+away?[home,away]:null;
 }
+function matchResolvedWinner(m){
+  if(!m)return "";
+  if(m.winnerTeam)return m.winnerTeam;
+  const score=scoreParts(m);
+  if(score&&score[0]!==score[1])return score[0]>score[1]?m.home:m.away;
+  const pens=penaltyScoreParts(m);
+  if(pens&&pens[0]!==pens[1]&&m.status==="final")return pens[0]>pens[1]?m.home:m.away;
+  return "";
+}
 function scoreWithPensMarkup(base,pens){
   return `<span class="score-stack"><span class="score-main">${base}</span><span class="score-pen">PEN ${pens[0]}–${pens[1]}</span></span>`;
 }
@@ -1174,6 +1183,9 @@ function teamRow(name,winner,type="",matchNo="",prob=null,statusOverride=null){
   const status=statusOverride??(Number.isFinite(prob)?`${prob}%`:(name===winner?(currentLang==="en"?"Adv.":"晋级"):"—"));
   return `<div class="team ${cls}">${flagIcon(name)}<span class="name">${teamName(name)}</span><span class="status">${status}</span></div>`;
 }
+function resolvedParticipantInMatch(no,team){
+  return (routePairs[no]||[]).some(prev=>resolvedKnockoutWinners[prev]===team);
+}
 function bracketMatchState(a,b){
   const live=matchCards.find(m=>samePair([m.home,m.away],a,b)&&["live","final"].includes(m.status));
   if(!live)return null;
@@ -1194,8 +1206,9 @@ function bracketActualStatus(name,state,fallbackScore){
   const tied=state.score[0]===state.score[1];
   if(!state.penaltyPhase||!tied)return String(fallbackScore);
   const adv=knockoutAdvanceProb(state.match);
-  if(state.status==="final"&&state.match.winnerTeam){
-    return state.match.winnerTeam===name?(currentLang==="en"?"ADV":"晋级"):(currentLang==="en"?"OUT":"出局");
+  const resolved=state.status==="final"?matchResolvedWinner(state.match):"";
+  if(resolved){
+    return resolved===name?(currentLang==="en"?"ADV":"晋级"):(currentLang==="en"?"OUT":"出局");
   }
   if(!adv)return String(fallbackScore);
   const pct=state.match.home===name?adv.home:adv.away;
@@ -1216,8 +1229,8 @@ function card(m,round,index){
   const [no,a,b,winner]=m;
   const scenario=bracketScenarios[activeScenarioIndex],scenarioLocked=scenario?.locked||locked;
   const activeLock=round==="r32"?scenarioLocked[no]:null;
-  const typeA=officialTeamMatches[a]===no?"official":activeLock&&a===activeLock.opponent?"opponent":"";
-  const typeB=officialTeamMatches[b]===no?"official":activeLock&&b===activeLock.opponent?"opponent":"";
+  const typeA=officialTeamMatches[a]===no||resolvedParticipantInMatch(no,a)?"official":activeLock&&a===activeLock.opponent?"opponent":"";
+  const typeB=officialTeamMatches[b]===no||resolvedParticipantInMatch(no,b)?"official":activeLock&&b===activeLock.opponent?"opponent":"";
   const officialCount=[typeA,typeB].filter(x=>x==="official").length;
   const [probA,probB]=matchWinPerc(a,b);
   const matchState=bracketMatchState(a,b),scoreText=bracketScoreText(matchState);
@@ -1245,10 +1258,11 @@ function finalCol(m,champ,titleProbability=0,jointPathProbability=0){
   const [no,a,b,winner]=m;
   const [probA,probB]=matchWinPerc(a,b);
   const matchState=bracketMatchState(a,b),scoreText=bracketScoreText(matchState);
-  const displayType=matchState?"actual":"";
+  const typeA=resolvedParticipantInMatch(no,a)?"official":"",typeB=resolvedParticipantInMatch(no,b)?"official":"";
+  const displayTypeA=matchState?"actual":typeA,displayTypeB=matchState?"actual":typeB;
   return `<div class="round center"><div class="round-name">${currentLang==="en"?"Final":"Final · 决赛"}</div><div class="final-stage">
     <div class="match-wrap">${bracketMeta(no)}<article class="match" data-match="${no}"><div class="match-top quiet">${matchState?`<span><b class="${matchState.status==="live"?"live-label":"final-label"}">${matchState.label}</b></span><span class="match-score">${scoreText}</span><span class="match-code">M${no}</span>`:`<span><b class="forecast-label">${currentLang==="en"?"Projected":"预测决赛"}</b></span><span class="match-code">M${no}</span>`}</div>
-      ${teamRow(a,winner,displayType,no,probA,bracketActualStatus(a,matchState,matchState?.score[0]))+teamRow(b,winner,displayType,no,probB,bracketActualStatus(b,matchState,matchState?.score[1]))}</article></div>
+      ${teamRow(a,winner,displayTypeA,no,probA,bracketActualStatus(a,matchState,matchState?.score[0]))+teamRow(b,winner,displayTypeB,no,probB,bracketActualStatus(b,matchState,matchState?.score[1]))}</article></div>
     <div class="champion"><img class="cup" src="assets/world-cup-2026-emblem.png" alt="2026 FIFA World Cup emblem"><b>${teamWithFlag(champ)}</b><small>${currentLang==="en"?`Overall title chance ${formatModelPct(titleProbability)}<br>Exact full path ${formatModelPct(jointPathProbability)}`:`综合夺冠 ${formatModelPct(titleProbability)}<br>完整路径 ${formatModelPct(jointPathProbability)}`}</small></div>
   </div></div>`;
 }
@@ -1617,7 +1631,7 @@ function parseOfficialFirstRound(koDoc){
     const a=read(".fhome"),b=read(".faway");
     if(knownTeams.has(a)&&knownTeams.has(b)){
       const finished=matchCards.find(m=>m.status==="final"&&samePair([m.home,m.away],a,b));
-      matches[no]=[no,a,b,finished?.winnerTeam||pickWinner(a,b)];
+      matches[no]=[no,a,b,matchResolvedWinner(finished)||pickWinner(a,b)];
     }
   }
   return bracketOrder.map(no=>matches[no]).filter(Boolean);
@@ -1629,7 +1643,8 @@ function parseResolvedKnockoutWinners(koDoc){
     const read=selector=>{const raw=cleanTeamName(box.querySelector(selector)?.textContent||"");return teamZh[raw]||raw};
     const a=read(".fhome"),b=read(".faway");if(!knownTeams.has(a)||!knownTeams.has(b))continue;
     const finished=matchCards.find(m=>m.status==="final"&&samePair([m.home,m.away],a,b));
-    if(finished?.winnerTeam)out[no]=finished.winnerTeam;
+    const resolved=matchResolvedWinner(finished);
+    if(resolved)out[no]=resolved;
     else{
       const score=(box.querySelector(".fscore")?.textContent||"").replace(/\s+/g,"").match(/(\d+)[–-](\d+)/);
       if(score&&Number(score[1])!==Number(score[2]))out[no]=Number(score[1])>Number(score[2])?a:b;
