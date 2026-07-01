@@ -986,6 +986,17 @@ async function fetchEspnMatches(cachedPages=null){
 async function fetchEspnMatchesFresh(){
   return fetchEspnMatches(null);
 }
+function mergeMatchCardSets(...sets){
+  const merged=new Map();
+  for(const matches of sets){
+    for(const match of matches||[]){
+      if(!match?.home||!match?.away)continue;
+      const key=pairKey(match.home,match.away);
+      merged.set(key,{...(merged.get(key)||{}),...match});
+    }
+  }
+  return [...merged.values()].sort((a,b)=>(a.kickoff||0)-(b.kickoff||0));
+}
 function fmtMatchTime(d){
   if(!d)return currentLang==="en"?"Time TBD":"时间待定";
   return new Intl.DateTimeFormat(currentLang==="en"?"en-US":"zh-CN",{weekday:"short",month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}).format(d).replace(",","");
@@ -2236,10 +2247,10 @@ async function applyDataBundle({data,koData,espnPages=null,eloText=null,polymark
     baseCompletedResults=cloneMap(freshResults);
     groups=cloneGroups(baseGroups);remainingFixtures=cloneMap(baseRemainingFixtures);completedResults=cloneMap(baseCompletedResults);
     scorerLeaders=parseScorers(doc);
-    let espnMatches=[];
-    try{espnMatches=await fetchEspnMatchesFresh()}catch(error){espnMatches=[]}
-    if(!espnMatches.length)espnMatches=await fetchEspnMatches(espnPages);
-    matchCards=espnMatches.length?espnMatches:parseMatchCards(doc);
+    let freshEspn=[],cachedEspn=[];
+    try{freshEspn=await fetchEspnMatchesFresh()}catch(error){freshEspn=[]}
+    try{cachedEspn=await fetchEspnMatches(espnPages)}catch(error){cachedEspn=[]}
+    matchCards=mergeMatchCardSets(parseMatchCards(doc),cachedEspn,freshEspn);
     renderMatchCenter();
     enrichWeather();
     const official=parseOfficial(koDoc);
@@ -2280,7 +2291,7 @@ async function refreshMatchCenterLive(){
   try{
     const fresh=await fetchEspnMatchesFresh();
     if(!fresh.length)return;
-    matchCards=fresh;
+    matchCards=mergeMatchCardSets(matchCards,fresh);
     renderMatchCenter();
     if(knockoutStageReady&&latestKoDoc){
       const before=JSON.stringify(resolvedKnockoutWinners),after=resolveKnockoutWinnersFromMatchCards(r32,parseResolvedKnockoutWinners(latestKoDoc));

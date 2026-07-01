@@ -118,7 +118,17 @@ def main() -> None:
         "worldCup": wiki_parse("2026_FIFA_World_Cup"),
         "knockout": wiki_parse("2026_FIFA_World_Cup_knockout_stage"),
     }
-    espn = {key: espn_scoreboard(key) for key in date_keys()}
+    # Keep previously fetched match days. A rolling date window alone makes
+    # completed knockout results disappear from the static site a few days
+    # later, causing finished cards to fall back to projected matchups.
+    previous_espn: dict[str, dict] = {}
+    if OUT.exists():
+        try:
+            previous = json.loads(OUT.read_text(encoding="utf-8"))
+            previous_espn = previous.get("espn", {}) if isinstance(previous.get("espn", {}), dict) else {}
+        except (OSError, ValueError, TypeError):
+            previous_espn = {}
+    espn = {**previous_espn, **{key: espn_scoreboard(key) for key in date_keys()}}
     elo_text = with_retries(lambda: fetch_text(ELO_URL))
     polymarket = polymarket_games()
 
