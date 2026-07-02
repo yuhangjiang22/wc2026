@@ -77,6 +77,7 @@
     .key.projected:before{border:1px dashed var(--orange);background:rgba(255,154,85,.08)}
     .key.advance:before{background:rgba(217,255,99,.13);border-left:3px solid var(--lime)}
     .key.route:before{height:2px;border-radius:0;background:var(--route)}
+    .key.result:before{background:linear-gradient(90deg,rgba(96,237,181,.34) 0 50%,rgba(255,255,255,.055) 50% 100%);border-left:3px solid var(--mint)}
     .notice{display:flex;gap:12px;align-items:flex-start;padding:15px 18px;margin-bottom:18px;border:1px solid #315849;
       border-radius:14px;background:rgba(96,237,181,.06);font-size:13px;line-height:1.6;color:var(--muted)}
     .notice b{color:var(--mint);white-space:nowrap}
@@ -371,7 +372,7 @@
 
     <section id="bracketView" class="view active">
       <div class="section-head"><div><h2>官方淘汰赛签表与预测路径</h2><p>32 强首轮对阵固定；后续轮次和冠军路径由市场价格、Elo 与蒙特卡洛模拟实时更新。</p></div>
-        <div class="legend"><span class="key official">薄荷绿：官方对阵</span><span class="key projected">橙虚线：模型预测</span><span class="key advance">黄左线：预测晋级</span><span class="key route">连线：晋级路径</span></div>
+        <div class="legend"><span class="key official">薄荷绿：官方对阵</span><span class="key projected">橙虚线：模型预测</span><span class="key advance">黄左线：预测晋级</span><span class="key result">完赛：高亮晋级 · 弱化出局 · 括号为点球</span><span class="key route">连线：晋级路径</span></div>
       </div>
       <div class="notice"><b>实时模型</b><span id="bracketModelNote">等待同步后自动生成 32 强对阵、第三名映射和后续晋级路径。</span></div>
       <div class="scenario-tabs" id="scenarioTabs" aria-label="淘汰赛场景切换"></div>
@@ -400,7 +401,7 @@ const copy={
     statsTitle:"赛事榜单",statsDesc:"射手、球队火力和防守表现随比赛结果自动更新。",scorers:"射手榜",goals:"G",attack:"球队进球榜",defence:"最佳防守",ga:"GA",
     groupsTitle:"小组赛最终排名",groupsDesc:"12 个小组的最终积分、净胜球和晋级结果，仅作为赛事档案展示。",
     bracketTitle:"官方淘汰赛签表与预测路径",bracketDesc:"32 强首轮对阵固定；后续轮次和冠军路径由市场价格、Elo 与蒙特卡洛模拟实时更新。",
-    legendOfficial:"薄荷绿：官方对阵",legendProjected:"橙虚线：模型预测",legendAdvance:"黄左线：预测晋级",legendRoute:"连线：晋级路径",liveModel:"淘汰赛模型",
+    legendOfficial:"薄荷绿：官方对阵",legendProjected:"橙虚线：模型预测",legendAdvance:"黄左线：预测晋级",legendResult:"完赛：高亮晋级 · 弱化出局 · 括号为点球",legendRoute:"连线：晋级路径",liveModel:"淘汰赛模型",
     bracketWait:"等待同步官方 32 强签表并计算后续晋级概率。",bracketHelp:"横向滑动查看后续轮次 →",
     footer:"预测依据：等待同步最新积分、净胜球、剩余赛程、球队实力与路径难度。本页面不是 FIFA 官方对阵表。"
   },
@@ -419,7 +420,7 @@ const copy={
     statsTitle:"Tournament leaders",statsDesc:"Top scorers, team goals and defensive records update as results come in.",scorers:"Top scorers",goals:"Goals",attack:"Team goals",defence:"Fewest goals allowed",ga:"GA",
     groupsTitle:"Final group-stage tables",groupsDesc:"Final points, goal difference and qualification status for all 12 groups.",
     bracketTitle:"Official bracket and projected path",bracketDesc:"The Round of 32 is set. Later rounds update from market prices, Elo ratings and Monte Carlo simulation.",
-    legendOfficial:"Mint: official matchup",legendProjected:"Dashed: projected",legendAdvance:"Lime rail: favored",legendRoute:"Line: route",liveModel:"Knockout model",
+    legendOfficial:"Mint: official matchup",legendProjected:"Dashed: projected",legendAdvance:"Lime rail: favored",legendResult:"Final: highlighted team advances · parentheses show shootout score",legendRoute:"Line: route",liveModel:"Knockout model",
     bracketWait:"Loading the official Round of 32 bracket and advancement probabilities.",bracketHelp:"Scroll sideways for later rounds →",
     footer:"Model inputs: synced tables, goal difference, remaining fixtures, market prices, World Football Elo and path difficulty. This is not an official FIFA bracket."
   }
@@ -455,7 +456,7 @@ function applyLanguage(){
   lb[2].querySelector("b").innerHTML=`<span class="label-mark defence">GA</span>${t("defence")}`;lb[2].querySelector(":scope > span:last-child").textContent=t("ga");
   setText("#groupsView .section-head h2","groupsTitle");setText("#groupsView .section-head p","groupsDesc");
   setText("#bracketView .section-head h2","bracketTitle");setText("#bracketView .section-head p","bracketDesc");
-  const keys=document.querySelectorAll(".legend .key");keys[0].textContent=t("legendOfficial");keys[1].textContent=t("legendProjected");keys[2].textContent=t("legendAdvance");keys[3].textContent=t("legendRoute");
+  const keys=document.querySelectorAll(".legend .key");keys[0].textContent=t("legendOfficial");keys[1].textContent=t("legendProjected");keys[2].textContent=t("legendAdvance");keys[3].textContent=t("legendResult");keys[4].textContent=t("legendRoute");
   setText("#bracketView .notice b","liveModel");if(!liveDataReady)setText("#bracketModelNote","bracketWait");setText(".bracket-help","bracketHelp");
   setText("#footerNote","footer");
   document.querySelector("#syncBtn")?.setAttribute("aria-label",currentLang==="en"?"Refresh latest data":"立即刷新最新赛况");
@@ -1313,18 +1314,9 @@ function bracketScoreText(state){
   if(!state.penaltyScore)return `<span class="bracket-scoreline">${base}</span>`;
   return `<span class="bracket-scoreline"><span>${base}</span><span class="shootout-score">PEN ${state.penaltyScore[0]}–${state.penaltyScore[1]}</span></span>`;
 }
-function bracketActualStatus(name,state,fallbackScore){
+function bracketActualStatus(name,state,fallbackScore,shootoutScore=null){
   if(!state)return null;
-  const tied=state.score[0]===state.score[1];
-  const resolved=state.status==="final"?matchResolvedWinner(state.match):"";
-  if(resolved){
-    return resolved===name?(currentLang==="en"?"ADV":"晋级"):(currentLang==="en"?"OUT":"出局");
-  }
-  if(!state.penaltyPhase||!tied)return String(fallbackScore);
-  const adv=knockoutAdvanceProb(state.match);
-  if(!adv)return String(fallbackScore);
-  const pct=state.match.home===name?adv.home:adv.away;
-  return `${pct}%`;
+  return shootoutScore==null?String(fallbackScore):`${fallbackScore} (${shootoutScore})`;
 }
 function bracketTime(d){
   if(!d)return "";
@@ -1345,18 +1337,18 @@ function card(m,round,index){
   const typeB=officialTeamMatches[b]===no||resolvedParticipantInMatch(no,b)?"official":activeLock&&b===activeLock.opponent?"opponent":"";
   const officialCount=[typeA,typeB].filter(x=>x==="official").length;
   const [probA,probB]=matchWinPerc(a,b);
-  const matchState=bracketMatchState(a,b),scoreText=bracketScoreText(matchState);
+  const matchState=bracketMatchState(a,b);
   const actualWinner=matchState?.status==="final"?matchResolvedWinner(matchState.match):"";
   const rowWinner=actualWinner||winner;
   const span={r32:1,r16:2,qf:4,sf:8}[round],row=2+index*span;
   const forecastLabel=currentLang==="en"?"Projected":"预测对阵";
   const displayTypeA=matchState?"actual":typeA,displayTypeB=matchState?"actual":typeB;
   const header=matchState
-    ?`<span><b class="${matchState.status==="live"?"live-label":"final-label"}">${matchState.label}</b></span><span class="match-score">${scoreText}</span><span class="match-code">M${no}</span>`
+    ?`<span><b class="${matchState.status==="live"?"live-label":"final-label"}">${matchState.label}</b></span><span class="match-score"></span><span class="match-code">M${no}</span>`
     :officialCount?`<span><b class="official-label">${officialCount===2?(currentLang==="en"?"Locked matchup":"对阵已锁定"):(currentLang==="en"?"Locked slot":"锁定席位")}</b></span><span class="match-code">M${no}</span>`:`<span><b class="forecast-label">${forecastLabel}</b></span><span class="match-code">M${no}</span>`;
   return `<div class="match-wrap" style="grid-row:${row}/span ${span}">${bracketMeta(no)}<article class="match ${officialCount?"locked":""}" data-match="${no}">
     <div class="match-top ${officialCount?"":"quiet"}">${header}</div>
-    ${teamRow(a,rowWinner,displayTypeA,no,probA,bracketActualStatus(a,matchState,matchState?.score[0]))+teamRow(b,rowWinner,displayTypeB,no,probB,bracketActualStatus(b,matchState,matchState?.score[1]))}
+    ${teamRow(a,rowWinner,displayTypeA,no,probA,bracketActualStatus(a,matchState,matchState?.score[0],matchState?.penaltyScore?.[0]))+teamRow(b,rowWinner,displayTypeB,no,probB,bracketActualStatus(b,matchState,matchState?.score[1],matchState?.penaltyScore?.[1]))}
   </article></div>`;
 }
 function roundCol(title,key,data,side="left"){return `<div class="round ${side}"><div class="round-name">${title}</div>${data.map((m,i)=>card(m,key,i)).join("")}</div>`}
@@ -1371,14 +1363,14 @@ function formatModelPct(probability){
 function finalCol(m,champ,titleProbability=0,jointPathProbability=0){
   const [no,a,b,winner]=m;
   const [probA,probB]=matchWinPerc(a,b);
-  const matchState=bracketMatchState(a,b),scoreText=bracketScoreText(matchState);
+  const matchState=bracketMatchState(a,b);
   const actualWinner=matchState?.status==="final"?matchResolvedWinner(matchState.match):"";
   const rowWinner=actualWinner||winner;
   const typeA=resolvedParticipantInMatch(no,a)?"official":"",typeB=resolvedParticipantInMatch(no,b)?"official":"";
   const displayTypeA=matchState?"actual":typeA,displayTypeB=matchState?"actual":typeB;
   return `<div class="round center"><div class="round-name">${currentLang==="en"?"Final":"Final · 决赛"}</div><div class="final-stage">
-    <div class="match-wrap">${bracketMeta(no)}<article class="match" data-match="${no}"><div class="match-top quiet">${matchState?`<span><b class="${matchState.status==="live"?"live-label":"final-label"}">${matchState.label}</b></span><span class="match-score">${scoreText}</span><span class="match-code">M${no}</span>`:`<span><b class="forecast-label">${currentLang==="en"?"Projected":"预测决赛"}</b></span><span class="match-code">M${no}</span>`}</div>
-      ${teamRow(a,rowWinner,displayTypeA,no,probA,bracketActualStatus(a,matchState,matchState?.score[0]))+teamRow(b,rowWinner,displayTypeB,no,probB,bracketActualStatus(b,matchState,matchState?.score[1]))}</article></div>
+    <div class="match-wrap">${bracketMeta(no)}<article class="match" data-match="${no}"><div class="match-top quiet">${matchState?`<span><b class="${matchState.status==="live"?"live-label":"final-label"}">${matchState.label}</b></span><span class="match-score"></span><span class="match-code">M${no}</span>`:`<span><b class="forecast-label">${currentLang==="en"?"Projected":"预测决赛"}</b></span><span class="match-code">M${no}</span>`}</div>
+      ${teamRow(a,rowWinner,displayTypeA,no,probA,bracketActualStatus(a,matchState,matchState?.score[0],matchState?.penaltyScore?.[0]))+teamRow(b,rowWinner,displayTypeB,no,probB,bracketActualStatus(b,matchState,matchState?.score[1],matchState?.penaltyScore?.[1]))}</article></div>
     <div class="champion"><img class="cup" src="assets/world-cup-2026-emblem.png" alt="2026 FIFA World Cup emblem"><b>${teamWithFlag(champ)}</b><small>${currentLang==="en"?`Overall title chance ${formatModelPct(titleProbability)}<br>Exact full path ${formatModelPct(jointPathProbability)}`:`综合夺冠 ${formatModelPct(titleProbability)}<br>完整路径 ${formatModelPct(jointPathProbability)}`}</small></div>
   </div></div>`;
 }
