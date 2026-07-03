@@ -798,6 +798,10 @@ function validateTournamentState(){
         issues.push({type:"winner-not-propagated",from,to,winner:actual,nextTeams:next.slice(1,3)});
       }
     }
+    const basePlayed=groups.flatMap(([,ts])=>ts).reduce((sum,t)=>sum+t[2],0);
+    const actualExtra=tournamentTeamStats().reduce((sum,t)=>sum+t.played,0)-basePlayed;
+    const expectedExtra=completedKnockoutMatches().length*2;
+    if(actualExtra!==expectedExtra)issues.push({type:"leaderboard-knockout-match-count",expectedExtra,actualExtra});
   }
   const sig=JSON.stringify(issues);
   if(sig!==lastValidationSignature){
@@ -824,12 +828,34 @@ function boardRows(items,valueLabel){
     <span class="board-rank">${i+1}</span><span class="board-name">${x.flag||""} ${x.name}${x.team?`<small>${teamName(x.team)}</small>`:(x.note?`<small>${x.note}</small>`:"")}</span>
     <b class="board-value">${x.value}${valueLabel||""}</b></div>`).join("");
 }
+function completedKnockoutMatches(){
+  const knockoutStart=Date.UTC(2026,5,28),seen=new Set(),completed=[];
+  for(const match of matchCards){
+    if(match.status!=="final"||!match.kickoff||+match.kickoff<knockoutStart)continue;
+    if(!officialTeamMatches[match.home]||!officialTeamMatches[match.away]||!scoreParts(match))continue;
+    const key=pairKey(match.home,match.away);if(seen.has(key))continue;
+    seen.add(key);completed.push(match);
+  }
+  return completed;
+}
+function tournamentTeamStats(){
+  const stats=new Map(groups.flatMap(([,ts])=>ts.map(t=>[t[0],{
+    team:t[0],flag:flagIcon(t[0],t[1]),gf:t[6]||0,ga:(t[6]||0)-t[4],played:t[2]
+  }])));
+  for(const match of completedKnockoutMatches()){
+    const score=scoreParts(match);
+    const home=stats.get(match.home),away=stats.get(match.away);
+    if(!home||!away)continue;
+    home.played++;away.played++;home.gf+=score[0];home.ga+=score[1];away.gf+=score[1];away.ga+=score[0];
+  }
+  return [...stats.values()];
+}
 function renderLeaderboards(){
-  const all=groups.flatMap(([g,ts])=>ts.map(t=>({name:teamName(t[0]),flag:flagIcon(t[0],t[1]),gf:t[6]||0,ga:(t[6]||0)-t[4],played:t[2]})));
-  const attack=[...all].sort((a,b)=>b.gf-a.gf||a.played-b.played||(eloRatings[b.name]||0)-(eloRatings[a.name]||0))
-    .slice(0,6).map(x=>({name:x.name,flag:x.flag,note:currentLang==="en"?`${x.played} matches`:`${x.played}场`,value:x.gf}));
+  const all=tournamentTeamStats();
+  const attack=[...all].sort((a,b)=>b.gf-a.gf||a.played-b.played||teamElo(b.team)-teamElo(a.team))
+    .slice(0,6).map(x=>({name:teamName(x.team),flag:x.flag,note:currentLang==="en"?`${x.played} matches`:`${x.played}场`,value:x.gf}));
   const defence=[...all].filter(x=>x.played>0).sort((a,b)=>a.ga-b.ga||b.played-a.played||-b.gf+a.gf)
-    .slice(0,6).map(x=>({name:x.name,flag:x.flag,note:currentLang==="en"?`${x.played} matches`:`${x.played}场`,value:x.ga}));
+    .slice(0,6).map(x=>({name:teamName(x.team),flag:x.flag,note:currentLang==="en"?`${x.played} matches`:`${x.played}场`,value:x.ga}));
   document.querySelector("#scorerBoard").innerHTML=boardRows(scorerLeaders,"");
   document.querySelector("#attackBoard").innerHTML=boardRows(attack,"");
   document.querySelector("#defenceBoard").innerHTML=boardRows(defence,"");
