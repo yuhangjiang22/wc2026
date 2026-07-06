@@ -764,6 +764,13 @@ function validateTournamentState(){
     if(unique.length!==16||unique.some((no,i)=>no!==expected[i])){
       issues.push({type:"opening-match-number-map",expected,actual:unique});
     }
+    for(const box of latestKoDoc.querySelectorAll(".footballbox")){
+      const rawHome=cleanTeamName(box.querySelector(".fhome")?.textContent||""),rawAway=cleanTeamName(box.querySelector(".faway")?.textContent||"");
+      const home=teamZh[rawHome]||rawHome,away=teamZh[rawAway]||rawAway,referee=parseReferee(box.querySelector(".fright")?.textContent||"");
+      if(!referee||!home||!away)continue;
+      const card=matchCards.find(m=>samePair([m.home,m.away],home,away));
+      if(card&&!card.referee)issues.push({type:"referee-not-merged",home,away,referee});
+    }
   }
   if(allGroupTablesFinal()){
     const bestThird=finalBestThirdSet();
@@ -894,6 +901,15 @@ function parseVenue(text){
   const parts=main.split(",").map(x=>x.trim()).filter(Boolean);
   return {stadium:parts[0]||(currentLang==="en"?"Venue TBD":"待定球场"),city:normalizeCity(parts[1]||parts[0]||(currentLang==="en"?"City TBD":"待定城市"))};
 }
+function parseReferee(text=""){
+  const match=text.replace(/\s+/g," ").match(/Referee:\s*(.+?)(?=\s*Attendance:|$)/i);
+  return (match?.[1]||"").trim().replace(/\s*\(\s*/g," (").replace(/\s*\)\s*/g,")");
+}
+function refereeLabel(referee=""){
+  if(!referee)return "";
+  const localized=currentLang==="en"?referee:referee.replace(/\s*\(([^)]+)\)/g,(_,country)=>`（${teamZh[country.trim()]||country.trim()}）`);
+  return currentLang==="en"?`Referee: ${localized}`:`裁判：${localized}`;
+}
 function normalizeCity(city=""){
   const clean=city.replace(/\s+/g," ").split(",")[0].trim();
   const hostAlias={"Zapopan":"Guadalajara","Santa Clara":"San Francisco","Inglewood":"Los Angeles","Arlington":"Dallas","East Rutherford":"New York City","Foxborough":"Boston","Miami Gardens":"Miami"};
@@ -918,12 +934,12 @@ function parseMatchCards(doc){
     const scoreText=(box.querySelector(".fscore")?.textContent||"").replace(/\s+/g,"").trim();
     const dateText=box.querySelector(".fdate")?.textContent||"";
     const timeText=box.querySelector(".ftime")?.textContent||"";
-    const venue=parseVenue(box.querySelector(".fright")?.textContent||"");
+    const rightText=box.querySelector(".fright")?.textContent||"",venue=parseVenue(rightText),referee=parseReferee(rightText);
     const kickoff=parseKickoff(dateText,timeText);
     return {
       id:`wiki-${i}`,source:"Wikipedia",home:zhTeam(homeEn)||"待定",away:zhTeam(awayEn)||"待定",
       homeFlag:flag[zhTeam(homeEn)]||"🌐",awayFlag:flag[zhTeam(awayEn)]||"🌐",
-      scoreText,dateText,timeText,kickoff,localHour:parseLocalHour(timeText),...venue,status:"upcoming",weather:currentLang==="en"?"Loading weather":"天气加载中",goals:[]
+      scoreText,dateText,timeText,kickoff,localHour:parseLocalHour(timeText),...venue,referee,status:"upcoming",weather:currentLang==="en"?"Loading weather":"天气加载中",goals:[]
     };
   }).filter(x=>x.home!=="待定"&&x.away!=="待定").map(x=>({...x,status:matchStatus(x)})).sort((a,b)=>(a.kickoff||0)-(b.kickoff||0));
 }
@@ -954,8 +970,8 @@ function parseKoMatchMeta(koDoc){
     if(!no)continue;
     const dateText=box.querySelector(".fdate")?.textContent||"";
     const timeText=box.querySelector(".ftime")?.textContent||"";
-    const venue=parseVenue(box.querySelector(".fright")?.textContent||"");
-    out[no]={no,kickoff:parseKickoff(dateText,timeText),dateText,timeText,...venue};
+    const rightText=box.querySelector(".fright")?.textContent||"",venue=parseVenue(rightText),referee=parseReferee(rightText);
+    out[no]={no,kickoff:parseKickoff(dateText,timeText),dateText,timeText,...venue,referee};
   }
   return out;
 }
@@ -981,6 +997,7 @@ async function fetchEspnMatches(cachedPages=null){
       if(!home||!away)continue;
       const homeName=zhTeam(home.team?.displayName||home.team?.name||""),awayName=zhTeam(away.team?.displayName||away.team?.name||"");
       const venue=comp.venue||{},city=normalizeCity(venue.address?.city||""),kickoff=new Date(event.date);
+      const referee=(comp.officials||[]).map(o=>o.displayName||o.fullName||o.athlete?.displayName||o.athlete?.fullName||"").find(Boolean)||"";
       const statusType=event.status?.type||{},state=statusType.state;
       const scoreText=state==="pre"?"vs":`${home.score??""}–${away.score??""}`;
       const minute=Number((event.status?.displayClock||statusType.shortDetail||"").match(/\d+/)?.[0]);
@@ -1004,7 +1021,7 @@ async function fetchEspnMatches(cachedPages=null){
         scoreText,kickoff,localHour:kickoff.getUTCHours(),stadium:venue.fullName||(currentLang==="en"?"Venue TBD":"待定球场"),city:city||(currentLang==="en"?"City TBD":"待定城市"),
         status:state==="in"?"live":state==="post"?"final":"upcoming",
         statusDetail:statusType.shortDetail||statusType.detail||statusType.description||"",winnerTeam:home.winner?homeName:away.winner?awayName:"",
-        minute:Number.isFinite(minute)?minute:null,weather:currentLang==="en"?"Loading weather":"天气加载中",goals
+        minute:Number.isFinite(minute)?minute:null,referee,weather:currentLang==="en"?"Loading weather":"天气加载中",goals
       });
     }
   }
@@ -1019,7 +1036,8 @@ function mergeMatchCardSets(...sets){
     for(const match of matches||[]){
       if(!match?.home||!match?.away)continue;
       const key=pairKey(match.home,match.away);
-      merged.set(key,{...(merged.get(key)||{}),...match});
+      const previous=merged.get(key)||{};
+      merged.set(key,{...previous,...match,referee:match.referee||previous.referee||""});
     }
   }
   return [...merged.values()].sort((a,b)=>(a.kickoff||0)-(b.kickoff||0));
@@ -1228,6 +1246,7 @@ function matchCard(m){
     <div class="match-meta">
       <span>📍 <b>${displayPlace(m.stadium)}</b> · ${displayPlace(m.city)}</span>
       <span>🌤️ <span data-weather="${m.id}">${displayWeather(m.weather)||(currentLang==="en"?"Loading weather":"天气加载中")}</span></span>
+      ${m.referee?`<span class="referee-meta">${refereeLabel(m.referee)}</span>`:""}
       <span>📡 ${currentLang==="en"?"Source:":"比分源："}${m.source||"Wikipedia"}${m.statusDetail?` · ${m.statusDetail}`:""}</span>
     </div>
   </article>`;
@@ -1255,13 +1274,13 @@ function renderMatchCenter(){
   document.querySelector("#upcomingList").innerHTML=upcoming.length?upcoming.map(m=>`
     <div class="fixture">
       <div class="fixture-time">${shortTime(m.kickoff)}</div>
-      <div class="fixture-main"><b>${teamWithFlag(m.home,m.homeFlag)} vs ${teamWithFlag(m.away,m.awayFlag)}</b><small>${displayPlace(m.stadium)} · ${displayPlace(m.city)}</small></div>
+      <div class="fixture-main"><b>${teamWithFlag(m.home,m.homeFlag)} vs ${teamWithFlag(m.away,m.awayFlag)}</b><small>${displayPlace(m.stadium)} · ${displayPlace(m.city)}</small>${m.referee?`<small>${refereeLabel(m.referee)}</small>`:""}</div>
       <div class="fixture-weather" data-weather="${m.id}">${displayWeather(m.weather)||(currentLang==="en"?"Loading weather":"天气加载中")}</div>
     </div>`).join(""):`<div class="empty-state">${currentLang==="en"?"No upcoming fixtures loaded. Refresh to sync again.":"暂时没有更多赛程；点击刷新重新同步。"}</div>`;
   document.querySelector("#completedList").innerHTML=recentFinal.length?recentFinal.slice(0,6).map(m=>`
     <div class="fixture final">
       <div class="fixture-time">${shortTime(m.kickoff)}</div>
-      <div class="fixture-main"><b>${teamWithFlag(m.home,m.homeFlag)} vs ${teamWithFlag(m.away,m.awayFlag)}</b><small>${displayPlace(m.stadium)} · ${displayPlace(m.city)}${m.statusDetail?` · ${m.statusDetail}`:""}</small><span class="goal-list">${formatGoals(m)}</span></div>
+      <div class="fixture-main"><b>${teamWithFlag(m.home,m.homeFlag)} vs ${teamWithFlag(m.away,m.awayFlag)}</b><small>${displayPlace(m.stadium)} · ${displayPlace(m.city)}${m.statusDetail?` · ${m.statusDetail}`:""}</small>${m.referee?`<small>${refereeLabel(m.referee)}</small>`:""}<span class="goal-list">${formatGoals(m)}</span></div>
       <div class="fixture-score">${scoreDisplay(m)}</div>
     </div>`).join(""):`<div class="empty-state">${currentLang==="en"?"No finals from today or yesterday.":"今天/昨天暂无已结束比赛。"}</div>`;
   updateKickoffCountdowns();
@@ -2268,7 +2287,7 @@ async function applyDataBundle({data,koData,espnPages=null,eloText=null,polymark
     let freshEspn=[],cachedEspn=[];
     try{freshEspn=await fetchEspnMatchesFresh()}catch(error){freshEspn=[]}
     try{cachedEspn=await fetchEspnMatches(espnPages)}catch(error){cachedEspn=[]}
-    matchCards=mergeMatchCardSets(parseMatchCards(doc),cachedEspn,freshEspn);
+    matchCards=mergeMatchCardSets(parseMatchCards(doc),parseMatchCards(koDoc),cachedEspn,freshEspn);
     renderMatchCenter();
     enrichWeather();
     const official=parseOfficial(koDoc);
