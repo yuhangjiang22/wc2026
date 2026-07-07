@@ -929,6 +929,7 @@ function matchStatus(match,now=new Date()){
 }
 function parseMatchCards(doc){
   return Array.from(doc.querySelectorAll(".footballbox")).map((box,i)=>{
+    const no=matchNumberForBox(box);
     const homeEn=cleanTeamName(box.querySelector(".fhome")?.textContent||"");
     const awayEn=cleanTeamName(box.querySelector(".faway")?.textContent||"");
     const scoreText=(box.querySelector(".fscore")?.textContent||"").replace(/\s+/g,"").trim();
@@ -937,7 +938,7 @@ function parseMatchCards(doc){
     const rightText=box.querySelector(".fright")?.textContent||"",venue=parseVenue(rightText),referee=parseReferee(rightText);
     const kickoff=parseKickoff(dateText,timeText);
     return {
-      id:`wiki-${i}`,source:"Wikipedia",home:zhTeam(homeEn)||"待定",away:zhTeam(awayEn)||"待定",
+      id:`wiki-${no||i}`,no,source:"Wikipedia",home:zhTeam(homeEn)||"待定",away:zhTeam(awayEn)||"待定",
       homeFlag:flag[zhTeam(homeEn)]||"🌐",awayFlag:flag[zhTeam(awayEn)]||"🌐",
       scoreText,dateText,timeText,kickoff,localHour:parseLocalHour(timeText),...venue,referee,status:"upcoming",weather:currentLang==="en"?"Loading weather":"天气加载中",goals:[]
     };
@@ -951,6 +952,11 @@ function matchNumberForBox(box){
   const md=dateText.match(/(?:June|July)\s+(\d{1,2})/i);
   if(!md||!city)return 0;
   const month=/June/i.test(dateText)?6:7,key=`${month}/${Number(md[1])}|${city}`;
+  return knockoutScheduleNumbers[key]||0;
+}
+function matchNumberFromKickoff(kickoff,city=""){
+  if(!kickoff||Number.isNaN(+kickoff)||!city)return 0;
+  const key=`${kickoff.getMonth()+1}/${kickoff.getDate()}|${normalizeCity(city)}`;
   return knockoutScheduleNumbers[key]||0;
 }
 const knockoutScheduleNumbers={
@@ -1000,6 +1006,7 @@ async function fetchEspnMatches(cachedPages=null){
       const referee=(comp.officials||[]).map(o=>o.displayName||o.fullName||o.athlete?.displayName||o.athlete?.fullName||"").find(Boolean)||"";
       const statusType=event.status?.type||{},state=statusType.state;
       const scoreText=state==="pre"?"vs":`${home.score??""}–${away.score??""}`;
+      const matchNo=matchNumberFromKickoff(kickoff,city);
       const minute=Number((event.status?.displayClock||statusType.shortDetail||"").match(/\d+/)?.[0]);
       const sideByTeamId=Object.fromEntries(teams.map(t=>[String(t.team?.id||t.id||""),t.homeAway]));
       const goals=(comp.details||[]).filter(d=>d.scoringPlay).map(d=>{
@@ -1016,7 +1023,7 @@ async function fetchEspnMatches(cachedPages=null){
         };
       });
       matches.push({
-        id:`espn-${event.id}`,source:"ESPN",home:homeName,away:awayName,
+        id:`espn-${event.id}`,no:matchNo,source:"ESPN",home:homeName,away:awayName,
         homeFlag:flag[homeName]||"🌐",awayFlag:flag[awayName]||"🌐",
         scoreText,kickoff,localHour:kickoff.getUTCHours(),stadium:venue.fullName||(currentLang==="en"?"Venue TBD":"待定球场"),city:city||(currentLang==="en"?"City TBD":"待定城市"),
         status:state==="in"?"live":state==="post"?"final":"upcoming",
@@ -1030,14 +1037,34 @@ async function fetchEspnMatches(cachedPages=null){
 async function fetchEspnMatchesFresh(){
   return fetchEspnMatches(null);
 }
+function placeholderRank(name=""){
+  if(flag[name])return 0;
+  if(/^Winner Match \d+$/i.test(name))return 1;
+  if(/Winner|Round of|TBD|待定/i.test(name))return 2;
+  return 3;
+}
+function betterParticipant(previousName,nextName){
+  if(!previousName)return nextName;
+  if(!nextName)return previousName;
+  return placeholderRank(nextName)<placeholderRank(previousName)?nextName:previousName;
+}
 function mergeMatchCardSets(...sets){
   const merged=new Map();
   for(const matches of sets){
     for(const match of matches||[]){
       if(!match?.home||!match?.away)continue;
-      const key=pairKey(match.home,match.away);
+      const key=match.no?`match-${match.no}`:pairKey(match.home,match.away);
       const previous=merged.get(key)||{};
-      merged.set(key,{...previous,...match,referee:match.referee||previous.referee||""});
+      const home=betterParticipant(previous.home,match.home),away=betterParticipant(previous.away,match.away);
+      merged.set(key,{
+        ...previous,...match,
+        id:previous.id||match.id,
+        no:previous.no||match.no||0,
+        home,away,
+        homeFlag:flag[home]||match.homeFlag||previous.homeFlag||"🌐",
+        awayFlag:flag[away]||match.awayFlag||previous.awayFlag||"🌐",
+        referee:match.referee||previous.referee||""
+      });
     }
   }
   return [...merged.values()].sort((a,b)=>(a.kickoff||0)-(b.kickoff||0));
