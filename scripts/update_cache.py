@@ -66,7 +66,7 @@ def wiki_parse(page: str) -> dict:
 def date_keys() -> list[str]:
     # Use a wider window than the browser used. This protects against timezone
     # boundaries while still keeping the JSON small.
-    today = dt.datetime.now(dt.UTC).date()
+    today = dt.datetime.now(dt.timezone.utc).date()
     return [(today + dt.timedelta(days=offset)).strftime("%Y%m%d") for offset in range(-2, 4)]
 
 
@@ -113,7 +113,7 @@ def polymarket_games() -> dict:
 
 
 def main() -> None:
-    generated_at = dt.datetime.now(dt.UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    generated_at = dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     pages = {
         "worldCup": wiki_parse("2026_FIFA_World_Cup"),
         "knockout": wiki_parse("2026_FIFA_World_Cup_knockout_stage"),

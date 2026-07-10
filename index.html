@@ -956,7 +956,11 @@ function matchNumberForBox(box){
 }
 function matchNumberFromKickoff(kickoff,city=""){
   if(!kickoff||Number.isNaN(+kickoff)||!city)return 0;
-  const key=`${kickoff.getMonth()+1}/${kickoff.getDate()}|${normalizeCity(city)}`;
+  const hostCity=normalizeCity(city),timeZone=hostCityTimeZones[hostCity]||"UTC";
+  const parts=Object.fromEntries(new Intl.DateTimeFormat("en-US",{
+    timeZone,month:"numeric",day:"numeric"
+  }).formatToParts(kickoff).filter(x=>x.type!=="literal").map(x=>[x.type,x.value]));
+  const key=`${Number(parts.month)}/${Number(parts.day)}|${hostCity}`;
   return knockoutScheduleNumbers[key]||0;
 }
 const knockoutScheduleNumbers={
@@ -968,6 +972,12 @@ const knockoutScheduleNumbers={
   "7/6|Dallas":93,"7/6|Seattle":94,"7/7|Atlanta":95,"7/7|Vancouver":96,
   "7/9|Boston":97,"7/10|Los Angeles":98,"7/11|Miami":99,"7/11|Kansas City":100,
   "7/14|Dallas":101,"7/15|Atlanta":102,"7/19|New York City":104
+};
+const hostCityTimeZones={
+  "Mexico City":"America/Mexico_City","Guadalajara":"America/Mexico_City","Monterrey":"America/Monterrey","Guadalupe":"America/Monterrey",
+  "Atlanta":"America/New_York","Boston":"America/New_York","Dallas":"America/Chicago","Houston":"America/Chicago","Kansas City":"America/Chicago",
+  "Los Angeles":"America/Los_Angeles","Miami":"America/New_York","New York City":"America/New_York","Philadelphia":"America/New_York",
+  "San Francisco":"America/Los_Angeles","Seattle":"America/Los_Angeles","Toronto":"America/Toronto","Vancouver":"America/Vancouver"
 };
 function parseKoMatchMeta(koDoc){
   const out={};
