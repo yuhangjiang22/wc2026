@@ -23,6 +23,8 @@ WIKI_API = "https://en.wikipedia.org/w/api.php"
 ESPN_API = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard"
 ELO_URL = "https://r.jina.ai/http://www.eloratings.net/2026_World_Cup.tsv"
 POLYMARKET_URL = "https://polymarket.com/sports/world-cup/games"
+KNOCKOUT_START = dt.date(2026, 6, 28)
+KNOCKOUT_END = dt.date(2026, 7, 19)
 
 
 def fetch_json(url: str, timeout: int = 25) -> dict:
@@ -64,10 +66,13 @@ def wiki_parse(page: str) -> dict:
 
 
 def date_keys() -> list[str]:
-    # Use a wider window than the browser used. This protects against timezone
-    # boundaries while still keeping the JSON small.
+    # Refresh the full knockout calendar every time. Otherwise a match day that
+    # was cached while a game was live can stay frozen forever once it falls
+    # outside the rolling window.
     today = dt.datetime.now(dt.timezone.utc).date()
-    return [(today + dt.timedelta(days=offset)).strftime("%Y%m%d") for offset in range(-2, 4)]
+    rolling = {today + dt.timedelta(days=offset) for offset in range(-2, 4)}
+    knockout = {KNOCKOUT_START + dt.timedelta(days=offset) for offset in range((KNOCKOUT_END - KNOCKOUT_START).days + 1)}
+    return [day.strftime("%Y%m%d") for day in sorted(rolling | knockout)]
 
 
 def espn_scoreboard(date_key: str) -> dict:

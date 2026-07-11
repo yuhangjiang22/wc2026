@@ -919,7 +919,11 @@ function zhTeam(name){
   return teamZh[name]||espnTeamZh[name]||name;
 }
 function matchStatus(match,now=new Date()){
-  if(match.source==="ESPN"&&match.status)return match.status;
+  if(match.source==="ESPN"&&match.status){
+    const staleLive=match.status==="live"&&match.kickoff&&(now-match.kickoff)>6*60*60000;
+    if(staleLive)return scoreParts(match)?"final":"upcoming";
+    return match.status;
+  }
   if(match.scoreText&&/^\d+[–-]\d+$/.test(match.scoreText))return "final";
   if(!match.kickoff)return "upcoming";
   const mins=(now-match.kickoff)/60000;
