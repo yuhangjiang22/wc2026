@@ -1098,10 +1098,10 @@ function scoreParts(m){
   return match?[Number(match[1]),Number(match[2])]:null;
 }
 function isShootoutGoal(g){
-  return !!g.shootout||(!!g.penalty&&/\b120/.test(g.minute||""));
+  return !!g.shootout;
 }
 function penaltyScoreParts(m){
-  if(!hasPenaltyPhase(m))return null;
+  if(!hasShootoutPhase(m))return null;
   const goals=(m.goals||[]).filter(isShootoutGoal);
   if(!goals.length)return null;
   const home=goals.filter(g=>g.side==="home").length,away=goals.filter(g=>g.side==="away").length;
@@ -1163,6 +1163,9 @@ function knockoutMarketProbability(a,b){
 }
 function hasPenaltyPhase(m){
   return /\b(pens?|penalties|shootout|aet)\b/i.test(m.statusDetail||"");
+}
+function hasShootoutPhase(m){
+  return /\b(pens?|penalties|shootout)\b/i.test(m.statusDetail||"");
 }
 function knockoutAdvanceProb(m){
   const score=scoreParts(m);
