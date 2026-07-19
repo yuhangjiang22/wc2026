@@ -106,6 +106,7 @@
     .insight small{color:var(--orange);font-weight:850;letter-spacing:.1em}.insight h3{font-size:24px;line-height:1.15;
       margin:26px 0 10px;letter-spacing:-.03em}.insight p{color:var(--muted);font-size:13px;line-height:1.7;margin:0}
     .third-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:30px}
+    .third-grid.hidden{display:none}
     .third-card{padding:17px;border:1px solid var(--line);border-radius:15px;background:var(--surface);cursor:default}
     .third-card .top{display:flex;justify-content:space-between;align-items:center}.third-card b{font-size:14px}
     .third-card .pct{color:var(--lime);font-weight:900}.third-card small{color:var(--muted)}
@@ -869,11 +870,20 @@ window.__wcValidate=validateTournamentState;
 renderGroups();
 function renderThirds(){
   if(knockoutStageReady){renderTitleContenders();return}
-  document.querySelector("#thirdGrid").innerHTML=third.map((t,i)=>`<article class="third-card"><div class="top"><b>${i+1}. ${teamWithFlag(t[0],t[1])}</b><span class="pct">${t[2]}%</span></div><small>${currentLang==="en"?"Best-third qualification chance":"预测以小组第三晋级"}</small><div class="prob"><i style="width:${t[2]}%"></i></div></article>`).join("");
+  const grid=document.querySelector("#thirdGrid");
+  grid.classList.remove("hidden");
+  grid.innerHTML=third.map((t,i)=>`<article class="third-card"><div class="top"><b>${i+1}. ${teamWithFlag(t[0],t[1])}</b><span class="pct">${t[2]}%</span></div><small>${currentLang==="en"?"Best-third qualification chance":"预测以小组第三晋级"}</small><div class="prob"><i style="width:${t[2]}%"></i></div></article>`).join("");
 }
 function renderTitleContenders(){
   const odds=bracketScenarios[0]?.titleOdds||{},rows=Object.entries(odds).sort((a,b)=>b[1]-a[1]||teamElo(b[0])-teamElo(a[0])).slice(0,8);
-  document.querySelector("#thirdGrid").innerHTML=rows.map(([team,p],i)=>`<article class="third-card"><div class="top"><b>${i+1}. ${teamWithFlag(team)}</b><span class="pct">${formatModelPct(p)}</span></div><small>${currentLang==="en"?"Overall title probability":"综合夺冠概率"}</small><div class="prob"><i style="width:${Math.max(1,p*100)}%"></i></div></article>`).join("");
+  const grid=document.querySelector("#thirdGrid");
+  if(knockoutStageReady&&rows.length<=2){
+    grid.classList.add("hidden");
+    grid.innerHTML="";
+    return;
+  }
+  grid.classList.remove("hidden");
+  grid.innerHTML=rows.map(([team,p],i)=>`<article class="third-card"><div class="top"><b>${i+1}. ${teamWithFlag(team)}</b><span class="pct">${formatModelPct(p)}</span></div><small>${currentLang==="en"?"Overall title probability":"综合夺冠概率"}</small><div class="prob"><i style="width:${Math.max(1,p*100)}%"></i></div></article>`).join("");
 }
 function matchByNoOrPair(no,a,b){
   return matchCards.find(m=>m.no===no)||matchCards.find(m=>samePair([m.home,m.away],a,b))||null;
