@@ -194,6 +194,15 @@
     .final-odds i:after{content:"";display:block;width:var(--p);height:100%;border-radius:999px;background:var(--c,var(--lime))}
     .final-odds:first-child{--c:var(--mint)}.final-odds:last-child{--c:var(--orange)}
     .final-note{margin:0;color:var(--muted);font-size:11px;line-height:1.55}
+    .final-promo.story{background:linear-gradient(135deg,rgba(96,237,181,.09),rgba(10,30,23,.86));border-color:rgba(145,215,185,.25)}
+    .final-story-grid{grid-template-columns:minmax(0,1fr) minmax(300px,.72fr);align-items:center}
+    .final-story-card{display:grid;gap:9px;padding:15px;border:1px solid rgba(255,255,255,.06);border-radius:16px;background:rgba(5,22,17,.44)}
+    .final-story-row{display:grid;grid-template-columns:90px minmax(0,1fr);gap:12px;align-items:center;padding:10px 0;border-top:1px solid rgba(255,255,255,.055)}
+    .final-story-row:first-child{border-top:0}.final-story-row small{color:var(--lime);font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+    .final-story-row b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}.final-story-row span{color:var(--muted);font-size:11px}
+    .final-promo.after{border-color:rgba(217,255,99,.36);background:radial-gradient(circle at 28% 20%,rgba(217,255,99,.22),transparent 45%),linear-gradient(135deg,rgba(217,255,99,.16),rgba(10,30,23,.88))}
+    .final-after-score{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:8px 12px;border-radius:999px;background:rgba(5,22,17,.55);border:1px solid rgba(255,255,255,.07);color:var(--lime);font-size:18px;font-weight:950}
+    .insights.hidden{display:none}
 
     .groups{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.group{overflow:hidden;border:1px solid #23483a;
       border-radius:12px;background:rgba(10,30,23,.72);box-shadow:0 8px 28px rgba(0,0,0,.12)}
@@ -313,7 +322,7 @@
       .source-tools button,.tab,.scenario-tab,.eyebrow,.tournament-lockup small,.insight small,.third-card .pct,.label-mark,.board-value,.board-row.top .board-rank,.live-panel-head,.match-kicker,.prob-cell b,.fixture-time,.fixture-score,.group-title span,.team-row.direct .pos,.team-row .pts,.qualify b,.group-insight small,.match-top b,.match-code,.team .status,.team.official,.team.official .status,.team.official.loses,.team.advances,.bracket-match-meta .meta-time{font-weight:600}
       h1,h2,h3,.brand b,.status-copy b,.readout b,.tab.active,.scenario-tab.active,.score,.team.official.advances .name{font-weight:700}
       body.lang-en .tab,body.lang-en .scenario-tab{font-weight:600}body.lang-en .tab.active,body.lang-en .scenario-tab.active{font-weight:700}
-      .final-promo{padding:16px;margin-bottom:24px}.final-promo h2{font-size:30px}.final-teams{grid-template-columns:1fr;gap:8px}.final-team.away{text-align:left}.final-versus{font-size:28px;text-align:left}.final-odds-row{grid-template-columns:1fr}.final-meta-row{display:grid}.final-pill{border-radius:12px}
+      .final-promo{padding:16px;margin-bottom:24px}.final-promo h2{font-size:30px}.final-teams{grid-template-columns:1fr;gap:8px}.final-team.away{text-align:left}.final-versus{font-size:28px;text-align:left}.final-odds-row{grid-template-columns:1fr}.final-meta-row{display:grid}.final-pill{border-radius:12px}.final-story-row{grid-template-columns:1fr;gap:4px}
       .insights,.groups,.third-grid,.group-insights,.leaderboards,.match-strip,.upcoming-panel{grid-template-columns:1fr}.group-insight{border-right:0;border-bottom:1px solid #244638}
       .live-panel{padding:12px}.live-panel.multi .live-grid{grid-template-columns:1fr}.scoreline{gap:8px}.score-team{padding:11px 9px}.score-team b{font-size:17px}.score{min-width:72px;font-size:32px}
       .match-meta{display:grid;font-size:11px}.bracket-match-meta{font-size:9px}.list-section+.list-section{border-left:0;border-top:1px solid rgba(255,255,255,.07);padding-left:0;padding-top:13px;margin-top:2px}.fixture{grid-template-columns:66px minmax(0,1fr)}.fixture-weather,.fixture-score{grid-column:2;justify-self:start;text-align:left}
@@ -871,16 +880,20 @@ function matchByNoOrPair(no,a,b){
 }
 function renderFinalPromo(){
   const el=document.querySelector("#finalPromo");if(!el)return;
+  const insightBlock=document.querySelector(".insights");
   const finalMatch=bracketScenarios[0]?.paths?.final?.[0]||paths?.base?.final?.[0];
   if(!finalMatch){
+    insightBlock?.classList.remove("hidden");
     el.innerHTML=`<div class="empty-state">${currentLang==="en"?"The final preview will appear after the bracket syncs.":"同步淘汰赛签表后生成决赛预告。"}</div>`;
     return;
   }
+  insightBlock?.classList.toggle("hidden",knockoutStageReady);
   const [no,a,b,projectedWinner]=finalMatch;
   const m=matchByNoOrPair(no,a,b),meta=koMatchMeta[no]||{};
   const kickoff=m?.kickoff||meta.kickoff||null,status=m?matchStatus(m):"upcoming";
   const score=status==="final"||status==="live"?scoreDisplay(m):"vs";
   const winner=status==="final"?matchResolvedWinner(m):projectedWinner;
+  const runner=status==="final"?(winner===a?b:a):null;
   const titleOdds=bracketScenarios[0]?.titleOdds||{};
   let pA=titleOdds[a],pB=titleOdds[b];
   if(!Number.isFinite(pA)||!Number.isFinite(pB)){
@@ -893,13 +906,41 @@ function renderFinalPromo(){
   const city=displayPlace(m?.city||meta.city||"New York City"),stadium=displayPlace(m?.stadium||meta.stadium||"MetLife Stadium");
   const weather=displayWeather(m?.weather)||((currentLang==="en"?"Loading weather":"天气加载中"));
   const referee=m?.referee||meta.referee||"";
+  if(status==="final"&&winner){
+    el.className="final-promo after";
+    const topScorer=scorerLeaders[0];
+    el.innerHTML=`
+      <div class="final-promo-grid final-story-grid">
+        <div class="final-promo-copy">
+          <div>
+            <div class="final-kicker">${currentLang==="en"?"World Cup complete":"世界杯落幕"}</div>
+            <h2>${teamWithFlag(winner)}<br><span>${currentLang==="en"?"world champions":"世界冠军"}</span></h2>
+            <div class="final-after-score">${teamWithFlag(a)} ${score} ${teamWithFlag(b)}</div>
+            <p>${currentLang==="en"?`${teamName(winner)} beat ${teamName(runner)} in the final. The page now switches from forecast mode to a post-final archive.`:`${winner}在决赛击败${runner}。页面已从赛前预测自动切换为赛后归档。`}</p>
+          </div>
+          <div class="final-meta-row">
+            <span class="final-pill">🕒 <b>${timeText}</b></span>
+            <span class="final-pill">📍 <b>${city}</b></span>
+            <span class="final-pill">🌤️ ${weather}</span>
+            ${referee?`<span class="final-pill">${refereeLabel(referee)}</span>`:""}
+          </div>
+        </div>
+        <article class="final-story-card">
+          <div class="final-story-row"><small>${currentLang==="en"?"Champion":"冠军"}</small><b>${teamWithFlag(winner)}</b></div>
+          <div class="final-story-row"><small>${currentLang==="en"?"Runner-up":"亚军"}</small><b>${teamWithFlag(runner)}</b></div>
+          <div class="final-story-row"><small>${currentLang==="en"?"Golden boot":"射手王"}</small><b>${topScorer?`${topScorer.flag||""} ${topScorer.name} · ${topScorer.value}`:"—"}</b></div>
+        </article>
+      </div>`;
+    return;
+  }
+  el.className="final-promo story";
   const statusCopy=status==="final"
     ?(currentLang==="en"?`${teamName(winner)} are world champions.`:`${winner}捧起世界杯。`)
     :(status==="live"
       ?(currentLang==="en"?"The final is live. Probabilities are updating with the scoreline.":"决赛正在进行，胜率会随比分实时变化。")
       :(currentLang==="en"?`${teamName(a)} and ${teamName(b)} meet for the trophy. One match left.`:`${a}与${b}会师决赛，只剩最后一战。`));
   el.innerHTML=`
-    <div class="final-promo-grid">
+    <div class="final-promo-grid final-story-grid">
       <div class="final-promo-copy">
         <div>
           <div class="final-kicker">${currentLang==="en"?"World Cup Final":"世界杯决赛"}</div>
@@ -913,18 +954,10 @@ function renderFinalPromo(){
           ${referee?`<span class="final-pill">${refereeLabel(referee)}</span>`:""}
         </div>
       </div>
-      <article class="final-card">
-        <div class="final-card-top"><b>${currentLang==="en"?"Final watch":"决赛倒计时"}</b><span>${countdown}</span></div>
-        <div class="final-teams">
-          <div class="final-team"><strong>${teamWithFlag(a)}</strong><small>${currentLang==="en"?"Model title chance":"综合夺冠概率"}</small></div>
-          <div class="final-versus">${score}</div>
-          <div class="final-team away"><strong>${teamWithFlag(b)}</strong><small>${currentLang==="en"?"Model title chance":"综合夺冠概率"}</small></div>
-        </div>
-        <div class="final-odds-row">
-          <div class="final-odds"><b>${formatModelPct(pA)}</b><span>${currentLang==="en"?`${teamName(a)} lift the trophy`:`${a}夺冠`}</span><i style="--p:${Math.max(1,pA*100)}%"></i></div>
-          <div class="final-odds"><b>${formatModelPct(pB)}</b><span>${currentLang==="en"?`${teamName(b)} lift the trophy`:`${b}夺冠`}</span><i style="--p:${Math.max(1,pB*100)}%"></i></div>
-        </div>
-        <p class="final-note">${currentLang==="en"?"Built from the fixed bracket, current score state, market prices where available and Elo simulation.":"基于官方签表、当前赛况、可用市场价格与 Elo 模拟生成；临场比分会继续刷新。"}</p>
+      <article class="final-story-card">
+        <div class="final-story-row"><small>${currentLang==="en"?"Countdown":"倒计时"}</small><b>${countdown}</b></div>
+        <div class="final-story-row"><small>${currentLang==="en"?"Model edge":"模型倾向"}</small><b>${pA>=pB?teamWithFlag(a):teamWithFlag(b)} · ${formatModelPct(Math.max(pA,pB))}</b></div>
+        <div class="final-story-row"><small>${currentLang==="en"?"After FT":"赛后自动"}</small><span>${currentLang==="en"?"This panel becomes a champion recap once the final is marked FT.":"决赛标记为 FT 后，这里会自动变成冠军与赛后总结。"}</span></div>
       </article>
     </div>`;
 }
@@ -1854,7 +1887,7 @@ const routePairs={89:[74,77],90:[73,75],93:[83,84],94:[81,82],91:[76,78],92:[79,
 function cleanTeamName(text){
   return text.replace(/\[[^\]]*]/g,"").replace(/\([^)]*\)/g,"").replace(/vte$/,"").replace(/\s+/g," ").trim();
 }
-function parseScorers(doc){
+function parseScorersFromMatchBoxes(doc){
   const totals={};
   for(const box of doc.querySelectorAll(".footballbox")){
     const cells=Array.from(box.querySelectorAll("th,td"));
@@ -1880,6 +1913,40 @@ function parseScorers(doc){
   }
   return Object.values(totals).sort((a,b)=>b.goals-a.goals||(eloRatings[b.team]||0)-(eloRatings[a.team]||0)||a.name.localeCompare(b.name))
     .map(x=>({name:x.name,flag:flagIcon(x.team),team:x.team,value:x.goals}));
+}
+function parseScorers(doc){
+  const heading=doc.querySelector("#Goalscorers");
+  const rows=[];
+  if(heading){
+    let goals=null;
+    let node=(heading.closest(".mw-heading")||heading).nextElementSibling;
+    while(node){
+      if(node.matches?.(".mw-heading")&&node.querySelector("h2,h3"))break;
+      const bold=node.querySelector?.("b");
+      const goalText=bold?.textContent||"";
+      const goalMatch=goalText.match(/(\d+)\s+goals?/i);
+      if(goalMatch)goals=Number(goalMatch[1]);
+      if(goals&&node.classList?.contains("div-col")){
+        for(const li of node.querySelectorAll("li")){
+          const playerLink=Array.from(li.querySelectorAll('a[href^="/wiki/"]')).find(a=>{
+            const title=a.getAttribute("title")||"";
+            return !a.closest(".flagicon")&&!/national (football|soccer) team/i.test(title);
+          });
+          if(!playerLink)continue;
+          const flagLink=li.querySelector(".flagicon a[title]");
+          const englishTeam=cleanTeamName(flagLink?.getAttribute("title")||"").replace(/\s+(men's\s+)?national (football|soccer) team$/i,"");
+          const team=teamZh[englishTeam]||englishTeam||cleanTeamName(li.textContent).replace(playerLink.textContent,"").trim();
+          const name=playerLink.getAttribute("title")||playerLink.textContent.trim();
+          rows.push({name,flag:flagIcon(team),team,value:goals});
+        }
+      }
+      node=node.nextElementSibling;
+    }
+  }
+  if(rows.length){
+    return rows.sort((a,b)=>b.value-a.value||(eloRatings[b.team]||0)-(eloRatings[a.team]||0)||a.name.localeCompare(b.name));
+  }
+  return parseScorersFromMatchBoxes(doc);
 }
 function projectedGroups(official={}){
   const out={};
