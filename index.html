@@ -426,6 +426,7 @@
   <footer id="footerNote">预测依据：等待同步最新积分、净胜球、剩余赛程、球队实力与路径难度。本页面不是 FIFA 官方对阵表。</footer>
 </div>
 <script>
+const ARCHIVE_MODE=true;
 let currentLang=localStorage.getItem("wc2026-lang")||"zh";
 const copy={
   zh:{
@@ -721,8 +722,8 @@ function updateLiveCopy(){
   if(liveDataReady)document.querySelector("#statsUpdated").textContent=currentLang==="en"?`Updated ${lastSyncLabel.replace(" synced","")} · match data`:`截至 ${lastSyncLabel.replace(" 已同步","")} · 已赛数据`;
   const summaryStatus=document.querySelector("#summaryStatus");
   if(summaryStatus)summaryStatus.textContent=knockoutStageReady
-    ?(currentLang==="en"?"The official bracket is fixed. Results and probabilities refresh every 2 minutes.":"官方签表已经固定；赛果与晋级概率每 2 分钟自动更新。")
-    :(currentLang==="en"?"Auto-syncs every 2 minutes. Green numbers are clinched; everything else is model-driven.":"每 2 分钟自动同步；绿色数字是锁定槽位，其余随赛果和模型重算。");
+    ?(ARCHIVE_MODE?(currentLang==="en"?"Final archive snapshot. The bracket and results are no longer auto-updated.":"最终归档快照；签表和赛果不再自动更新。"):(currentLang==="en"?"The official bracket is fixed. Results and probabilities refresh every 2 minutes.":"官方签表已经固定；赛果与晋级概率每 2 分钟自动更新。"))
+    :(ARCHIVE_MODE?(currentLang==="en"?"Archive snapshot. Live syncing has been turned off.":"归档快照；实时同步已关闭。"):(currentLang==="en"?"Auto-syncs every 2 minutes. Green numbers are clinched; everything else is model-driven.":"每 2 分钟自动同步；绿色数字是锁定槽位，其余随赛果和模型重算。"));
   const matchNote=document.querySelector("#matchCenterNote");
   if(matchNote)matchNote.textContent=currentLang==="en"?`Live scores, recent results and upcoming fixtures. Times shown in ${localTimeZoneLabel()}.`:`正在同步实时比分、近期赛果和接下来赛程；开球时间按你的本地时区显示：${localTimeZoneLabel()}。`;
   if(knockoutStageReady){
@@ -2441,6 +2442,7 @@ async function fetchCachePayload(url,label){
   return cachePayloadToBundle(validateCachePayload(payload,label),label);
 }
 async function fetchSiteCache(){
+  if(ARCHIVE_MODE)return fetchCachePayload("data/cache.json",currentLang==="en"?"archive cache":"归档缓存");
   const worker=fetchCachePayload("/api/cache",currentLang==="en"?"edge cache":"边缘缓存");
   const raw=fetchCachePayload("https://raw.githubusercontent.com/yuhangjiang22/wc2026/main/data/cache.json",currentLang==="en"?"GitHub cache":"GitHub缓存");
   const local=fetchCachePayload("data/cache.json",currentLang==="en"?"site cache":"本站缓存");
@@ -2507,11 +2509,11 @@ async function applyDataBundle({data,koData,espnPages=null,eloText=null,polymark
     groups=cloneGroups(baseGroups);remainingFixtures=cloneMap(baseRemainingFixtures);completedResults=cloneMap(baseCompletedResults);
     scorerLeaders=parseScorers(doc);
     let freshEspn=[],cachedEspn=[];
-    try{freshEspn=await fetchEspnMatchesFresh()}catch(error){freshEspn=[]}
+    if(!ARCHIVE_MODE)try{freshEspn=await fetchEspnMatchesFresh()}catch(error){freshEspn=[]}
     try{cachedEspn=await fetchEspnMatches(espnPages)}catch(error){cachedEspn=[]}
     matchCards=mergeMatchCardSets(parseMatchCards(doc),parseMatchCards(koDoc),cachedEspn,freshEspn);
     renderMatchCenter();
-    enrichWeather();
+    if(!ARCHIVE_MODE)enrichWeather();
     const official=parseOfficial(koDoc);
     latestKoDoc=koDoc;latestOfficial=official;
     applyOfficialStatus(official);
@@ -2533,11 +2535,17 @@ async function syncLatest(){
   try{
     let bundle,cacheError=null;
     try{bundle=await fetchSiteCache()}
-    catch(error){cacheError=error;bundle=await fetchExternalBundle()}
+    catch(error){
+      cacheError=error;
+      if(ARCHIVE_MODE)throw error;
+      bundle=await fetchExternalBundle();
+    }
     const result=await applyDataBundle(bundle);
     btn.classList.add("live");
     text.textContent=syncButtonLabel(result.now);
-    btn.title=currentLang==="en"?`Click to refresh; ${result.sourceLabel}${cacheError?` (cache unavailable, direct fallback: ${cacheError.message})`:""}; standings ${result.data.parse.revid} · knockout ${result.koData.parse.revid} · Elo ${eloSourceTime}`:`点击立即刷新；${result.sourceLabel}${cacheError?`（缓存不可用，已回退直连：${cacheError.message}）`:""}；积分 ${result.data.parse.revid} · 淘汰赛 ${result.koData.parse.revid} · Elo ${eloSourceTime}`;
+    btn.title=ARCHIVE_MODE
+      ?(currentLang==="en"?`Archive snapshot loaded from this site; no live sync is running.`:`已从本站加载归档快照；实时同步已关闭。`)
+      :(currentLang==="en"?`Click to refresh; ${result.sourceLabel}${cacheError?` (cache unavailable, direct fallback: ${cacheError.message})`:""}; standings ${result.data.parse.revid} · knockout ${result.koData.parse.revid} · Elo ${eloSourceTime}`:`点击立即刷新；${result.sourceLabel}${cacheError?`（缓存不可用，已回退直连：${cacheError.message}）`:""}；积分 ${result.data.parse.revid} · 淘汰赛 ${result.koData.parse.revid} · Elo ${eloSourceTime}`);
   }catch(error){
     lastSyncLabel=currentLang==="en"?"Sync failed · offline fallback":"同步失败 · 显示离线兜底";
     liveDataReady=false;
@@ -2588,8 +2596,6 @@ applyLanguage();
 renderBracket();
 try{const cached=JSON.parse(localStorage.getItem("wc2026-elo"));if(cached?.ratings){eloRatings={...eloRatings,...cached.ratings};eloSourceTime=cached.time||"缓存"}}catch{}
 syncLatest();
-setInterval(refreshMatchCenterLive,30000);
-setInterval(()=>{if(!document.hidden)syncLatest()},120000);
 setInterval(updateKickoffCountdowns,1000);
 </script>
 </body>
